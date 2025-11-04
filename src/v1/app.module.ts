@@ -16,7 +16,6 @@ import { AdminController } from './modules/admin/admin.controller';
 import { AuthController } from './modules/auth/auth.controller';
 import { AuthService } from './modules/auth/auth.service';
 import { JoseService } from './modules/auth/jose.service';
-import { LocalStrategy } from './modules/auth/local.strategy';
 import { QuotesGateway } from './modules/realtime/quotes.gateway';
 
 @Module({
@@ -41,7 +40,6 @@ import { QuotesGateway } from './modules/realtime/quotes.gateway';
     AdminService,
     AuthService,
     JoseService,
-    LocalStrategy,
     QuotesGateway,
   ],
 })

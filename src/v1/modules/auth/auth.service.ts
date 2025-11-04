@@ -11,12 +11,16 @@ import { JoseService } from './jose.service';
 export class AuthService {
   constructor(
     @InjectRepository(User) private readonly users: Repository<User>,
-    @InjectRepository(Supplier) private readonly suppliers: Repository<Supplier>,
+    @InjectRepository(Supplier)
+    private readonly suppliers: Repository<Supplier>,
     private readonly jose: JoseService,
   ) {}
 
   async register(dto: {
-    email: string; password: string; fullName: string; role?: User['role'];
+    email: string;
+    password: string;
+    fullName: string;
+    role?: User['role'];
     supplier?: Partial<Supplier>;
   }) {
     const existing = await this.users.findOne({ where: { email: dto.email } });
@@ -38,7 +42,6 @@ export class AuthService {
         isActive: true,
       });
       await this.suppliers.save(supplier);
-      user.supplier = supplier as any;
     }
     return user.toPublic();
   }
@@ -64,7 +67,8 @@ export class AuthService {
       const s = process.env.TOKEN_EXPIRES_IN || '1d';
       const m = /^([0-9]+)([smhd])$/.exec(s) || [];
       const n = parseInt(m[1] || '1', 10);
-      const mult = m[2] === 's' ? 1 : m[2] === 'm' ? 60 : m[2] === 'h' ? 3600 : 86400;
+      const mult =
+        m[2] === 's' ? 1 : m[2] === 'm' ? 60 : m[2] === 'h' ? 3600 : 86400;
       return n * mult * 1000;
     })();
 
@@ -79,5 +83,3 @@ export class AuthService {
     return userPublic;
   }
 }
-
-

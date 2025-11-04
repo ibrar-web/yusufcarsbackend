@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Post, Res, Req } from '@nestjs/common';
-import { Response, Request } from 'express';
+import type { Response, Request } from 'express';
 import { AuthService } from './auth.service';
 import { JoseService } from './jose.service';
 

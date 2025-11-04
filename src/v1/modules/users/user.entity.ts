@@ -6,9 +6,9 @@ import {
   BeforeInsert,
   BeforeUpdate,
   OneToOne,
-  JoinColumn,
 } from 'typeorm';
 import * as bcrypt from 'bcrypt';
+import { Supplier } from '../suppliers/supplier.entity';
 
 export type AppRole = 'admin' | 'customer' | 'supplier' | 'garage';
 
@@ -26,7 +26,11 @@ export class User {
   @Column()
   fullName!: string;
 
-  @Column({ type: 'enum', enum: ['admin', 'customer', 'supplier', 'garage'], default: 'customer' })
+  @Column({
+    type: 'enum',
+    enum: ['admin', 'customer', 'supplier', 'garage'],
+    default: 'customer',
+  })
   role!: AppRole;
 
   @Column({ default: true })
@@ -35,10 +39,10 @@ export class User {
   @CreateDateColumn()
   createdAt!: Date;
 
-  @OneToOne(() => Object, { nullable: true, onDelete: 'SET NULL' })
-  @JoinColumn()
-  supplier?: any;
-
+  @OneToOne(() => Supplier, (supplier) => supplier.user, {
+    nullable: true,
+    onDelete: 'SET NULL',
+  })
   toPublic() {
     const { password, ...rest } = this as any;
     return rest;
@@ -52,5 +56,3 @@ export class User {
     }
   }
 }
-
-
