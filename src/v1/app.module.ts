@@ -21,12 +21,28 @@ import { QuotesGateway } from './modules/realtime/quotes.gateway';
 
 @Module({
   imports: [
-    TypeOrmModule.forRoot(dataSourceOptions as any),
+    TypeOrmModule.forRoot({
+      ...dataSourceOptions,
+      autoLoadEntities: true,
+    }),
     TypeOrmModule.forFeature([User, Supplier, QuoteRequest, Quote]),
   ],
-  controllers: [UsersController, SuppliersController, QuotesController, AdminController, AuthController],
-  providers: [UsersService, SuppliersService, QuotesService, AdminService, AuthService, JoseService, LocalStrategy, QuotesGateway],
+  controllers: [
+    UsersController,
+    SuppliersController,
+    QuotesController,
+    AdminController,
+    AuthController,
+  ],
+  providers: [
+    UsersService,
+    SuppliersService,
+    QuotesService,
+    AdminService,
+    AuthService,
+    JoseService,
+    LocalStrategy,
+    QuotesGateway,
+  ],
 })
 export class AppModule {}
-
-

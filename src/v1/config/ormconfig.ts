@@ -10,12 +10,10 @@ export const dataSourceOptions: DataSourceOptions = {
   username: process.env.DATABASE_USER || 'postgres',
   password: process.env.DATABASE_PASSWORD || 'postgres',
   database: process.env.DATABASE_NAME || 'marketplace',
-  synchronize: false,
+  synchronize: true,
   logging: false,
   entities: ['src/v1/modules/**/**/*.entity.ts'],
   migrations: ['src/migrations/*.ts'],
 };
 
 export const AppDataSource = new DataSource(dataSourceOptions);
-
-
