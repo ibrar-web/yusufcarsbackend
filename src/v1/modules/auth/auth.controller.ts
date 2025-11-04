@@ -3,9 +3,12 @@ import type { Response, Request } from 'express';
 import { AuthService } from './auth.service';
 import { JoseService } from './jose.service';
 
-@Controller('/api/v1/auth')
+@Controller('/auth')
 export class AuthController {
-  constructor(private readonly auth: AuthService, private readonly jose: JoseService) {}
+  constructor(
+    private readonly auth: AuthService,
+    private readonly jose: JoseService,
+  ) {}
 
   @Post('register')
   async register(
@@ -22,7 +25,10 @@ export class AuthController {
   }
 
   @Post('login')
-  async login(@Body() body: { email: string; password: string }, @Res({ passthrough: true }) res: Response) {
+  async login(
+    @Body() body: { email: string; password: string },
+    @Res({ passthrough: true }) res: Response,
+  ) {
     const pub = await this.auth.validateUser(body.email, body.password);
     if (!pub) return { ok: false };
     return await this.auth.login(res, pub);
