@@ -10,7 +10,7 @@ import {
 import * as bcrypt from 'bcrypt';
 import { Supplier } from '../suppliers/supplier.entity';
 
-export type AppRole = 'admin' | 'customer' | 'supplier' | 'garage';
+export type AppRole = 'admin' | 'user' | 'supplier' | 'garage';
 
 @Entity('users')
 export class User {
@@ -28,8 +28,8 @@ export class User {
 
   @Column({
     type: 'enum',
-    enum: ['admin', 'customer', 'supplier', 'garage'],
-    default: 'customer',
+    enum: ['admin', 'user', 'supplier', 'garage'],
+    default: 'user',
   })
   role!: AppRole;
 

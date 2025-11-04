@@ -55,10 +55,10 @@ export class QuotesService {
     return await this.quotes.save(quote);
   }
 
-  async accept(customerId: string, id: string) {
+  async accept(userId: string, id: string) {
     const quote = await this.quotes.findOne({ where: { id } });
     if (!quote) throw new NotFoundException('Quote not found');
-    if (quote.quoteRequest.user.id !== customerId) throw new BadRequestException('Not your request');
+    if (quote.quoteRequest.user.id !== userId) throw new BadRequestException('Not your request');
     quote.status = 'accepted';
     await this.quotes.save(quote);
     // Expire others would require query builder; omitted for brevity.

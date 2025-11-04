@@ -1,4 +1,12 @@
-import { Controller, Get, Param, Query, Patch, Body, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Param,
+  Query,
+  Patch,
+  Body,
+  UseGuards,
+} from '@nestjs/common';
 import { UsersService } from './users.service';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { RolesGuard } from '../../common/guards/roles.guard';
@@ -25,15 +33,16 @@ export class UsersController {
   @Patch(':id/role')
   async setRole(
     @Param('id') id: string,
-    @Body() body: { role: 'admin' | 'customer' | 'supplier' | 'garage' },
+    @Body() body: { role: 'admin' | 'user' | 'supplier' | 'garage' },
   ) {
     return await this.users.setRole(id, body.role);
   }
 
   @Patch(':id/active')
-  async setActive(@Param('id') id: string, @Body() body: { isActive: boolean }) {
+  async setActive(
+    @Param('id') id: string,
+    @Body() body: { isActive: boolean },
+  ) {
     return await this.users.setActive(id, body.isActive);
   }
 }
-
-

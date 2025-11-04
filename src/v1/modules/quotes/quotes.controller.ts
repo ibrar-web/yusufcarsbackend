@@ -10,7 +10,7 @@ export class QuotesController {
   constructor(private readonly quotes: QuotesService) {}
 
   @Post('request')
-  @Roles('customer')
+  @Roles('user')
   createRequest(@Req() req: any, @Body() body: any) {
     return this.quotes.createRequest(req.user.sub, body);
   }
@@ -22,13 +22,13 @@ export class QuotesController {
   }
 
   @Post(':id/accept')
-  @Roles('customer')
+  @Roles('user')
   accept(@Req() req: any, @Param('id') id: string) {
     return this.quotes.accept(req.user.sub, id);
   }
 
   @Get('my-requests')
-  @Roles('customer')
+  @Roles('user')
   myRequests(@Req() req: any) {
     return this.quotes.myRequests(req.user.sub);
   }

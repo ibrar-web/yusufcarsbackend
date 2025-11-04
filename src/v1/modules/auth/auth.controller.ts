@@ -17,7 +17,7 @@ export class AuthController {
       email: string;
       password: string;
       fullName: string;
-      role?: 'admin' | 'customer' | 'supplier' | 'garage';
+      role?: 'admin' | 'user' | 'supplier' | 'garage';
       supplier?: any;
     },
   ) {

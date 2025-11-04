@@ -30,7 +30,7 @@ export class AuthService {
       email: dto.email,
       password: dto.password,
       fullName: dto.fullName,
-      role: dto.role ?? 'customer',
+      role: dto.role ?? 'user',
     });
     await this.users.save(user);
 
