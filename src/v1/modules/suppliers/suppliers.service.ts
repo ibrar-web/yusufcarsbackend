@@ -7,11 +7,11 @@ import { Supplier } from './supplier.entity';
 export class SuppliersService {
   constructor(@InjectRepository(Supplier) private readonly suppliers: Repository<Supplier>) {}
 
-  async list(params?: { isVerified?: boolean; postcode?: string; category?: string }) {
+  async list(params?: { isVerified?: boolean; postCode?: string; category?: string }) {
     return this.suppliers.find({
       where: {
         ...(params?.isVerified === undefined ? {} : { isVerified: params.isVerified }),
-        ...(params?.postcode ? { postCode: params.postcode } : {}),
+        ...(params?.postCode ? { postCode: params.postCode } : {}),
       },
       order: { createdAt: 'DESC' },
     });

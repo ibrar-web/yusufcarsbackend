@@ -21,7 +21,7 @@ export class UserRegisterDto {
   phone: string;
 
   @IsString()
-  postcode: string;
+  postCode: string;
 
   @IsString()
   @MinLength(6)

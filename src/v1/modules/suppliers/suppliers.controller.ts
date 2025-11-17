@@ -11,12 +11,12 @@ export class SuppliersController {
   @Get()
   async list(
     @Query('isVerified') isVerified?: string,
-    @Query('postcode') postcode?: string,
+    @Query('postCode') postCode?: string,
     @Query('category') category?: string,
   ) {
     return this.suppliers.list({
       isVerified: isVerified === undefined ? undefined : isVerified === 'true',
-      postcode,
+      postCode,
       category,
     });
   }

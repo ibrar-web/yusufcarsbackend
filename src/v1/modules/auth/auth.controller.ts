@@ -48,6 +48,12 @@ export class AuthController {
 
     await validateOrReject(dto);
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    console.log(
+      'dto :',
+      dto,
+      files?.companyRegDoc?.[0],
+      files?.insuranceDoc?.[0],
+    );
     return await this.auth.register(dto, {
       companyRegDoc: files?.companyRegDoc?.[0],
       insuranceDoc: files?.insuranceDoc?.[0],

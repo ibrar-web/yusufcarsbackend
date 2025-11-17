@@ -28,10 +28,13 @@ export class AuthService {
     const existing = await this.users.findOne({ where: { email: dto.email } });
     if (existing) throw new BadRequestException('Email already in use');
 
+    const supplierDto = dto as SupplierRegisterDto;
+    const fullName =
+      dto.fullName || supplierDto.firstName || supplierDto.businessName || 'Supplier User';
     const user = this.users.create({
       email: dto.email,
       password: dto.password,
-      fullName: dto.fullName,
+      fullName,
       role: dto.role ?? 'user',
       isVerified: true,
       isActive: true,
@@ -39,15 +42,32 @@ export class AuthService {
     await this.users.save(user);
 
     if (user.role === 'supplier') {
-      const supplierDto = dto as SupplierRegisterDto;
       const { companyRegDocUrl, insuranceDocUrl } = await this.kycDocs.uploadSupplierDocs(
         user.id,
         docs,
-        supplierDto,
       );
+      const businessName =
+        supplierDto.businessName ||
+        supplierDto.tradingAs ||
+        supplierDto.fullName ||
+        'Supplier';
       const supplier = this.suppliers.create({
-        ...dto,
         user,
+        businessName,
+        tradingAs: supplierDto.tradingAs,
+        businessType: supplierDto.businessType,
+        vatNumber: supplierDto.vatNumber,
+        description: supplierDto.description,
+        addressLine1: supplierDto.addressLine1,
+        addressLine2: supplierDto.addressLine2,
+        city: supplierDto.city,
+        postCode: supplierDto.postCode || supplierDto.contactPostcode,
+        phone: supplierDto.phone,
+        contactPostcode: supplierDto.contactPostcode,
+        serviceRadius: supplierDto.serviceRadius,
+        termsAccepted: supplierDto.termsAccepted,
+        gdprConsent: supplierDto.gdprConsent,
+        categories: supplierDto.categories,
         companyRegDoc: companyRegDocUrl,
         insuranceDoc: insuranceDocUrl,
       });

@@ -5,15 +5,22 @@ import {
   IsOptional,
   IsBoolean,
   IsEnum,
+  IsArray,
 } from 'class-validator';
+import { Transform } from 'class-transformer';
 import * as userEntity from '../../users/user.entity';
 
 export class SupplierRegisterDto {
   @IsEnum(['admin', 'user', 'supplier', 'garage'])
   role?: userEntity.AppRole;
 
+  @IsOptional()
   @IsString()
-  businessName: string;
+  businessName?: string;
+
+  @IsOptional()
+  @IsString()
+  firstName?: string;
 
   @IsOptional()
   @IsString()
@@ -41,27 +48,41 @@ export class SupplierRegisterDto {
 
   @IsOptional()
   @IsString()
-  town: string;
-
-  @IsOptional()
-  @IsString()
-  county: string;
-
-  @IsOptional()
-  @IsString()
-  postCode: string;
-
-  @IsOptional()
-  @IsString()
   phone: string;
 
   @IsOptional()
   @IsString()
-  companyRegDoc?: string;
+  city?: string;
 
   @IsOptional()
   @IsString()
-  insuranceDoc?: string;
+  postCode?: string;
+
+  @IsOptional()
+  @IsString()
+  contactPostcode?: string;
+
+  @IsOptional()
+  @IsString()
+  serviceRadius?: string;
+
+  @IsOptional()
+  @Transform(({ value }) => value === 'true' || value === true)
+  @IsBoolean()
+  termsAccepted?: boolean;
+
+  @IsOptional()
+  @Transform(({ value }) => value === 'true' || value === true)
+  @IsBoolean()
+  gdprConsent?: boolean;
+
+  @IsOptional()
+  @Transform(({ value }) =>
+    Array.isArray(value) ? value : value ? [value] : [],
+  )
+  @IsArray()
+  @IsString({ each: true })
+  categories?: string[];
 
   // USER DATA ALSO REQUIRED
   @IsString()
@@ -75,6 +96,7 @@ export class SupplierRegisterDto {
   password: string;
 
   @IsOptional()
+  @Transform(({ value }) => value === 'true' || value === true)
   @IsBoolean()
   marketingOptIn?: boolean;
 }

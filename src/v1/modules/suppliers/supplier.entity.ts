@@ -40,10 +40,7 @@ export class Supplier {
   addressLine2?: string;
 
   @Column({ nullable: true })
-  town?: string;
-
-  @Column({ nullable: true })
-  county?: string;
+  city?: string;
 
   @Index()
   @Column({ nullable: true })
@@ -51,6 +48,18 @@ export class Supplier {
 
   @Column({ nullable: true })
   phone?: string;
+
+  @Column({ nullable: true })
+  contactPostcode?: string;
+
+  @Column({ nullable: true })
+  serviceRadius?: string;
+
+  @Column({ default: false })
+  termsAccepted?: boolean;
+
+  @Column({ default: false })
+  gdprConsent?: boolean;
 
   @Index()
   @Column({ type: 'simple-array', nullable: true })
