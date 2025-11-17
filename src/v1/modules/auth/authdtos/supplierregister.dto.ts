@@ -77,6 +77,7 @@ export class SupplierRegisterDto {
   gdprConsent?: boolean;
 
   @IsOptional()
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   @Transform(({ value }) =>
     Array.isArray(value) ? value : value ? [value] : [],
   )
