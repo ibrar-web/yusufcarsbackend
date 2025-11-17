@@ -62,11 +62,11 @@ export class Supplier {
   @Column({ default: true })
   isActive!: boolean;
 
-  @Column({ nullable: true })
-  companyRegistrationDoc?: string;
+  @Column({ name: 'companyRegistrationDoc', nullable: true })
+  companyRegDoc?: string;
 
-  @Column({ nullable: true })
-  publicLiabilityInsurance?: string;
+  @Column({ name: 'publicLiabilityInsurance', nullable: true })
+  insuranceDoc?: string;
 
   @CreateDateColumn()
   createdAt!: Date;

@@ -55,6 +55,14 @@ export class SupplierRegisterDto {
   @IsString()
   phone: string;
 
+  @IsOptional()
+  @IsString()
+  companyRegDoc?: string;
+
+  @IsOptional()
+  @IsString()
+  insuranceDoc?: string;
+
   // USER DATA ALSO REQUIRED
   @IsString()
   fullName: string;

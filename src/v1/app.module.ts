@@ -17,6 +17,8 @@ import { AuthController } from './modules/auth/auth.controller';
 import { AuthService } from './modules/auth/auth.service';
 import { JoseService } from './modules/auth/jose.service';
 import { QuotesGateway } from './modules/realtime/quotes.gateway';
+import { S3Service } from './common/aws/s3.service';
+import { KycDocsService } from './common/aws/kyc-docs.service';
 
 @Module({
   imports: [
@@ -41,6 +43,8 @@ import { QuotesGateway } from './modules/realtime/quotes.gateway';
     AuthService,
     JoseService,
     QuotesGateway,
+    S3Service,
+    KycDocsService,
   ],
 })
 export class AppModule {}

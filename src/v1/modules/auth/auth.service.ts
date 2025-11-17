@@ -8,6 +8,8 @@ import { Supplier } from '../suppliers/supplier.entity';
 import { JoseService } from './jose.service';
 import { UserRegisterDto } from './authdtos/userregister.dto';
 import { SupplierRegisterDto } from './authdtos/supplierregister.dto';
+import { type UploadedFile } from '../../common/aws/s3.service';
+import { KycDocsService } from '../../common/aws/kyc-docs.service';
 
 @Injectable()
 export class AuthService {
@@ -16,9 +18,13 @@ export class AuthService {
     @InjectRepository(Supplier)
     private readonly suppliers: Repository<Supplier>,
     private readonly jose: JoseService,
+    private readonly kycDocs: KycDocsService,
   ) {}
 
-  async register(dto: UserRegisterDto | SupplierRegisterDto) {
+  async register(
+    dto: UserRegisterDto | SupplierRegisterDto,
+    docs?: { companyRegDoc?: UploadedFile; insuranceDoc?: UploadedFile },
+  ) {
     const existing = await this.users.findOne({ where: { email: dto.email } });
     if (existing) throw new BadRequestException('Email already in use');
 
@@ -33,9 +39,17 @@ export class AuthService {
     await this.users.save(user);
 
     if (user.role === 'supplier') {
+      const supplierDto = dto as SupplierRegisterDto;
+      const { companyRegDocUrl, insuranceDocUrl } = await this.kycDocs.uploadSupplierDocs(
+        user.id,
+        docs,
+        supplierDto,
+      );
       const supplier = this.suppliers.create({
         ...dto,
         user,
+        companyRegDoc: companyRegDocUrl,
+        insuranceDoc: insuranceDocUrl,
       });
       await this.suppliers.save(supplier);
     }
