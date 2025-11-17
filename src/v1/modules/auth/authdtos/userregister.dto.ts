@@ -12,9 +12,6 @@ export class UserRegisterDto {
   @IsEnum(['admin', 'user', 'supplier', 'garage'])
   role?: userEntity.AppRole;
   @IsString()
-  name: string;
-
-  @IsString()
   fullName: string;
 
   @IsEmail()
