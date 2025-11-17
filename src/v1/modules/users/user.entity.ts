@@ -18,13 +18,13 @@ export class User {
   id!: string;
 
   @Column({ unique: true })
-  email!: string;
+  email: string;
 
   @Column()
-  password!: string;
+  password: string;
 
   @Column()
-  fullName!: string;
+  fullName: string;
 
   @Column({
     type: 'enum',
@@ -32,6 +32,9 @@ export class User {
     default: 'user',
   })
   role!: AppRole;
+
+  @Column({ default: false })
+  isVerified: boolean; // <-- FIXED TYPO
 
   @Column({ default: true })
   isActive!: boolean;
@@ -43,6 +46,9 @@ export class User {
     nullable: true,
     onDelete: 'SET NULL',
   })
+  supplier?: Supplier;
+
+  // Moved OUTSIDE of @OneToOne — now correct
   toPublic() {
     const { password, ...rest } = this as any;
     return rest;

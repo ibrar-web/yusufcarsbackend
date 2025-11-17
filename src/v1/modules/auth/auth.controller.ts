@@ -1,7 +1,11 @@
 import { Body, Controller, Get, Post, Res, Req } from '@nestjs/common';
 import type { Response, Request } from 'express';
+import { plainToInstance } from 'class-transformer';
+import { validateOrReject } from 'class-validator';
 import { AuthService } from './auth.service';
 import { JoseService } from './jose.service';
+import { UserRegisterDto } from './authdtos/userregister.dto';
+import { SupplierRegisterDto } from './authdtos/supplierregister.dto';
 
 @Controller('/auth')
 export class AuthController {
@@ -11,20 +15,16 @@ export class AuthController {
   ) {}
 
   @Post('register')
-  async register(
-    @Body()
-    body: {
-      name: string;
-      email: string;
-      phone: string;
-      postcode: string;
-      password: string;
-      fullName: string;
-      role?: 'admin' | 'user' | 'supplier' | 'garage';
-      marketingOptIn?: boolean;
-    },
-  ) {
-    return await this.auth.register(body);
+  async register(@Body() body: UserRegisterDto | SupplierRegisterDto) {
+    const role = body.role || 'user';
+    const dto =
+      role === 'supplier'
+        ? plainToInstance(SupplierRegisterDto, body)
+        : plainToInstance(UserRegisterDto, body);
+
+    await validateOrReject(dto);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return await this.auth.register(dto);
   }
 
   @Post('login')

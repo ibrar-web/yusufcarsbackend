@@ -6,6 +6,8 @@ import { Response } from 'express';
 import { User } from '../users/user.entity';
 import { Supplier } from '../suppliers/supplier.entity';
 import { JoseService } from './jose.service';
+import { UserRegisterDto } from './authdtos/userregister.dto';
+import { SupplierRegisterDto } from './authdtos/supplierregister.dto';
 
 @Injectable()
 export class AuthService {
@@ -16,13 +18,7 @@ export class AuthService {
     private readonly jose: JoseService,
   ) {}
 
-  async register(dto: {
-    email: string;
-    password: string;
-    fullName: string;
-    role?: User['role'];
-    supplier?: Partial<Supplier>;
-  }) {
+  async register(dto: UserRegisterDto | SupplierRegisterDto) {
     const existing = await this.users.findOne({ where: { email: dto.email } });
     if (existing) throw new BadRequestException('Email already in use');
 
@@ -31,18 +27,19 @@ export class AuthService {
       password: dto.password,
       fullName: dto.fullName,
       role: dto.role ?? 'user',
+      isVerified: true,
+      isActive: true,
     });
     await this.users.save(user);
 
     if (user.role === 'supplier') {
       const supplier = this.suppliers.create({
-        ...dto.supplier,
+        ...dto,
         user,
-        isVerified: false,
-        isActive: true,
       });
       await this.suppliers.save(supplier);
     }
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return user.toPublic();
   }
 
