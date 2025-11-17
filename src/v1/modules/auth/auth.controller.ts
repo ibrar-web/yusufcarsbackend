@@ -14,11 +14,14 @@ export class AuthController {
   async register(
     @Body()
     body: {
+      name: string;
       email: string;
+      phone: string;
+      postcode: string;
       password: string;
       fullName: string;
       role?: 'admin' | 'user' | 'supplier' | 'garage';
-      supplier?: any;
+      marketingOptIn?: boolean;
     },
   ) {
     return await this.auth.register(body);
@@ -54,5 +57,3 @@ export class AuthController {
     }
   }
 }
-
-

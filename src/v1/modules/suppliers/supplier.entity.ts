@@ -1,4 +1,12 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToOne, JoinColumn, CreateDateColumn, Index } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  OneToOne,
+  JoinColumn,
+  CreateDateColumn,
+  Index,
+} from 'typeorm';
 import { User } from '../users/user.entity';
 
 @Entity('suppliers')
@@ -63,5 +71,3 @@ export class Supplier {
   @CreateDateColumn()
   createdAt!: Date;
 }
-
-
