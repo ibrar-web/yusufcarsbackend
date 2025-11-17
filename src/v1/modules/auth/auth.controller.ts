@@ -7,6 +7,7 @@ import {
   Req,
   UploadedFiles,
   UseInterceptors,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import type { Response, Request } from 'express';
@@ -65,8 +66,12 @@ export class AuthController {
     @Body() body: { email: string; password: string },
     @Res({ passthrough: true }) res: Response,
   ) {
+    console.log('body:', body);
     const pub = await this.auth.validateUser(body.email, body.password);
-    if (!pub) return { ok: false };
+    if (!pub) {
+      // Standardized error for invalid credentials
+      throw new UnauthorizedException('Invalid email or password');
+    }
     return await this.auth.login(res, pub);
   }
 
