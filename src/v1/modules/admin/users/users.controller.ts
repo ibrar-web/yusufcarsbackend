@@ -14,7 +14,6 @@ import { JwtCookieGuard } from '../guards/jwt-cookie.guard';
 import { RolesGuard } from '../guards/roles.guard';
 import { Roles } from '../decorators/roles.decorator';
 import { CurrentUser } from '../decorators/current-user.decorator';
-import { CreateAdminUserDto } from './dto/create-admin-user.dto';
 import { UpdateAdminUserDto } from './dto/update-admin-user.dto';
 
 @Controller('admin/users')
@@ -46,11 +45,6 @@ export class AdminUsersController {
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.users.findOne(id);
-  }
-
-  @Post()
-  create(@Body() dto: CreateAdminUserDto) {
-    return this.users.create(dto);
   }
 
   @Patch(':id')

@@ -2,7 +2,6 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsWhere, ILike, Repository } from 'typeorm';
 import { User } from '../../../entities/user.entity';
-import { CreateAdminUserDto } from './dto/create-admin-user.dto';
 import { UpdateAdminUserDto } from './dto/update-admin-user.dto';
 
 type ListUsersParams = {
@@ -58,16 +57,6 @@ export class AdminUsersService {
   async findOne(id: string) {
     const user = await this.users.findOne({ where: { id } });
     if (!user) throw new NotFoundException('User not found');
-    return user;
-  }
-
-  async create(dto: CreateAdminUserDto) {
-    const user = this.users.create({
-      ...dto,
-      role: dto.role ?? 'user',
-      isActive: dto.isActive ?? true,
-    });
-    await this.users.save(user);
     return user;
   }
 
