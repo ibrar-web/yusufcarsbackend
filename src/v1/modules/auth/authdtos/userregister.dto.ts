@@ -6,7 +6,7 @@ import {
   IsBoolean,
   IsEnum,
 } from 'class-validator';
-import * as userEntity from '../../users/user.entity';
+import * as userEntity from '../../../entities/user.entity';
 
 export class UserRegisterDto {
   @IsEnum(['admin', 'user', 'supplier', 'garage'])

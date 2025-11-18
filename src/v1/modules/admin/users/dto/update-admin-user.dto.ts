@@ -1,5 +1,5 @@
 import { IsBoolean, IsEmail, IsEnum, IsOptional, IsString, MinLength } from 'class-validator';
-import type { AppRole } from '../../../users/user.entity';
+import type { AppRole } from '../../../../entities/user.entity';
 
 export class UpdateAdminUserDto {
   @IsOptional()

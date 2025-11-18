@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Between, Repository } from 'typeorm';
-import { User } from '../../users/user.entity';
-import { Supplier } from '../../suppliers/supplier.entity';
-import { QuoteRequest } from '../../quotes/quote-request.entity';
-import { Quote } from '../../quotes/quote.entity';
+import { User } from '../../../entities/user.entity';
+import { Supplier } from '../../../entities/supplier.entity';
+import { QuoteRequest } from '../../../entities/quote-request.entity';
+import { Quote } from '../../../entities/quote.entity';
 
 @Injectable()
 export class AdminStatsService {

@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Between, Repository } from 'typeorm';
-import { Quote } from '../../quotes/quote.entity';
-import { QuoteRequest } from '../../quotes/quote-request.entity';
+import { Quote } from '../../../entities/quote.entity';
+import { QuoteRequest } from '../../../entities/quote-request.entity';
 
 type Range = { from?: string; to?: string };
 

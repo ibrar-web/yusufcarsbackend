@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, CreateDateColumn } from 'typeorm';
-import { User } from '../users/user.entity';
+import { User } from './user.entity';
 import { Quote } from './quote.entity';
 
 @Entity('quote_requests')
@@ -41,7 +41,7 @@ export class QuoteRequest {
   status!: 'pending' | 'expired' | 'completed';
 
   @Column({ type: 'timestamp', nullable: true })
-  expiresAt?: Date; // optional expiry
+  expiresAt?: Date;
 
   @Column({ nullable: true })
   assignedToInternal?: string;
@@ -55,4 +55,3 @@ export class QuoteRequest {
   @CreateDateColumn()
   createdAt!: Date;
 }
-

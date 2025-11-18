@@ -7,7 +7,7 @@ import {
   CreateDateColumn,
   Index,
 } from 'typeorm';
-import { User } from '../users/user.entity';
+import { User } from './user.entity';
 
 @Entity('suppliers')
 export class Supplier {
@@ -44,7 +44,7 @@ export class Supplier {
 
   @Index()
   @Column({ nullable: true })
-  postCode?: string; // index for matching
+  postCode?: string;
 
   @Column({ nullable: true })
   phone?: string;
@@ -63,7 +63,7 @@ export class Supplier {
 
   @Index()
   @Column({ type: 'simple-array', nullable: true })
-  categories?: string[]; // simple-array, consider array type with PG later
+  categories?: string[];
 
   @Column({ default: false })
   isVerified!: boolean;

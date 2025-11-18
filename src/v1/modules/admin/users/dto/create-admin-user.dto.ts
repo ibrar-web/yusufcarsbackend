@@ -1,5 +1,5 @@
 import { IsEmail, IsEnum, IsOptional, IsString, MinLength, IsBoolean } from 'class-validator';
-import type { AppRole } from '../../../users/user.entity';
+import type { AppRole } from '../../../../entities/user.entity';
 
 export class CreateAdminUserDto {
   @IsString()

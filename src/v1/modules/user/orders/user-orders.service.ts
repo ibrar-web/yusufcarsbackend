@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Quote } from '../../quotes/quote.entity';
+import { Quote } from '../../../entities/quote.entity';
 
 type ListOrdersParams = {
   page?: number;

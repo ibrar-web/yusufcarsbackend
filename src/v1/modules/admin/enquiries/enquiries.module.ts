@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { QuoteRequest } from '../../quotes/quote-request.entity';
+import { QuoteRequest } from '../../../entities/quote-request.entity';
 import { AdminEnquiriesController } from './enquiries.controller';
 import { AdminEnquiriesService } from './enquiries.service';
 import { JwtCookieGuard } from '../guards/jwt-cookie.guard';

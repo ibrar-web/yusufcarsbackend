@@ -1,6 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn } from 'typeorm';
 import { QuoteRequest } from './quote-request.entity';
-import { Supplier } from '../suppliers/supplier.entity';
+import { Supplier } from './supplier.entity';
 
 @Entity('quotes')
 export class Quote {
@@ -28,5 +28,3 @@ export class Quote {
   @CreateDateColumn()
   createdAt!: Date;
 }
-
-

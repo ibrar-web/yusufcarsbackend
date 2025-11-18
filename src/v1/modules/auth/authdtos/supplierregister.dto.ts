@@ -8,7 +8,7 @@ import {
   IsArray,
 } from 'class-validator';
 import { Transform } from 'class-transformer';
-import * as userEntity from '../../users/user.entity';
+import * as userEntity from '../../../entities/user.entity';
 
 export class SupplierRegisterDto {
   @IsEnum(['admin', 'user', 'supplier', 'garage'])

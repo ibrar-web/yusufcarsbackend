@@ -1,16 +1,10 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { dataSourceOptions } from './config/ormconfig';
-import { UsersController } from './modules/users/users.controller';
-import { UsersService } from './modules/users/users.service';
-import { User } from './modules/users/user.entity';
-import { Supplier } from './modules/suppliers/supplier.entity';
-import { SuppliersService } from './modules/suppliers/suppliers.service';
-import { SuppliersController } from './modules/suppliers/suppliers.controller';
-import { QuoteRequest } from './modules/quotes/quote-request.entity';
-import { Quote } from './modules/quotes/quote.entity';
-import { QuotesService } from './modules/quotes/quotes.service';
-import { QuotesController } from './modules/quotes/quotes.controller';
+import { User } from './entities/user.entity';
+import { Supplier } from './entities/supplier.entity';
+import { QuoteRequest } from './entities/quote-request.entity';
+import { Quote } from './entities/quote.entity';
 import { AuthController } from './modules/auth/auth.controller';
 import { AuthService } from './modules/auth/auth.service';
 import { JoseService } from './modules/auth/jose.service';
@@ -44,16 +38,8 @@ import { UserNotificationsModule } from './modules/user/notifications/user-notif
     UserSettingsModule,
     UserNotificationsModule,
   ],
-  controllers: [
-    UsersController,
-    SuppliersController,
-    QuotesController,
-    AuthController,
-  ],
+  controllers: [AuthController],
   providers: [
-    UsersService,
-    SuppliersService,
-    QuotesService,
     AuthService,
     JoseService,
     QuotesGateway,

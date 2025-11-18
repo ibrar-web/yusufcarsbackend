@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Supplier } from '../../suppliers/supplier.entity';
+import { Supplier } from '../../../entities/supplier.entity';
 import { SupplierProfileController } from './profile.controller';
 import { SupplierProfileService } from './profile.service';
 import { AuthGuard } from '../../../common/guards/auth.guard';

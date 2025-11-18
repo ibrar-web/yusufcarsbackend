@@ -8,7 +8,7 @@ import {
   OneToOne,
 } from 'typeorm';
 import * as bcrypt from 'bcrypt';
-import { Supplier } from '../suppliers/supplier.entity';
+import { Supplier } from './supplier.entity';
 
 export type AppRole = 'admin' | 'user' | 'supplier' | 'garage';
 
@@ -18,13 +18,13 @@ export class User {
   id!: string;
 
   @Column({ unique: true })
-  email: string;
+  email!: string;
 
   @Column()
-  password: string;
+  password!: string;
 
   @Column()
-  fullName: string;
+  fullName!: string;
 
   @Column({
     type: 'enum',
@@ -34,7 +34,7 @@ export class User {
   role!: AppRole;
 
   @Column({ default: false })
-  isVerified: boolean; // <-- FIXED TYPO
+  isVerified!: boolean;
 
   @Column({ default: true })
   isActive!: boolean;
@@ -48,7 +48,6 @@ export class User {
   })
   supplier?: Supplier;
 
-  // Moved OUTSIDE of @OneToOne — now correct
   toPublic() {
     const { password, ...rest } = this as any;
     return rest;

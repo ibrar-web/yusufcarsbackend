@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Supplier } from '../../suppliers/supplier.entity';
+import { Supplier } from '../../../entities/supplier.entity';
 import { AdminSuppliersController } from './suppliers.controller';
 import { AdminSuppliersService } from './suppliers.service';
 import { JwtCookieGuard } from '../guards/jwt-cookie.guard';

@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { User } from '../../users/user.entity';
+import { User } from '../../../entities/user.entity';
 import { AdminUsersService } from './users.service';
 import { AdminUsersController } from './users.controller';
 import { JwtCookieGuard } from '../guards/jwt-cookie.guard';

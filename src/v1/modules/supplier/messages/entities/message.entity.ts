@@ -1,7 +1,7 @@
 import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
-import { Supplier } from '../../../suppliers/supplier.entity';
-import { User } from '../../../users/user.entity';
-import { QuoteRequest } from '../../../quotes/quote-request.entity';
+import { Supplier } from '../../../../entities/supplier.entity';
+import { User } from '../../../../entities/user.entity';
+import { QuoteRequest } from '../../../../entities/quote-request.entity';
 
 @Entity('messages')
 export class Message {

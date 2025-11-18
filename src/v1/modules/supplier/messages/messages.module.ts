@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Message } from './entities/message.entity';
-import { Supplier } from '../../suppliers/supplier.entity';
-import { User } from '../../users/user.entity';
-import { QuoteRequest } from '../../quotes/quote-request.entity';
+import { Supplier } from '../../../entities/supplier.entity';
+import { User } from '../../../entities/user.entity';
+import { QuoteRequest } from '../../../entities/quote-request.entity';
 import { SupplierMessagesController } from './messages.controller';
 import { SupplierMessagesService } from './messages.service';
 import { QuotesGateway } from '../../realtime/quotes.gateway';

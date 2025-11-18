@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsWhere, ILike, Repository } from 'typeorm';
-import { Supplier } from '../../suppliers/supplier.entity';
+import { Supplier } from '../../../entities/supplier.entity';
 import { UpdateAdminSupplierDto } from './dto/update-admin-supplier.dto';
 
 type ListSuppliersParams = {

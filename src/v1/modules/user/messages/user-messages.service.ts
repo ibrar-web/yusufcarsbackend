@@ -3,9 +3,9 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Message } from '../../supplier/messages/entities/message.entity';
 import { SendUserMessageDto } from './dto/send-user-message.dto';
-import { Supplier } from '../../suppliers/supplier.entity';
-import { User } from '../../users/user.entity';
-import { QuoteRequest } from '../../quotes/quote-request.entity';
+import { Supplier } from '../../../entities/supplier.entity';
+import { User } from '../../../entities/user.entity';
+import { QuoteRequest } from '../../../entities/quote-request.entity';
 import { QuotesGateway } from '../../realtime/quotes.gateway';
 
 @Injectable()

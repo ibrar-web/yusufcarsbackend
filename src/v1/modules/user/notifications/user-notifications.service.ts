@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { QuoteRequest } from '../../quotes/quote-request.entity';
+import { QuoteRequest } from '../../../entities/quote-request.entity';
 
 type ListNotificationsParams = {
   page?: number;

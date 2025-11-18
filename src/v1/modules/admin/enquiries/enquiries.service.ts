@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Between, Repository } from 'typeorm';
-import { QuoteRequest } from '../../quotes/quote-request.entity';
+import { QuoteRequest } from '../../../entities/quote-request.entity';
 import { AssignEnquiryDto } from './dto/assign-enquiry.dto';
 import { UpdateEnquiryStatusDto } from './dto/update-enquiry-status.dto';
 import { AddEnquiryNoteDto } from './dto/add-enquiry-note.dto';
