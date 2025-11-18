@@ -30,22 +30,24 @@ export class AuthService {
 
     const supplierDto = dto as SupplierRegisterDto;
     const fullName =
-      dto.fullName || supplierDto.firstName || supplierDto.businessName || 'Supplier User';
+      dto.fullName ||
+      supplierDto.firstName ||
+      supplierDto.businessName ||
+      'Supplier User';
     const user = this.users.create({
       email: dto.email,
       password: dto.password,
       fullName,
-      role: dto.role ?? 'user',
+      role: 'user',
+      postCode: supplierDto.postCode,
       isVerified: true,
       isActive: true,
     });
     await this.users.save(user);
 
     if (user.role === 'supplier') {
-      const { companyRegDocUrl, insuranceDocUrl } = await this.kycDocs.uploadSupplierDocs(
-        user.id,
-        docs,
-      );
+      const { companyRegDocUrl, insuranceDocUrl } =
+        await this.kycDocs.uploadSupplierDocs(user.id, docs);
       const businessName =
         supplierDto.businessName ||
         supplierDto.tradingAs ||

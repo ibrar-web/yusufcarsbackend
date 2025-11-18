@@ -42,6 +42,9 @@ export class User {
   @CreateDateColumn()
   createdAt!: Date;
 
+  @Column({ nullable: true })
+  postCode?: string;
+
   @OneToOne(() => Supplier, (supplier) => supplier.user, {
     nullable: true,
     onDelete: 'SET NULL',
