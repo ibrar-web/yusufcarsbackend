@@ -53,13 +53,8 @@ export class AdminUsersController {
   }
 
   @Post(':id/activate')
-  activate(@Param('id') id: string) {
-    return this.users.activate(id);
-  }
-
-  @Post(':id/deactivate')
-  deactivate(@Param('id') id: string) {
-    return this.users.deactivate(id);
+  toggleActive(@Param('id') id: string) {
+    return this.users.toggleActive(id);
   }
 
   @Delete(':id')

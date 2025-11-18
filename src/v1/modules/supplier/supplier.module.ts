@@ -1,0 +1,15 @@
+import { Module } from '@nestjs/common';
+import { SupplierAnalyticsModule } from './analytics/analytics.module';
+import { SupplierMessagesModule } from './messages/messages.module';
+import { SupplierProfileModule } from './profile/profile.module';
+import { SupplierQuotesModule } from './quotes/quotes.module';
+
+@Module({
+  imports: [
+    SupplierAnalyticsModule,
+    SupplierMessagesModule,
+    SupplierProfileModule,
+    SupplierQuotesModule,
+  ],
+})
+export class SupplierModule {}

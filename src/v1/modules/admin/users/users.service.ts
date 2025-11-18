@@ -66,12 +66,16 @@ export class AdminUsersService {
     return this.users.save(user);
   }
 
-  async activate(id: string) {
-    return this.users.save({ ...(await this.findOne(id)), isActive: true });
-  }
+  async toggleActive(id: string) {
+    const user = await this.findOne(id);
+    if (!user) throw new NotFoundException('User not found');
 
-  async deactivate(id: string) {
-    return this.users.save({ ...(await this.findOne(id)), isActive: false });
+    const newStatus = !user.isActive;
+
+    return this.users.save({
+      ...user,
+      isActive: newStatus,
+    });
   }
 
   async remove(id: string) {
