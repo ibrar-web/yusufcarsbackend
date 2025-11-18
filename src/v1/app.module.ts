@@ -22,6 +22,10 @@ import { SupplierQuotesModule } from './modules/supplier/quotes/quotes.module';
 import { SupplierAnalyticsModule } from './modules/supplier/analytics/analytics.module';
 import { SupplierMessagesModule } from './modules/supplier/messages/messages.module';
 import { SupplierProfileModule } from './modules/supplier/profile/profile.module';
+import { UserMessagesModule } from './modules/user/messages/user-messages.module';
+import { UserOrdersModule } from './modules/user/orders/user-orders.module';
+import { UserSettingsModule } from './modules/user/settings/user-settings.module';
+import { UserNotificationsModule } from './modules/user/notifications/user-notifications.module';
 
 @Module({
   imports: [
@@ -35,6 +39,10 @@ import { SupplierProfileModule } from './modules/supplier/profile/profile.module
     SupplierAnalyticsModule,
     SupplierMessagesModule,
     SupplierProfileModule,
+    UserMessagesModule,
+    UserOrdersModule,
+    UserSettingsModule,
+    UserNotificationsModule,
   ],
   controllers: [
     UsersController,

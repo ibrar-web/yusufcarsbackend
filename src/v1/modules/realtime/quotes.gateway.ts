@@ -37,5 +37,8 @@ export class QuotesGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }) {
     this.server.emit('quotes:chat', payload);
   }
-}
 
+  emitUserNotification(payload: any) {
+    this.server.emit('quotes:notification', payload);
+  }
+}
