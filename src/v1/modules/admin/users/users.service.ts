@@ -8,9 +8,7 @@ import { UpdateAdminUserDto } from './dto/update-admin-user.dto';
 type ListUsersParams = {
   page?: number;
   limit?: number;
-  email?: string;
-  name?: string;
-  role?: User['role'];
+  query?: string;
   isActive?: boolean;
   sortBy?: keyof User;
   sortDir?: 'ASC' | 'DESC';
@@ -31,8 +29,8 @@ export class AdminUsersService {
     const where: FindOptionsWhere<User> = {
       ...{ role: 'user' },
       ...(params.isActive === undefined ? {} : { isActive: params.isActive }),
-      ...(params.email ? { email: ILike(`%${params.email}%`) } : {}),
-      ...(params.name ? { fullName: ILike(`%${params.name}%`) } : {}),
+      ...(params.query ? { email: ILike(`%${params.query}%`) } : {}),
+      ...(params.query ? { fullName: ILike(`%${params.query}%`) } : {}),
     };
 
     const orderKey = params.sortBy || 'createdAt';

@@ -1,4 +1,14 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { AdminUsersService } from './users.service';
 import { JwtCookieGuard } from '../guards/jwt-cookie.guard';
 import { RolesGuard } from '../guards/roles.guard';
@@ -17,22 +27,18 @@ export class AdminUsersController {
   list(
     @Query('page') page?: string,
     @Query('limit') limit?: string,
-    @Query('email') email?: string,
-    @Query('name') name?: string,
-    @Query('role') role?: string,
+    @Query('query') query?: string,
     @Query('isActive') isActive?: string,
     @Query('sortBy') sortBy?: string,
     @Query('sortDir') sortDir?: 'ASC' | 'DESC',
     @CurrentUser() _admin?: any,
   ) {
+    console.log('query :', query);
     return this.users.list({
       page: page ? parseInt(page, 10) : undefined,
       limit: limit ? parseInt(limit, 10) : undefined,
-      email,
-      name,
-      role: role as any,
+      query,
       isActive: isActive === undefined ? undefined : isActive === 'true',
-      sortBy: (sortBy as any) || undefined,
       sortDir: sortDir || 'DESC',
     });
   }
