@@ -18,6 +18,10 @@ import { QuotesGateway } from './modules/realtime/quotes.gateway';
 import { S3Service } from './common/aws/s3.service';
 import { KycDocsService } from './common/aws/kyc-docs.service';
 import { AdminModule } from './modules/admin/admin.module';
+import { SupplierQuotesModule } from './modules/supplier/quotes/quotes.module';
+import { SupplierAnalyticsModule } from './modules/supplier/analytics/analytics.module';
+import { SupplierMessagesModule } from './modules/supplier/messages/messages.module';
+import { SupplierProfileModule } from './modules/supplier/profile/profile.module';
 
 @Module({
   imports: [
@@ -27,6 +31,10 @@ import { AdminModule } from './modules/admin/admin.module';
     }),
     TypeOrmModule.forFeature([User, Supplier, QuoteRequest, Quote]),
     AdminModule,
+    SupplierQuotesModule,
+    SupplierAnalyticsModule,
+    SupplierMessagesModule,
+    SupplierProfileModule,
   ],
   controllers: [
     UsersController,

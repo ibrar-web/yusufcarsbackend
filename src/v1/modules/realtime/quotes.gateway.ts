@@ -26,6 +26,16 @@ export class QuotesGateway implements OnGatewayConnection, OnGatewayDisconnect {
   emitQuoteExpired(quote: any) {
     this.server.emit('quotes:expired', quote);
   }
-}
 
+  emitChatMessage(payload: {
+    quoteRequestId: string;
+    supplierId: string;
+    userId: string;
+    body: string;
+    direction: 'supplier-to-user' | 'user-to-supplier';
+    createdAt: Date;
+  }) {
+    this.server.emit('quotes:chat', payload);
+  }
+}
 
