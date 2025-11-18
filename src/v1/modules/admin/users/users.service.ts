@@ -18,15 +18,18 @@ type ListUsersParams = {
 
 @Injectable()
 export class AdminUsersService {
-  constructor(@InjectRepository(User) private readonly users: Repository<User>) {}
+  constructor(
+    @InjectRepository(User) private readonly users: Repository<User>,
+  ) {}
 
   async list(params: ListUsersParams) {
     const page = params.page && params.page > 0 ? params.page : 1;
-    const limit = params.limit && params.limit > 0 ? Math.min(params.limit, 100) : 20;
+    const limit =
+      params.limit && params.limit > 0 ? Math.min(params.limit, 100) : 20;
     const skip = (page - 1) * limit;
 
     const where: FindOptionsWhere<User> = {
-      ...(params.role ? { role: params.role } : {}),
+      ...{ role: 'user' },
       ...(params.isActive === undefined ? {} : { isActive: params.isActive }),
       ...(params.email ? { email: ILike(`%${params.email}%`) } : {}),
       ...(params.name ? { fullName: ILike(`%${params.name}%`) } : {}),
@@ -37,6 +40,13 @@ export class AdminUsersService {
 
     const [data, total] = await this.users.findAndCount({
       where,
+      select: {
+        id: true,
+        fullName: true,
+        email: true,
+        isActive: true,
+        createdAt: true,
+      },
       order: { [orderKey]: orderDir },
       skip,
       take: limit,
