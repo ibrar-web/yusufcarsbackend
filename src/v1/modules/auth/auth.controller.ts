@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 import {
   Body,
   Controller,
@@ -15,7 +16,7 @@ import { plainToInstance } from 'class-transformer';
 import { validateOrReject } from 'class-validator';
 import { AuthService } from './auth.service';
 import { JoseService } from './jose.service';
-import { UserRegisterDto } from './authdtos/userregister.dto';
+import { AdminRegisterDto, UserRegisterDto } from './authdtos/userregister.dto';
 import { SupplierRegisterDto } from './authdtos/supplierregister.dto';
 import type { UploadedFile } from '../../common/aws/s3.service';
 
@@ -55,6 +56,7 @@ export class AuthController {
       files?.companyRegDoc?.[0],
       files?.insuranceDoc?.[0],
     );
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return await this.auth.register(dto, {
       companyRegDoc: files?.companyRegDoc?.[0],
       insuranceDoc: files?.insuranceDoc?.[0],
@@ -67,6 +69,7 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     console.log('body:', body);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const pub = await this.auth.validateUser(body.email, body.password);
     if (!pub) {
       // Standardized error for invalid credentials
@@ -76,7 +79,7 @@ export class AuthController {
   }
 
   @Get('logout')
-  async logout(@Res({ passthrough: true }) res: Response) {
+  logout(@Res({ passthrough: true }) res: Response) {
     const cookieName = process.env.COOKIE_NAME || 'access_token';
     res.cookie(cookieName, '', { httpOnly: true, maxAge: 0, path: '/' });
     return { ok: true };
@@ -93,5 +96,15 @@ export class AuthController {
     } catch {
       return { authenticated: false };
     }
+  }
+  @Post('register/admin')
+  @UseInterceptors(
+    FileFieldsInterceptor([
+      { name: 'companyRegDoc', maxCount: 1 },
+      { name: 'insuranceDoc', maxCount: 1 },
+    ]),
+  )
+  async registerAdmin(@Body() body: AdminRegisterDto) {
+    return await this.auth.register(body);
   }
 }

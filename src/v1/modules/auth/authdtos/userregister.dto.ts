@@ -31,3 +31,22 @@ export class UserRegisterDto {
   @IsBoolean()
   marketingOptIn?: boolean;
 }
+export class AdminRegisterDto {
+  @IsEnum(['admin', 'user', 'supplier', 'garage'])
+  role?: userEntity.AppRole;
+  @IsString()
+  fullName: string;
+
+  @IsEmail()
+  email: string;
+
+  @IsString()
+  phone: string;
+
+  @IsString()
+  postCode: string;
+
+  @IsString()
+  @MinLength(6)
+  password: string;
+}
