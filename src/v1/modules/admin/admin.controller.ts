@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Post, Query, Param, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Query,
+  Param,
+  UseGuards,
+} from '@nestjs/common';
 import { AdminService } from './admin.service';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { RolesGuard } from '../../common/guards/roles.guard';
@@ -62,5 +70,3 @@ export class AdminController {
     return this.admin.seedAdmin(body.email, body.password);
   }
 }
-
-

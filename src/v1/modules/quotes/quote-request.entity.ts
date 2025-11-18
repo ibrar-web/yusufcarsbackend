@@ -43,11 +43,16 @@ export class QuoteRequest {
   @Column({ type: 'timestamp', nullable: true })
   expiresAt?: Date; // optional expiry
 
+  @Column({ nullable: true })
+  assignedToInternal?: string;
+
+  @Column({ type: 'text', nullable: true })
+  internalNotes?: string;
+
   @OneToMany(() => Quote, (q) => q.quoteRequest, { cascade: true })
   quotes!: Quote[];
 
   @CreateDateColumn()
   createdAt!: Date;
 }
-
 

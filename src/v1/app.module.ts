@@ -11,14 +11,13 @@ import { QuoteRequest } from './modules/quotes/quote-request.entity';
 import { Quote } from './modules/quotes/quote.entity';
 import { QuotesService } from './modules/quotes/quotes.service';
 import { QuotesController } from './modules/quotes/quotes.controller';
-import { AdminService } from './modules/admin/admin.service';
-import { AdminController } from './modules/admin/admin.controller';
 import { AuthController } from './modules/auth/auth.controller';
 import { AuthService } from './modules/auth/auth.service';
 import { JoseService } from './modules/auth/jose.service';
 import { QuotesGateway } from './modules/realtime/quotes.gateway';
 import { S3Service } from './common/aws/s3.service';
 import { KycDocsService } from './common/aws/kyc-docs.service';
+import { AdminModule } from './modules/admin/admin.module';
 
 @Module({
   imports: [
@@ -27,19 +26,18 @@ import { KycDocsService } from './common/aws/kyc-docs.service';
       autoLoadEntities: true,
     }),
     TypeOrmModule.forFeature([User, Supplier, QuoteRequest, Quote]),
+    AdminModule,
   ],
   controllers: [
     UsersController,
     SuppliersController,
     QuotesController,
-    AdminController,
     AuthController,
   ],
   providers: [
     UsersService,
     SuppliersService,
     QuotesService,
-    AdminService,
     AuthService,
     JoseService,
     QuotesGateway,
