@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsWhere, ILike, Repository } from 'typeorm';
 import { Supplier } from '../../../entities/supplier.entity';
-import { UpdateAdminSupplierDto } from './dto/update-admin-supplier.dto';
+
 import { User } from 'src/v1/entities/user.entity';
 import {
   SupplierDocument,
@@ -72,12 +72,6 @@ export class AdminSuppliersService {
     return { ...supplier, documentFiles };
   }
 
-  async update(id: string, dto: UpdateAdminSupplierDto) {
-    const supplier = await this.findSupplierEntity(id);
-    Object.assign(supplier, dto);
-    return this.suppliers.save(supplier);
-  }
-
   async approve(id: string) {
     return this.suppliers.save({
       ...(await this.findSupplierEntity(id)),
@@ -124,7 +118,13 @@ export class AdminSuppliersService {
     });
     const withSignedUrl = await Promise.all(
       docs.map(async (doc) => ({
-        ...doc,
+        id: doc.id,
+        type: doc.type,
+        s3Key: doc.s3Key,
+        originalName: doc.originalName,
+        mimeType: doc.mimeType,
+        size: doc.size,
+        createdAt: doc.createdAt,
         signedUrl: await this.kycDocs.getSignedUrl(doc.s3Key),
       })),
     );

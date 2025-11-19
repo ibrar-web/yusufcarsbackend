@@ -3,7 +3,6 @@ import {
   Controller,
   Get,
   Param,
-  Patch,
   Post,
   Query,
   UseGuards,
@@ -12,8 +11,6 @@ import { AdminSuppliersService } from './suppliers.service';
 import { JwtCookieGuard } from '../guards/jwt-cookie.guard';
 import { RolesGuard } from '../guards/roles.guard';
 import { Roles } from '../decorators/roles.decorator';
-import { UpdateAdminSupplierDto } from './dto/update-admin-supplier.dto';
-
 @Controller('admin/suppliers')
 @UseGuards(JwtCookieGuard, RolesGuard)
 @Roles('admin')
@@ -46,11 +43,6 @@ export class AdminSuppliersController {
   @Get(':id/documents')
   documents(@Param('id') id: string) {
     return this.suppliers.getDocuments(id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() dto: UpdateAdminSupplierDto) {
-    return this.suppliers.update(id, dto);
   }
 
   @Post(':id/approve')
