@@ -70,12 +70,8 @@ export class AdminUsersService {
     const user = await this.findOne(id);
     if (!user) throw new NotFoundException('User not found');
 
-    const newStatus = !user.isActive;
-
-    return this.users.save({
-      ...user,
-      isActive: newStatus,
-    });
+    user.isActive = !user.isActive;
+    return this.users.save(user);
   }
 
   async remove(id: string) {

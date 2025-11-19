@@ -9,6 +9,7 @@ import {
 } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { Supplier } from './supplier.entity';
+import { Exclude } from 'class-transformer';
 
 export type AppRole = 'admin' | 'user' | 'supplier' | 'garage';
 
@@ -19,7 +20,7 @@ export class User {
 
   @Column({ unique: true })
   email!: string;
-
+  @Exclude()
   @Column()
   password!: string;
 
