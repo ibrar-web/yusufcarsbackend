@@ -186,6 +186,7 @@ export class AdminSuppliersService {
       }
       return acc;
     }, {});
-    return { byType, documents: withSignedUrl };
+    const latestDocuments = Object.values(byType);
+    return { byType, latestDocuments };
   }
 }

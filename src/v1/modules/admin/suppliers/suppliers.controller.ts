@@ -65,6 +65,7 @@ export class AdminSuppliersController {
 
   @Post(':id/disable')
   disable(@Param('id') id: string, @Body() dto: StatusReasonDto) {
+    console.log('disbale call: ', id,dto);
     return this.suppliers.disable(id, dto.reason);
   }
 }
