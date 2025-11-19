@@ -1,16 +1,20 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
 import { Response } from 'express';
 import { User } from '../../entities/user.entity';
 import { Supplier } from '../../entities/supplier.entity';
 import { SupplierDocument } from '../../entities/supplier-document.entity';
+import { SupplierDocumentType } from '../../entities/supplier-document-type.entity';
 import { JoseService } from './jose.service';
 import { UserRegisterDto } from './authdtos/userregister.dto';
 import { SupplierRegisterDto } from './authdtos/supplierregister.dto';
 import { type UploadedFile } from '../../common/aws/s3.service';
-import { KycDocsService } from '../../common/aws/kyc-docs.service';
+import {
+  KycDocsService,
+  type UploadedDocMeta,
+} from '../../common/aws/kyc-docs.service';
 
 @Injectable()
 export class AuthService {
@@ -20,13 +24,15 @@ export class AuthService {
     private readonly suppliers: Repository<Supplier>,
     @InjectRepository(SupplierDocument)
     private readonly supplierDocs: Repository<SupplierDocument>,
+    @InjectRepository(SupplierDocumentType)
+    private readonly documentTypes: Repository<SupplierDocumentType>,
     private readonly jose: JoseService,
     private readonly kycDocs: KycDocsService,
   ) {}
 
   async register(
     dto: UserRegisterDto | SupplierRegisterDto,
-    docs?: { companyRegDoc?: UploadedFile; insuranceDoc?: UploadedFile },
+    docs?: Record<string, UploadedFile | undefined>,
   ) {
     const existing = await this.users.findOne({ where: { email: dto.email } });
     if (existing) throw new BadRequestException('Email already in use');
@@ -43,14 +49,11 @@ export class AuthService {
       fullName,
       role: dto.role ?? 'user',
       postCode: supplierDto.postCode,
-      isVerified: true,
-      isActive: true,
     });
     await this.users.save(user);
 
     if (user.role === 'supplier') {
-      const { companyRegDoc, insuranceDoc } =
-        await this.kycDocs.uploadSupplierDocs(user.id, docs);
+      const uploadedDocs = await this.kycDocs.uploadSupplierDocs(user.id, docs);
       const businessName =
         supplierDto.businessName ||
         supplierDto.tradingAs ||
@@ -73,39 +76,69 @@ export class AuthService {
         termsAccepted: supplierDto.termsAccepted,
         gdprConsent: supplierDto.gdprConsent,
         categories: supplierDto.categories,
+        submittedAt: new Date(),
       });
       await this.suppliers.save(supplier);
-      const supplierDocuments: SupplierDocument[] = [];
-      if (companyRegDoc) {
-        supplierDocuments.push(
-          this.supplierDocs.create({
-            supplier,
-            type: 'companyReg',
-            s3Key: companyRegDoc.key,
-            originalName: companyRegDoc.originalName,
-            mimeType: companyRegDoc.mimeType,
-            size: companyRegDoc.size,
-          }),
-        );
-      }
-      if (insuranceDoc) {
-        supplierDocuments.push(
-          this.supplierDocs.create({
-            supplier,
-            type: 'insurance',
-            s3Key: insuranceDoc.key,
-            originalName: insuranceDoc.originalName,
-            mimeType: insuranceDoc.mimeType,
-            size: insuranceDoc.size,
-          }),
-        );
-      }
-      if (supplierDocuments.length > 0) {
-        await this.supplierDocs.save(supplierDocuments);
-      }
+      await this.saveUploadedDocuments(supplier, uploadedDocs);
     }
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return user.toPublic();
+  }
+
+  private async saveUploadedDocuments(
+    supplier: Supplier,
+    uploadedDocs: Record<string, UploadedDocMeta>,
+  ) {
+    const entries = Object.entries(uploadedDocs || {});
+    if (!entries.length) return;
+    const names = entries.map(([name]) => name);
+    const types = await this.documentTypes.find({
+      where: { name: In(names) },
+    });
+    const typeMap = new Map(types.map((type) => [type.name, type]));
+    const missingNames = names.filter((name) => !typeMap.has(name));
+    if (missingNames.length) {
+      const newTypes = missingNames.map((name) =>
+        this.documentTypes.create({
+          name,
+          displayName: this.humanizeDocumentType(name),
+        }),
+      );
+      const saved = await this.documentTypes.save(newTypes);
+      for (const savedType of saved) {
+        typeMap.set(savedType.name, savedType);
+      }
+    }
+    const documents: SupplierDocument[] = [];
+    for (const [name, meta] of entries) {
+      const documentType = typeMap.get(name);
+      if (!documentType) {
+        throw new BadRequestException(
+          `Document type "${name}" is not configured`,
+        );
+      }
+      documents.push(
+        this.supplierDocs.create({
+          supplier,
+          documentType,
+          s3Key: meta.key,
+          originalName: meta.originalName,
+          mimeType: meta.mimeType,
+          size: meta.size,
+        }),
+      );
+    }
+    if (documents.length > 0) {
+      await this.supplierDocs.save(documents);
+    }
+  }
+
+  private humanizeDocumentType(name: string) {
+    return name
+      .replace(/[-_]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .replace(/\b\w/g, (c) => c.toUpperCase());
   }
 
   async validateUser(email: string, password: string) {

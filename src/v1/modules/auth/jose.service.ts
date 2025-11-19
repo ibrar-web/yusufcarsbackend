@@ -12,14 +12,17 @@ function durationToMs(s?: string): number {
   const m = /^([0-9]+)([smhd])$/.exec(s.trim());
   if (!m) return 24 * 60 * 60 * 1000;
   const n = parseInt(m[1], 10);
-  const mult = m[2] === 's' ? 1 : m[2] === 'm' ? 60 : m[2] === 'h' ? 3600 : 86400;
+  const mult =
+    m[2] === 's' ? 1 : m[2] === 'm' ? 60 : m[2] === 'h' ? 3600 : 86400;
   return n * mult * 1000;
 }
 
 @Injectable()
 export class JoseService {
   async sign(payload: JWTPayload, options?: { expiresIn?: string }) {
-    const expiresMs = durationToMs(options?.expiresIn ?? process.env.TOKEN_EXPIRES_IN);
+    const expiresMs = durationToMs(
+      options?.expiresIn ?? process.env.TOKEN_EXPIRES_IN,
+    );
     const iat = Math.floor(Date.now() / 1000);
     const exp = Math.floor((Date.now() + expiresMs) / 1000);
     return await new SignJWT(payload)
@@ -34,5 +37,3 @@ export class JoseService {
     return payload as T;
   }
 }
-
-

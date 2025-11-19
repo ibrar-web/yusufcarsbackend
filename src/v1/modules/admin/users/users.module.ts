@@ -11,6 +11,12 @@ import { JoseService } from '../../auth/jose.service';
 @Module({
   imports: [TypeOrmModule.forFeature([User])],
   controllers: [AdminUsersController],
-  providers: [AdminUsersService, JwtCookieGuard, RolesGuard, JwtCookieStrategy, JoseService],
+  providers: [
+    AdminUsersService,
+    JwtCookieGuard,
+    RolesGuard,
+    JwtCookieStrategy,
+    JoseService,
+  ],
 })
 export class AdminUsersModule {}

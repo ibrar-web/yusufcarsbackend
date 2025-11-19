@@ -1,4 +1,11 @@
-import { IsBoolean, IsEmail, IsEnum, IsOptional, IsString, MinLength } from 'class-validator';
+import {
+  IsBoolean,
+  IsEmail,
+  IsEnum,
+  IsOptional,
+  IsString,
+  MinLength,
+} from 'class-validator';
 import type { AppRole } from '../../../../entities/user.entity';
 
 export class UpdateAdminUserDto {

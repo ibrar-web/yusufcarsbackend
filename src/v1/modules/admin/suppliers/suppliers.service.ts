@@ -1,19 +1,19 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FindOptionsWhere, ILike, Repository } from 'typeorm';
-import { Supplier } from '../../../entities/supplier.entity';
+import { Brackets, Repository } from 'typeorm';
+import {
+  Supplier,
+  SupplierApprovalStatus,
+} from '../../../entities/supplier.entity';
 
 import { User } from 'src/v1/entities/user.entity';
-import {
-  SupplierDocument,
-  SupplierDocumentType,
-} from '../../../entities/supplier-document.entity';
+import { SupplierDocument } from '../../../entities/supplier-document.entity';
 import { KycDocsService } from '../../../common/aws/kyc-docs.service';
 
 type ListSuppliersParams = {
   page?: number;
   limit?: number;
-  isVerified?: boolean;
+  approvalStatus?: SupplierApprovalStatus;
   isActive?: boolean;
   query?: string;
 };
@@ -36,32 +36,38 @@ export class AdminSuppliersService {
       params.limit && params.limit > 0 ? Math.min(params.limit, 100) : 20;
     const skip = (page - 1) * limit;
 
-    const base: FindOptionsWhere<User> = {
-      role: 'supplier',
-      ...(params.isActive !== undefined && { isActive: params.isActive }),
-    };
+    const qb = this.suppliers
+      .createQueryBuilder('supplier')
+      .leftJoinAndSelect('supplier.user', 'user')
+      .where('user.role = :role', { role: 'supplier' })
+      .skip(skip)
+      .take(limit)
+      .orderBy('supplier.createdAt', 'DESC');
 
-    let where: FindOptionsWhere<User>[] = [];
-
-    if (params.query) {
-      const q = ILike(`%${params.query}%`);
-      where = [
-        { ...base, email: q },
-        { ...base, fullName: q },
-      ];
-    } else {
-      where = [base];
+    if (params.isActive !== undefined) {
+      qb.andWhere('user.isActive = :isActive', { isActive: params.isActive });
     }
 
-    const orderKey = 'createdAt';
-    const orderDir = 'DESC';
+    if (params.approvalStatus) {
+      qb.andWhere('supplier.approvalStatus = :status', {
+        status: params.approvalStatus,
+      });
+    }
 
-    const [data, total] = await this.users.findAndCount({
-      where,
-      order: { [orderKey]: orderDir },
-      skip,
-      take: limit,
-    });
+    if (params.query) {
+      qb.andWhere(
+        new Brackets((expr) => {
+          const q = `%${params.query}%`;
+          expr
+            .where('user.email ILIKE :q', { q })
+            .orWhere('user.fullName ILIKE :q', { q })
+            .orWhere('supplier.businessName ILIKE :q', { q })
+            .orWhere('supplier.tradingAs ILIKE :q', { q });
+        }),
+      );
+    }
+
+    const [data, total] = await qb.getManyAndCount();
 
     return { data, meta: { total, page, limit } };
   }
@@ -73,31 +79,55 @@ export class AdminSuppliersService {
   }
 
   async approve(id: string) {
-    return this.suppliers.save({
-      ...(await this.findSupplierEntity(id)),
-      isVerified: true,
-    });
+    return this.updateSupplierStatus(
+      id,
+      {
+        approvalStatus: SupplierApprovalStatus.APPROVED,
+        rejectionReason: null,
+        approvedAt: new Date(),
+      },
+      {
+        isActive: true,
+        suspensionReason: null,
+      },
+    );
   }
 
-  async reject(id: string) {
-    return this.suppliers.save({
-      ...(await this.findSupplierEntity(id)),
-      isVerified: false,
-    });
+  async reject(id: string, reason: string) {
+    return this.updateSupplierStatus(
+      id,
+      {
+        approvalStatus: SupplierApprovalStatus.REJECTED,
+        rejectionReason: reason,
+        approvedAt: null,
+      },
+      {
+        isActive: false,
+        suspensionReason: reason,
+      },
+    );
   }
 
   async enable(id: string) {
-    return this.suppliers.save({
-      ...(await this.findSupplierEntity(id)),
-      isActive: true,
-    });
+    return this.updateSupplierStatus(
+      id,
+      {},
+      {
+        isActive: true,
+        suspensionReason: null,
+      },
+    );
   }
 
-  async disable(id: string) {
-    return this.suppliers.save({
-      ...(await this.findSupplierEntity(id)),
-      isActive: false,
-    });
+  async disable(id: string, reason: string) {
+    return this.updateSupplierStatus(
+      id,
+      {},
+      {
+        isActive: false,
+        suspensionReason: reason,
+      },
+    );
   }
 
   async getDocuments(id: string) {
@@ -106,20 +136,40 @@ export class AdminSuppliersService {
   }
 
   private async findSupplierEntity(id: string) {
-    const supplier = await this.suppliers.findOne({ where: { user: { id } } });
+    const supplier = await this.suppliers.findOne({
+      where: { user: { id } },
+      relations: { user: true },
+    });
     if (!supplier) throw new NotFoundException('Supplier not found');
     return supplier;
+  }
+
+  private async updateSupplierStatus(
+    id: string,
+    updates: Partial<Supplier>,
+    userUpdates?: Partial<User>,
+  ) {
+    const supplier = await this.findSupplierEntity(id);
+    Object.assign(supplier, updates);
+    if (userUpdates) {
+      Object.assign(supplier.user, userUpdates);
+      await this.users.save(supplier.user);
+    }
+    return this.suppliers.save(supplier);
   }
 
   private async buildDocumentResponse(supplierId: string) {
     const docs = await this.documents.find({
       where: { supplier: { id: supplierId } },
+      relations: { documentType: true },
       order: { createdAt: 'DESC' },
     });
     const withSignedUrl = await Promise.all(
       docs.map(async (doc) => ({
         id: doc.id,
-        type: doc.type,
+        documentTypeId: doc.documentTypeId,
+        type: doc.documentType?.name,
+        displayName: doc.documentType?.displayName,
         s3Key: doc.s3Key,
         originalName: doc.originalName,
         mimeType: doc.mimeType,
@@ -128,12 +178,14 @@ export class AdminSuppliersService {
         signedUrl: await this.kycDocs.getSignedUrl(doc.s3Key),
       })),
     );
-    const pickLatest = (type: SupplierDocumentType) =>
-      withSignedUrl.find((doc) => doc.type === type) || null;
-
-    return {
-      companyRegDoc: pickLatest('companyReg'),
-      insuranceDoc: pickLatest('insurance'),
-    };
+    const byType = withSignedUrl.reduce<
+      Record<string, (typeof withSignedUrl)[0]>
+    >((acc, doc) => {
+      if (doc.type && !acc[doc.type]) {
+        acc[doc.type] = doc;
+      }
+      return acc;
+    }, {});
+    return { byType, documents: withSignedUrl };
   }
 }

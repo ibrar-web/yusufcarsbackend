@@ -11,11 +11,14 @@ type ListOrdersParams = {
 
 @Injectable()
 export class UserOrdersService {
-  constructor(@InjectRepository(Quote) private readonly quotes: Repository<Quote>) {}
+  constructor(
+    @InjectRepository(Quote) private readonly quotes: Repository<Quote>,
+  ) {}
 
   async list(userId: string, params: ListOrdersParams) {
     const page = params.page && params.page > 0 ? params.page : 1;
-    const limit = params.limit && params.limit > 0 ? Math.min(params.limit, 100) : 20;
+    const limit =
+      params.limit && params.limit > 0 ? Math.min(params.limit, 100) : 20;
     const skip = (page - 1) * limit;
 
     const [data, total] = await this.quotes.findAndCount({

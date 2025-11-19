@@ -14,11 +14,14 @@ type ListParams = {
 
 @Injectable()
 export class SupplierQuotesService {
-  constructor(@InjectRepository(Quote) private readonly quotes: Repository<Quote>) {}
+  constructor(
+    @InjectRepository(Quote) private readonly quotes: Repository<Quote>,
+  ) {}
 
   async listForSupplier(params: ListParams) {
     const page = params.page && params.page > 0 ? params.page : 1;
-    const limit = params.limit && params.limit > 0 ? Math.min(params.limit, 100) : 20;
+    const limit =
+      params.limit && params.limit > 0 ? Math.min(params.limit, 100) : 20;
     const skip = (page - 1) * limit;
 
     const where: FindOptionsWhere<Quote> = {

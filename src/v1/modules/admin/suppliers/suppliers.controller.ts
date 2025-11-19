@@ -11,6 +11,9 @@ import { AdminSuppliersService } from './suppliers.service';
 import { JwtCookieGuard } from '../guards/jwt-cookie.guard';
 import { RolesGuard } from '../guards/roles.guard';
 import { Roles } from '../decorators/roles.decorator';
+import { UpdateAdminSupplierDto } from './dto/update-admin-supplier.dto';
+import { StatusReasonDto } from '../dto/status-reason.dto';
+import { SupplierApprovalStatus } from '../../../entities/supplier.entity';
 @Controller('admin/suppliers')
 @UseGuards(JwtCookieGuard, RolesGuard)
 @Roles('admin')
@@ -21,14 +24,14 @@ export class AdminSuppliersController {
   list(
     @Query('page') page?: string,
     @Query('limit') limit?: string,
-    @Query('isVerified') isVerified?: string,
+    @Query('approvalStatus') approvalStatus?: SupplierApprovalStatus,
     @Query('isActive') isActive?: string,
     @Query('query') query?: string,
   ) {
     return this.suppliers.list({
       page: page ? parseInt(page, 10) : undefined,
       limit: limit ? parseInt(limit, 10) : undefined,
-      isVerified: isVerified === undefined ? undefined : isVerified === 'true',
+      approvalStatus,
       isActive: isActive === undefined ? undefined : isActive === 'true',
       query,
     });
@@ -51,8 +54,8 @@ export class AdminSuppliersController {
   }
 
   @Post(':id/reject')
-  reject(@Param('id') id: string) {
-    return this.suppliers.reject(id);
+  reject(@Param('id') id: string, @Body() dto: StatusReasonDto) {
+    return this.suppliers.reject(id, dto.reason);
   }
 
   @Post(':id/enable')
@@ -61,7 +64,7 @@ export class AdminSuppliersController {
   }
 
   @Post(':id/disable')
-  disable(@Param('id') id: string) {
-    return this.suppliers.disable(id);
+  disable(@Param('id') id: string, @Body() dto: StatusReasonDto) {
+    return this.suppliers.disable(id, dto.reason);
   }
 }

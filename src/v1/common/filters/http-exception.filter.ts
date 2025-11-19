@@ -27,7 +27,10 @@ export class HttpExceptionFilter implements ExceptionFilter {
     this.httpAdapter.reply(ctx.getResponse(), body, status);
   }
 
-  private extractMessage(exception: unknown): { message: string; errors?: any } {
+  private extractMessage(exception: unknown): {
+    message: string;
+    errors?: any;
+  } {
     if (exception instanceof HttpException) {
       const res = exception.getResponse();
       if (typeof res === 'string') return { message: res };

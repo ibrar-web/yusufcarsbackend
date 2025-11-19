@@ -10,8 +10,10 @@ import { Quote } from '../../../entities/quote.entity';
 export class AdminStatsService {
   constructor(
     @InjectRepository(User) private readonly users: Repository<User>,
-    @InjectRepository(Supplier) private readonly suppliers: Repository<Supplier>,
-    @InjectRepository(QuoteRequest) private readonly enquiries: Repository<QuoteRequest>,
+    @InjectRepository(Supplier)
+    private readonly suppliers: Repository<Supplier>,
+    @InjectRepository(QuoteRequest)
+    private readonly enquiries: Repository<QuoteRequest>,
     @InjectRepository(Quote) private readonly quotes: Repository<Quote>,
   ) {}
 
@@ -40,8 +42,13 @@ export class AdminStatsService {
   }
 
   private async revenueSummary() {
-    const acceptedQuotes = await this.quotes.find({ where: { status: 'accepted' } as any });
-    const totalRevenue = acceptedQuotes.reduce((sum, q) => sum + Number(q.price), 0);
+    const acceptedQuotes = await this.quotes.find({
+      where: { status: 'accepted' } as any,
+    });
+    const totalRevenue = acceptedQuotes.reduce(
+      (sum, q) => sum + Number(q.price),
+      0,
+    );
     return { totalRevenue, acceptedQuotes: acceptedQuotes.length };
   }
 }

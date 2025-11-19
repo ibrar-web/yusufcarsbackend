@@ -12,26 +12,37 @@ type DateFilter = { from?: string; to?: string };
 export class AdminReportsService {
   constructor(
     @InjectRepository(User) private readonly users: Repository<User>,
-    @InjectRepository(Supplier) private readonly suppliers: Repository<Supplier>,
-    @InjectRepository(QuoteRequest) private readonly enquiries: Repository<QuoteRequest>,
+    @InjectRepository(Supplier)
+    private readonly suppliers: Repository<Supplier>,
+    @InjectRepository(QuoteRequest)
+    private readonly enquiries: Repository<QuoteRequest>,
     @InjectRepository(Quote) private readonly quotes: Repository<Quote>,
   ) {}
 
   async summary(filter: DateFilter) {
     const range = this.buildRange(filter);
-    const [userCount, supplierCount, enquiryCount, quoteCount] = await Promise.all([
-      this.users.count({ where: range }),
-      this.suppliers.count({ where: range }),
-      this.enquiries.count({ where: range }),
-      this.quotes.count({ where: range }),
-    ]);
+    const [userCount, supplierCount, enquiryCount, quoteCount] =
+      await Promise.all([
+        this.users.count({ where: range }),
+        this.suppliers.count({ where: range }),
+        this.enquiries.count({ where: range }),
+        this.quotes.count({ where: range }),
+      ]);
     return { userCount, supplierCount, enquiryCount, quoteCount };
   }
 
   async detailed(filter: DateFilter) {
     const where = this.buildRange(filter);
-    const enquiries = await this.enquiries.find({ where, order: { createdAt: 'DESC' }, take: 100 });
-    const quotes = await this.quotes.find({ where, order: { createdAt: 'DESC' }, take: 100 });
+    const enquiries = await this.enquiries.find({
+      where,
+      order: { createdAt: 'DESC' },
+      take: 100,
+    });
+    const quotes = await this.quotes.find({
+      where,
+      order: { createdAt: 'DESC' },
+      take: 100,
+    });
     return { enquiries, quotes };
   }
 

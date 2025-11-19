@@ -17,32 +17,49 @@ type ListParams = {
 
 @Injectable()
 export class AdminEnquiriesService {
-  constructor(@InjectRepository(QuoteRequest) private readonly enquiries: Repository<QuoteRequest>) {}
+  constructor(
+    @InjectRepository(QuoteRequest)
+    private readonly enquiries: Repository<QuoteRequest>,
+  ) {}
 
   async list(params: ListParams) {
     const page = params.page && params.page > 0 ? params.page : 1;
-    const limit = params.limit && params.limit > 0 ? Math.min(params.limit, 100) : 20;
+    const limit =
+      params.limit && params.limit > 0 ? Math.min(params.limit, 100) : 20;
     const skip = (page - 1) * limit;
 
-    const qb = this.enquiries.createQueryBuilder('enquiry').leftJoinAndSelect('enquiry.user', 'user');
+    const qb = this.enquiries
+      .createQueryBuilder('enquiry')
+      .leftJoinAndSelect('enquiry.user', 'user');
 
-    if (params.status) qb.andWhere('enquiry.status = :status', { status: params.status });
+    if (params.status)
+      qb.andWhere('enquiry.status = :status', { status: params.status });
     if (params.from && params.to) {
-      qb.andWhere('enquiry.createdAt BETWEEN :from AND :to', { from: new Date(params.from), to: new Date(params.to) });
+      qb.andWhere('enquiry.createdAt BETWEEN :from AND :to', {
+        from: new Date(params.from),
+        to: new Date(params.to),
+      });
     } else if (params.from) {
-      qb.andWhere('enquiry.createdAt >= :from', { from: new Date(params.from) });
+      qb.andWhere('enquiry.createdAt >= :from', {
+        from: new Date(params.from),
+      });
     } else if (params.to) {
       qb.andWhere('enquiry.createdAt <= :to', { to: new Date(params.to) });
     }
 
-    qb.orderBy('enquiry.createdAt', params.sortDir || 'DESC').skip(skip).take(limit);
+    qb.orderBy('enquiry.createdAt', params.sortDir || 'DESC')
+      .skip(skip)
+      .take(limit);
 
     const [data, total] = await qb.getManyAndCount();
     return { data, meta: { total, page, limit } };
   }
 
   async findOne(id: string) {
-    const enquiry = await this.enquiries.findOne({ where: { id }, relations: ['user'] });
+    const enquiry = await this.enquiries.findOne({
+      where: { id },
+      relations: ['user'],
+    });
     if (!enquiry) throw new NotFoundException('Enquiry not found');
     return enquiry;
   }

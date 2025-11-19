@@ -13,7 +13,10 @@ export class UserMessagesController {
   constructor(private readonly messages: UserMessagesService) {}
 
   @Get()
-  list(@CurrentUser() user: any, @Query('quoteRequestId') quoteRequestId?: string) {
+  list(
+    @CurrentUser() user: any,
+    @Query('quoteRequestId') quoteRequestId?: string,
+  ) {
     return this.messages.list(user.sub, quoteRequestId);
   }
 

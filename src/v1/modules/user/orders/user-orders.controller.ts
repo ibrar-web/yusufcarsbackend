@@ -12,7 +12,11 @@ export class UserOrdersController {
   constructor(private readonly orders: UserOrdersService) {}
 
   @Get()
-  list(@CurrentUser() user: any, @Query('page') page?: string, @Query('limit') limit?: string) {
+  list(
+    @CurrentUser() user: any,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
     return this.orders.list(user.sub, {
       page: page ? parseInt(page, 10) : undefined,
       limit: limit ? parseInt(limit, 10) : undefined,

@@ -6,7 +6,9 @@ import { UpdateUserSettingsDto } from './dto/update-user-settings.dto';
 
 @Injectable()
 export class UserSettingsService {
-  constructor(@InjectRepository(User) private readonly users: Repository<User>) {}
+  constructor(
+    @InjectRepository(User) private readonly users: Repository<User>,
+  ) {}
 
   async get(userId: string) {
     const user = await this.users.findOne({ where: { id: userId } });

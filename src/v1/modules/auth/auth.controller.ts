@@ -49,18 +49,18 @@ export class AuthController {
         : plainToInstance(UserRegisterDto, body);
 
     await validateOrReject(dto);
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    console.log(
-      'dto :',
-      dto,
-      files?.companyRegDoc?.[0],
-      files?.insuranceDoc?.[0],
-    );
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return await this.auth.register(dto, {
-      companyRegDoc: files?.companyRegDoc?.[0],
-      insuranceDoc: files?.insuranceDoc?.[0],
-    });
+
+    const docUploads: Record<string, UploadedFile | undefined> = {};
+    if (files?.companyRegDoc?.[0]) {
+      docUploads['company_registration'] = files.companyRegDoc[0];
+    }
+    if (files?.insuranceDoc?.[0]) {
+      docUploads['insurance_certificate'] = files.insuranceDoc[0];
+    }
+    const docsPayload =
+      Object.keys(docUploads).length > 0 ? docUploads : undefined;
+
+    return await this.auth.register(dto, docsPayload);
   }
 
   @Post('login')

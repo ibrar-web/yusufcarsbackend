@@ -15,7 +15,7 @@ export type UploadedFile = {
   size?: number;
 };
 
-type KycDocumentType = 'company-reg' | 'insurance';
+export type KycDocumentType = string;
 
 @Injectable()
 export class S3Service {
@@ -111,5 +111,4 @@ export class S3Service {
       .slice(0, 12);
     return `${prefix}/${nano}-${docType}-${hash}`;
   }
-
 }

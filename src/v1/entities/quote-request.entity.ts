@@ -1,4 +1,11 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, CreateDateColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  OneToMany,
+  CreateDateColumn,
+} from 'typeorm';
 import { User } from './user.entity';
 import { Quote } from './quote.entity';
 
@@ -37,7 +44,11 @@ export class QuoteRequest {
   @Column({ type: 'enum', enum: ['local', 'national'], default: 'local' })
   requestType!: 'local' | 'national';
 
-  @Column({ type: 'enum', enum: ['pending', 'expired', 'completed'], default: 'pending' })
+  @Column({
+    type: 'enum',
+    enum: ['pending', 'expired', 'completed'],
+    default: 'pending',
+  })
   status!: 'pending' | 'expired' | 'completed';
 
   @Column({ type: 'timestamp', nullable: true })

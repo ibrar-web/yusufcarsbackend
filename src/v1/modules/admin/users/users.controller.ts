@@ -15,6 +15,7 @@ import { RolesGuard } from '../guards/roles.guard';
 import { Roles } from '../decorators/roles.decorator';
 import { CurrentUser } from '../decorators/current-user.decorator';
 import { UpdateAdminUserDto } from './dto/update-admin-user.dto';
+import { StatusReasonDto } from '../dto/status-reason.dto';
 
 @Controller('admin/users')
 @UseGuards(JwtCookieGuard, RolesGuard)
@@ -52,9 +53,14 @@ export class AdminUsersController {
     return this.users.update(id, dto);
   }
 
-  @Post(':id/activate')
-  toggleActive(@Param('id') id: string) {
-    return this.users.toggleActive(id);
+  @Post(':id/enable')
+  enable(@Param('id') id: string) {
+    return this.users.enable(id);
+  }
+
+  @Post(':id/disable')
+  disable(@Param('id') id: string, @Body() dto: StatusReasonDto) {
+    return this.users.disable(id, dto.reason);
   }
 
   @Delete(':id')

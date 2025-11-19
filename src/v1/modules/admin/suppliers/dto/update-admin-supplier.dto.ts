@@ -1,4 +1,11 @@
-import { IsArray, IsBoolean, IsOptional, IsString } from 'class-validator';
+import {
+  IsArray,
+  IsBoolean,
+  IsEnum,
+  IsOptional,
+  IsString,
+} from 'class-validator';
+import { SupplierApprovalStatus } from '../../../../entities/supplier.entity';
 
 export class UpdateAdminSupplierDto {
   @IsOptional()
@@ -14,8 +21,8 @@ export class UpdateAdminSupplierDto {
   city?: string;
 
   @IsOptional()
-  @IsBoolean()
-  isVerified?: boolean;
+  @IsEnum(SupplierApprovalStatus)
+  approvalStatus?: SupplierApprovalStatus;
 
   @IsOptional()
   @IsBoolean()

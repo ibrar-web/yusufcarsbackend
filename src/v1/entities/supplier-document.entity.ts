@@ -2,37 +2,45 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  Index,
+  JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
+  RelationId,
+  Unique,
 } from 'typeorm';
 import { Supplier } from './supplier.entity';
-
-export type SupplierDocumentType = 'companyReg' | 'insurance';
+import { SupplierDocumentType } from './supplier-document-type.entity';
 
 @Entity('supplier_documents')
+@Unique('UQ_supplier_document_per_type', ['supplier', 'documentType'])
 export class SupplierDocument {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
   @ManyToOne(() => Supplier, (supplier) => supplier.documents, {
     onDelete: 'CASCADE',
-    eager: true,
   })
+  @JoinColumn({ name: 'supplier_id' })
   supplier!: Supplier;
+  @RelationId((doc: SupplierDocument) => doc.supplier)
+  supplierId!: string;
 
-  @Column({
-    type: 'enum',
-    enum: ['companyReg', 'insurance'],
+  @ManyToOne(() => SupplierDocumentType, (type) => type.documents, {
+    onDelete: 'RESTRICT',
   })
-  type!: SupplierDocumentType;
+  @JoinColumn({ name: 'document_type_id' })
+  documentType!: SupplierDocumentType;
+  @RelationId((doc: SupplierDocument) => doc.documentType)
+  documentTypeId!: string;
 
-  @Column()
+  @Column({ length: 255 })
   s3Key!: string;
 
-  @Column()
+  @Column({ length: 255 })
   originalName!: string;
 
-  @Column({ nullable: true })
+  @Column({ length: 150, nullable: true })
   mimeType?: string;
 
   @Column({ type: 'bigint', nullable: true })

@@ -1,4 +1,10 @@
-import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { Supplier } from '../../../../entities/supplier.entity';
 import { User } from '../../../../entities/user.entity';
 import { QuoteRequest } from '../../../../entities/quote-request.entity';

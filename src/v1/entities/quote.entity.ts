@@ -1,4 +1,10 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  CreateDateColumn,
+} from 'typeorm';
 import { QuoteRequest } from './quote-request.entity';
 import { Supplier } from './supplier.entity';
 
@@ -7,7 +13,10 @@ export class Quote {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  @ManyToOne(() => QuoteRequest, (qr) => qr.quotes, { eager: true, onDelete: 'CASCADE' })
+  @ManyToOne(() => QuoteRequest, (qr) => qr.quotes, {
+    eager: true,
+    onDelete: 'CASCADE',
+  })
   quoteRequest!: QuoteRequest;
 
   @ManyToOne(() => Supplier, { eager: true, onDelete: 'CASCADE' })
@@ -22,7 +31,11 @@ export class Quote {
   @Column({ type: 'timestamp' })
   expiresAt!: Date;
 
-  @Column({ type: 'enum', enum: ['pending', 'accepted', 'expired'], default: 'pending' })
+  @Column({
+    type: 'enum',
+    enum: ['pending', 'accepted', 'expired'],
+    default: 'pending',
+  })
   status!: 'pending' | 'accepted' | 'expired';
 
   @CreateDateColumn()

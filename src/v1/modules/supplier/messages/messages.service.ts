@@ -12,15 +12,20 @@ import { QuotesGateway } from '../../realtime/quotes.gateway';
 export class SupplierMessagesService {
   constructor(
     @InjectRepository(Message) private readonly messages: Repository<Message>,
-    @InjectRepository(Supplier) private readonly suppliers: Repository<Supplier>,
+    @InjectRepository(Supplier)
+    private readonly suppliers: Repository<Supplier>,
     @InjectRepository(User) private readonly users: Repository<User>,
-    @InjectRepository(QuoteRequest) private readonly requests: Repository<QuoteRequest>,
+    @InjectRepository(QuoteRequest)
+    private readonly requests: Repository<QuoteRequest>,
     private readonly quotesGateway: QuotesGateway,
   ) {}
 
   async listForSupplier(supplierId: string, quoteRequestId?: string) {
     const where = quoteRequestId
-      ? { supplier: { id: supplierId } as any, quoteRequest: { id: quoteRequestId } as any }
+      ? {
+          supplier: { id: supplierId } as any,
+          quoteRequest: { id: quoteRequestId } as any,
+        }
       : { supplier: { id: supplierId } as any };
     return this.messages.find({
       where,
@@ -30,9 +35,14 @@ export class SupplierMessagesService {
   }
 
   async sendFromSupplier(supplierId: string, dto: SendMessageDto) {
-    const supplier = await this.suppliers.findOne({ where: { id: supplierId } });
+    const supplier = await this.suppliers.findOne({
+      where: { id: supplierId },
+    });
     if (!supplier) throw new NotFoundException('Supplier not found');
-    const quoteRequest = await this.requests.findOne({ where: { id: dto.quoteRequestId }, relations: ['user'] });
+    const quoteRequest = await this.requests.findOne({
+      where: { id: dto.quoteRequestId },
+      relations: ['user'],
+    });
     if (!quoteRequest) throw new NotFoundException('Quote request not found');
 
     const message = this.messages.create({

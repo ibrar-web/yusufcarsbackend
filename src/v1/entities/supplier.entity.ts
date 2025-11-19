@@ -7,18 +7,31 @@ import {
   CreateDateColumn,
   Index,
   OneToMany,
+  UpdateDateColumn,
+  RelationId,
 } from 'typeorm';
 import { User } from './user.entity';
 import { SupplierDocument } from './supplier-document.entity';
 
+export enum SupplierApprovalStatus {
+  PENDING = 'pending',
+  APPROVED = 'approved',
+  REJECTED = 'rejected',
+  NEEDS_MORE_INFORMATION = 'needs_more_information',
+}
+
 @Entity('suppliers')
+@Index(['approvalStatus'])
+@Index(['postCode'])
 export class Supplier {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  @OneToOne(() => User, { eager: true, onDelete: 'CASCADE' })
-  @JoinColumn()
+  @OneToOne(() => User, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'user_id' })
   user!: User;
+  @RelationId((supplier: Supplier) => supplier.user)
+  userId!: string;
 
   @Column()
   businessName!: string;
@@ -49,6 +62,12 @@ export class Supplier {
   postCode?: string;
 
   @Column({ nullable: true })
+  country?: string;
+
+  @Column({ nullable: true })
+  state?: string;
+
+  @Column({ nullable: true })
   phone?: string;
 
   @Column({ nullable: true })
@@ -67,14 +86,27 @@ export class Supplier {
   @Column({ type: 'simple-array', nullable: true })
   categories?: string[];
 
-  @Column({ default: false })
-  isVerified!: boolean;
+  @Column({
+    type: 'enum',
+    enum: SupplierApprovalStatus,
+    default: SupplierApprovalStatus.PENDING,
+  })
+  approvalStatus!: SupplierApprovalStatus;
 
-  @Column({ default: true })
-  isActive!: boolean;
+  @Column({ type: 'text', nullable: true })
+  rejectionReason?: string | null;
+
+  @Column({ type: 'timestamptz', nullable: true })
+  approvedAt?: Date | null;
+
+  @Column({ type: 'timestamptz', nullable: true })
+  submittedAt?: Date | null;
 
   @CreateDateColumn()
   createdAt!: Date;
+
+  @UpdateDateColumn()
+  updatedAt!: Date;
 
   @OneToMany(() => SupplierDocument, (document) => document.supplier)
   documents?: SupplierDocument[];

@@ -14,6 +14,12 @@ import { JoseService } from '../../auth/jose.service';
 @Module({
   imports: [TypeOrmModule.forFeature([Message, Supplier, User, QuoteRequest])],
   controllers: [UserMessagesController],
-  providers: [UserMessagesService, QuotesGateway, AuthGuard, RolesGuard, JoseService],
+  providers: [
+    UserMessagesService,
+    QuotesGateway,
+    AuthGuard,
+    RolesGuard,
+    JoseService,
+  ],
 })
 export class UserMessagesModule {}

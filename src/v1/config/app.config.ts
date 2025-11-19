@@ -5,5 +5,3 @@ export const appConfig = () => ({
   cookieDomain: process.env.COOKIE_DOMAIN || undefined,
   corsOrigin: process.env.CORS_ORIGIN || 'http://localhost:3000',
 });
-
-

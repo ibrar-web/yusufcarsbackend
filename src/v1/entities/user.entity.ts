@@ -11,7 +11,13 @@ import * as bcrypt from 'bcrypt';
 import { Supplier } from './supplier.entity';
 import { Exclude } from 'class-transformer';
 
-export type AppRole = 'admin' | 'user' | 'supplier' | 'garage';
+export type AppRole =
+  | 'admin'
+  | 'user'
+  | 'supplier'
+  | 'garage'
+  | 'mechanic'
+  | 'dealer';
 
 @Entity('users')
 export class User {
@@ -29,16 +35,16 @@ export class User {
 
   @Column({
     type: 'enum',
-    enum: ['admin', 'user', 'supplier', 'garage'],
+    enum: ['admin', 'user', 'supplier', 'garage', 'mechanic', 'dealer'],
     default: 'user',
   })
   role!: AppRole;
 
-  @Column({ default: false })
-  isVerified!: boolean;
-
   @Column({ default: true })
   isActive!: boolean;
+
+  @Column({ type: 'text', nullable: true })
+  suspensionReason?: string | null;
 
   @CreateDateColumn()
   createdAt!: Date;

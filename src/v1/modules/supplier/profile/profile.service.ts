@@ -6,10 +6,15 @@ import { UpdateSupplierProfileDto } from './profile.dto';
 
 @Injectable()
 export class SupplierProfileService {
-  constructor(@InjectRepository(Supplier) private readonly suppliers: Repository<Supplier>) {}
+  constructor(
+    @InjectRepository(Supplier)
+    private readonly suppliers: Repository<Supplier>,
+  ) {}
 
   async getProfile(userId: string) {
-    const supplier = await this.suppliers.findOne({ where: { user: { id: userId } as any } });
+    const supplier = await this.suppliers.findOne({
+      where: { user: { id: userId } as any },
+    });
     if (!supplier) throw new NotFoundException('Supplier not found');
     return supplier;
   }

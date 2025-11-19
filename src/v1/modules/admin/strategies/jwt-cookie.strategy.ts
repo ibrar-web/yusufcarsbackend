@@ -10,7 +10,9 @@ export class JwtCookieStrategy {
     const tokenFromCookie = req?.cookies?.[cookieName];
     const authHeader: string | undefined = req?.headers?.authorization;
     const headerToken =
-      authHeader && authHeader.startsWith('Bearer ') ? authHeader.slice('Bearer '.length) : undefined;
+      authHeader && authHeader.startsWith('Bearer ')
+        ? authHeader.slice('Bearer '.length)
+        : undefined;
     return tokenFromCookie || headerToken;
   }
 

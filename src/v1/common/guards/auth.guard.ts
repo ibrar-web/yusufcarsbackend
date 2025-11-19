@@ -1,4 +1,9 @@
-import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  CanActivate,
+  ExecutionContext,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { Request } from 'express';
 import { JoseService } from '../../modules/auth/jose.service';
 
@@ -11,7 +16,9 @@ export class AuthGuard implements CanActivate {
     const cookieName = process.env.COOKIE_NAME || 'access_token';
     const tokenFromCookie = (req as any).cookies?.[cookieName];
     const authHeader = req.headers.authorization || '';
-    const tokenFromHeader = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : undefined;
+    const tokenFromHeader = authHeader.startsWith('Bearer ')
+      ? authHeader.slice(7)
+      : undefined;
     const token = tokenFromCookie || tokenFromHeader;
 
     if (!token) throw new UnauthorizedException('Missing token');
@@ -24,5 +31,3 @@ export class AuthGuard implements CanActivate {
     }
   }
 }
-
-

@@ -11,11 +11,15 @@ type ListNotificationsParams = {
 
 @Injectable()
 export class UserNotificationsService {
-  constructor(@InjectRepository(QuoteRequest) private readonly requests: Repository<QuoteRequest>) {}
+  constructor(
+    @InjectRepository(QuoteRequest)
+    private readonly requests: Repository<QuoteRequest>,
+  ) {}
 
   async availableQuotes(userId: string, params: ListNotificationsParams) {
     const page = params.page && params.page > 0 ? params.page : 1;
-    const limit = params.limit && params.limit > 0 ? Math.min(params.limit, 100) : 20;
+    const limit =
+      params.limit && params.limit > 0 ? Math.min(params.limit, 100) : 20;
     const skip = (page - 1) * limit;
 
     const [data, total] = await this.requests.findAndCount({

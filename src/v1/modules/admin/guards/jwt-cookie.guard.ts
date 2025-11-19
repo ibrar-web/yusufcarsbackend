@@ -18,7 +18,7 @@ export class JwtCookieGuard implements CanActivate {
     }
     try {
       const payload = await this.strategy.validate(token);
-      (req as any).user = payload;
+      req.user = payload;
       return true;
     } catch {
       throw new UnauthorizedException('Invalid or expired token');

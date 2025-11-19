@@ -14,35 +14,31 @@ export class KycDocsService {
 
   async uploadSupplierDocs(
     userId: string,
-    docs?: { companyRegDoc?: UploadedFile; insuranceDoc?: UploadedFile },
-  ): Promise<{
-    companyRegDoc?: UploadedDocMeta;
-    insuranceDoc?: UploadedDocMeta;
-  }> {
-    const [companyRegDoc, insuranceDoc] = await Promise.all([
-      docs?.companyRegDoc
-        ? this.s3
-            .uploadKycDocument(userId, docs.companyRegDoc, 'company-reg')
-            .then((res) => ({
-              key: res.key,
-              originalName: docs.companyRegDoc!.originalname,
-              mimeType: docs.companyRegDoc!.mimetype,
-              size: docs.companyRegDoc!.size,
-            }))
-        : Promise.resolve(undefined),
-      docs?.insuranceDoc
-        ? this.s3
-            .uploadKycDocument(userId, docs.insuranceDoc, 'insurance')
-            .then((res) => ({
-              key: res.key,
-              originalName: docs.insuranceDoc!.originalname,
-              mimeType: docs.insuranceDoc!.mimetype,
-              size: docs.insuranceDoc!.size,
-            }))
-        : Promise.resolve(undefined),
-    ]);
-
-    return { companyRegDoc, insuranceDoc };
+    docs?: Record<string, UploadedFile | undefined>,
+  ): Promise<Record<string, UploadedDocMeta>> {
+    if (!docs) return {};
+    const entries = await Promise.all(
+      Object.entries(docs).map(async ([key, file]) => {
+        if (!file) return null;
+        const uploaded = await this.s3.uploadKycDocument(userId, file, key);
+        return [
+          key,
+          {
+            key: uploaded.key,
+            originalName: file.originalname,
+            mimeType: file.mimetype,
+            size: file.size,
+          } satisfies UploadedDocMeta,
+        ] as const;
+      }),
+    );
+    const result: Record<string, UploadedDocMeta> = {};
+    for (const entry of entries) {
+      if (!entry) continue;
+      const [docKey, meta] = entry;
+      result[docKey] = meta;
+    }
+    return result;
   }
 
   async getSignedUrl(key: string, expiresIn = 300) {
