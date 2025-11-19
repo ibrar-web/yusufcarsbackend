@@ -59,7 +59,7 @@ export class AdminSuppliersService {
   }
 
   async findOne(id: string) {
-    const supplier = await this.suppliers.findOne({ where: { id } });
+    const supplier = await this.suppliers.findOne({ where: { user: { id } } });
     if (!supplier) throw new NotFoundException('Supplier not found');
     return supplier;
   }

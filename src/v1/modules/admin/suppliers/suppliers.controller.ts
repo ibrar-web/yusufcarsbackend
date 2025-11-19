@@ -39,6 +39,7 @@ export class AdminSuppliersController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
+    console.log('api called for supplier details');
     return this.suppliers.findOne(id);
   }
 
