@@ -5,6 +5,7 @@ import * as bcrypt from 'bcrypt';
 import { Response } from 'express';
 import { User } from '../../entities/user.entity';
 import { Supplier } from '../../entities/supplier.entity';
+import { SupplierDocument } from '../../entities/supplier-document.entity';
 import { JoseService } from './jose.service';
 import { UserRegisterDto } from './authdtos/userregister.dto';
 import { SupplierRegisterDto } from './authdtos/supplierregister.dto';
@@ -17,6 +18,8 @@ export class AuthService {
     @InjectRepository(User) private readonly users: Repository<User>,
     @InjectRepository(Supplier)
     private readonly suppliers: Repository<Supplier>,
+    @InjectRepository(SupplierDocument)
+    private readonly supplierDocs: Repository<SupplierDocument>,
     private readonly jose: JoseService,
     private readonly kycDocs: KycDocsService,
   ) {}
@@ -38,7 +41,7 @@ export class AuthService {
       email: dto.email,
       password: dto.password,
       fullName,
-      role: 'user',
+      role: dto.role ?? 'user',
       postCode: supplierDto.postCode,
       isVerified: true,
       isActive: true,
@@ -46,7 +49,7 @@ export class AuthService {
     await this.users.save(user);
 
     if (user.role === 'supplier') {
-      const { companyRegDocUrl, insuranceDocUrl } =
+      const { companyRegDoc, insuranceDoc } =
         await this.kycDocs.uploadSupplierDocs(user.id, docs);
       const businessName =
         supplierDto.businessName ||
@@ -70,10 +73,38 @@ export class AuthService {
         termsAccepted: supplierDto.termsAccepted,
         gdprConsent: supplierDto.gdprConsent,
         categories: supplierDto.categories,
-        companyRegDoc: companyRegDocUrl,
-        insuranceDoc: insuranceDocUrl,
       });
       await this.suppliers.save(supplier);
+      const supplierDocuments: SupplierDocument[] = [];
+      if (companyRegDoc) {
+        supplierDocuments.push(
+          this.supplierDocs.create({
+            supplier,
+            type: 'companyReg',
+            s3Key: companyRegDoc.key,
+            url: companyRegDoc.url,
+            originalName: companyRegDoc.originalName,
+            mimeType: companyRegDoc.mimeType,
+            size: companyRegDoc.size,
+          }),
+        );
+      }
+      if (insuranceDoc) {
+        supplierDocuments.push(
+          this.supplierDocs.create({
+            supplier,
+            type: 'insurance',
+            s3Key: insuranceDoc.key,
+            url: insuranceDoc.url,
+            originalName: insuranceDoc.originalName,
+            mimeType: insuranceDoc.mimeType,
+            size: insuranceDoc.size,
+          }),
+        );
+      }
+      if (supplierDocuments.length > 0) {
+        await this.supplierDocs.save(supplierDocuments);
+      }
     }
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return user.toPublic();

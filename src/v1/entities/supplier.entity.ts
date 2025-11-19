@@ -6,8 +6,10 @@ import {
   JoinColumn,
   CreateDateColumn,
   Index,
+  OneToMany,
 } from 'typeorm';
 import { User } from './user.entity';
+import { SupplierDocument } from './supplier-document.entity';
 
 @Entity('suppliers')
 export class Supplier {
@@ -71,12 +73,9 @@ export class Supplier {
   @Column({ default: true })
   isActive!: boolean;
 
-  @Column({ name: 'companyRegistrationDoc', nullable: true })
-  companyRegDoc?: string;
-
-  @Column({ name: 'publicLiabilityInsurance', nullable: true })
-  insuranceDoc?: string;
-
   @CreateDateColumn()
   createdAt!: Date;
+
+  @OneToMany(() => SupplierDocument, (document) => document.supplier)
+  documents?: SupplierDocument[];
 }

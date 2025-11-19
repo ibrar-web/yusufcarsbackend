@@ -8,9 +8,10 @@ import { RolesGuard } from '../guards/roles.guard';
 import { JwtCookieStrategy } from '../strategies/jwt-cookie.strategy';
 import { JoseService } from '../../auth/jose.service';
 import { User } from 'src/v1/entities/user.entity';
+import { SupplierDocument } from '../../../entities/supplier-document.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Supplier, User])],
+  imports: [TypeOrmModule.forFeature([Supplier, User, SupplierDocument])],
   controllers: [AdminSuppliersController],
   providers: [
     AdminSuppliersService,

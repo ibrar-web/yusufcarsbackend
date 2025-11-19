@@ -4,6 +4,7 @@ import { FindOptionsWhere, ILike, Repository } from 'typeorm';
 import { Supplier } from '../../../entities/supplier.entity';
 import { UpdateAdminSupplierDto } from './dto/update-admin-supplier.dto';
 import { User } from 'src/v1/entities/user.entity';
+import { SupplierDocument } from '../../../entities/supplier-document.entity';
 
 type ListSuppliersParams = {
   page?: number;
@@ -20,6 +21,8 @@ export class AdminSuppliersService {
     private readonly suppliers: Repository<Supplier>,
     @InjectRepository(User)
     private readonly users: Repository<User>,
+    @InjectRepository(SupplierDocument)
+    private readonly documents: Repository<SupplierDocument>,
   ) {}
 
   async list(params: ListSuppliersParams) {
@@ -97,9 +100,12 @@ export class AdminSuppliersService {
 
   async getDocuments(id: string) {
     const supplier = await this.findOne(id);
-    return {
-      companyRegDoc: supplier.companyRegDoc,
-      insuranceDoc: supplier.insuranceDoc,
-    };
+    const docs = await this.documents.find({
+      where: { supplier: { id: supplier.id } },
+      order: { createdAt: 'DESC' },
+    });
+    const companyRegDoc = docs.find((doc) => doc.type === 'companyReg') || null;
+    const insuranceDoc = docs.find((doc) => doc.type === 'insurance') || null;
+    return { companyRegDoc, insuranceDoc };
   }
 }
