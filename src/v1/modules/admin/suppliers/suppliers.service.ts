@@ -137,7 +137,7 @@ export class AdminSuppliersService {
 
   private async findSupplierEntity(id: string) {
     const supplier = await this.suppliers.findOne({
-      where: { user: { id } },
+      where: [{ id }, { user: { id } }],
       relations: { user: true },
     });
     if (!supplier) throw new NotFoundException('Supplier not found');
