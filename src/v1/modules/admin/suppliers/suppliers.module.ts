@@ -9,6 +9,8 @@ import { JwtCookieStrategy } from '../strategies/jwt-cookie.strategy';
 import { JoseService } from '../../auth/jose.service';
 import { User } from 'src/v1/entities/user.entity';
 import { SupplierDocument } from '../../../entities/supplier-document.entity';
+import { KycDocsService } from '../../../common/aws/kyc-docs.service';
+import { S3Service } from '../../../common/aws/s3.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Supplier, User, SupplierDocument])],
@@ -19,6 +21,8 @@ import { SupplierDocument } from '../../../entities/supplier-document.entity';
     RolesGuard,
     JwtCookieStrategy,
     JoseService,
+    KycDocsService,
+    S3Service,
   ],
 })
 export class AdminSuppliersModule {}

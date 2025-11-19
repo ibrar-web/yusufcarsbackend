@@ -5,6 +5,7 @@ import { Supplier } from '../../../entities/supplier.entity';
 import { UpdateAdminSupplierDto } from './dto/update-admin-supplier.dto';
 import { User } from 'src/v1/entities/user.entity';
 import { SupplierDocument } from '../../../entities/supplier-document.entity';
+import { KycDocsService } from '../../../common/aws/kyc-docs.service';
 
 type ListSuppliersParams = {
   page?: number;
@@ -23,6 +24,7 @@ export class AdminSuppliersService {
     private readonly users: Repository<User>,
     @InjectRepository(SupplierDocument)
     private readonly documents: Repository<SupplierDocument>,
+    private readonly kycDocs: KycDocsService,
   ) {}
 
   async list(params: ListSuppliersParams) {
@@ -104,8 +106,16 @@ export class AdminSuppliersService {
       where: { supplier: { id: supplier.id } },
       order: { createdAt: 'DESC' },
     });
-    const companyRegDoc = docs.find((doc) => doc.type === 'companyReg') || null;
-    const insuranceDoc = docs.find((doc) => doc.type === 'insurance') || null;
+    const enrich = await Promise.all(
+      docs.map(async (doc) => ({
+        ...doc,
+        signedUrl: await this.kycDocs.getSignedUrl(doc.s3Key),
+      })),
+    );
+    const companyRegDoc =
+      enrich.find((doc) => doc.type === 'companyReg') || null;
+    const insuranceDoc =
+      enrich.find((doc) => doc.type === 'insurance') || null;
     return { companyRegDoc, insuranceDoc };
   }
 }
