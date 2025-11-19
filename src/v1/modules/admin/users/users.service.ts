@@ -25,12 +25,22 @@ export class AdminUsersService {
       params.limit && params.limit > 0 ? Math.min(params.limit, 100) : 20;
     const skip = (page - 1) * limit;
 
-    const where: FindOptionsWhere<User> = {
-      ...{ role: 'user' },
-      ...(params.isActive === undefined ? {} : { isActive: params.isActive }),
-      ...(params.query ? { email: ILike(`%${params.query}%`) } : {}),
-      ...(params.query ? { fullName: ILike(`%${params.query}%`) } : {}),
+    const base: FindOptionsWhere<User> = {
+      role: 'user',
+      ...(params.isActive !== undefined && { isActive: params.isActive }),
     };
+
+    let where: FindOptionsWhere<User>[] = [];
+
+    if (params.query) {
+      const q = ILike(`%${params.query}%`);
+      where = [
+        { ...base, email: q },
+        { ...base, fullName: q },
+      ];
+    } else {
+      where = [base];
+    }
 
     const orderKey = params.sortBy || 'createdAt';
     const orderDir = params.sortDir || 'DESC';

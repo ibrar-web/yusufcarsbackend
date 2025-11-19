@@ -1,4 +1,13 @@
-import { Body, Controller, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { AdminSuppliersService } from './suppliers.service';
 import { JwtCookieGuard } from '../guards/jwt-cookie.guard';
 import { RolesGuard } from '../guards/roles.guard';
@@ -17,20 +26,14 @@ export class AdminSuppliersController {
     @Query('limit') limit?: string,
     @Query('isVerified') isVerified?: string,
     @Query('isActive') isActive?: string,
-    @Query('category') category?: string,
-    @Query('city') city?: string,
-    @Query('sortBy') sortBy?: string,
-    @Query('sortDir') sortDir?: 'ASC' | 'DESC',
+    @Query('query') query?: string,
   ) {
     return this.suppliers.list({
       page: page ? parseInt(page, 10) : undefined,
       limit: limit ? parseInt(limit, 10) : undefined,
       isVerified: isVerified === undefined ? undefined : isVerified === 'true',
       isActive: isActive === undefined ? undefined : isActive === 'true',
-      category,
-      city,
-      sortBy: (sortBy as any) || undefined,
-      sortDir: sortDir || 'DESC',
+      query,
     });
   }
 

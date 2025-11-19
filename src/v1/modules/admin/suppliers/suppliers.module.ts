@@ -7,10 +7,17 @@ import { JwtCookieGuard } from '../guards/jwt-cookie.guard';
 import { RolesGuard } from '../guards/roles.guard';
 import { JwtCookieStrategy } from '../strategies/jwt-cookie.strategy';
 import { JoseService } from '../../auth/jose.service';
+import { User } from 'src/v1/entities/user.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Supplier])],
+  imports: [TypeOrmModule.forFeature([Supplier, User])],
   controllers: [AdminSuppliersController],
-  providers: [AdminSuppliersService, JwtCookieGuard, RolesGuard, JwtCookieStrategy, JoseService],
+  providers: [
+    AdminSuppliersService,
+    JwtCookieGuard,
+    RolesGuard,
+    JwtCookieStrategy,
+    JoseService,
+  ],
 })
 export class AdminSuppliersModule {}

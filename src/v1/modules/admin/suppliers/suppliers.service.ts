@@ -3,38 +3,52 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsWhere, ILike, Repository } from 'typeorm';
 import { Supplier } from '../../../entities/supplier.entity';
 import { UpdateAdminSupplierDto } from './dto/update-admin-supplier.dto';
+import { User } from 'src/v1/entities/user.entity';
 
 type ListSuppliersParams = {
   page?: number;
   limit?: number;
   isVerified?: boolean;
   isActive?: boolean;
-  category?: string;
-  city?: string;
-  sortBy?: keyof Supplier;
-  sortDir?: 'ASC' | 'DESC';
+  query?: string;
 };
 
 @Injectable()
 export class AdminSuppliersService {
-  constructor(@InjectRepository(Supplier) private readonly suppliers: Repository<Supplier>) {}
+  constructor(
+    @InjectRepository(Supplier)
+    private readonly suppliers: Repository<Supplier>,
+    @InjectRepository(User)
+    private readonly users: Repository<User>,
+  ) {}
 
   async list(params: ListSuppliersParams) {
     const page = params.page && params.page > 0 ? params.page : 1;
-    const limit = params.limit && params.limit > 0 ? Math.min(params.limit, 100) : 20;
+    const limit =
+      params.limit && params.limit > 0 ? Math.min(params.limit, 100) : 20;
     const skip = (page - 1) * limit;
 
-    const where: FindOptionsWhere<Supplier> = {
-      ...(params.isVerified === undefined ? {} : { isVerified: params.isVerified }),
-      ...(params.isActive === undefined ? {} : { isActive: params.isActive }),
-      ...(params.city ? { city: ILike(`%${params.city}%`) } : {}),
-      ...(params.category ? { categories: ILike(`%${params.category}%`) } : {}),
+    const base: FindOptionsWhere<User> = {
+      role: 'supplier',
+      ...(params.isActive !== undefined && { isActive: params.isActive }),
     };
 
-    const orderKey = params.sortBy || 'createdAt';
-    const orderDir = params.sortDir || 'DESC';
+    let where: FindOptionsWhere<User>[] = [];
 
-    const [data, total] = await this.suppliers.findAndCount({
+    if (params.query) {
+      const q = ILike(`%${params.query}%`);
+      where = [
+        { ...base, email: q },
+        { ...base, fullName: q },
+      ];
+    } else {
+      where = [base];
+    }
+
+    const orderKey = 'createdAt';
+    const orderDir = 'DESC';
+
+    const [data, total] = await this.users.findAndCount({
       where,
       order: { [orderKey]: orderDir },
       skip,
@@ -57,11 +71,17 @@ export class AdminSuppliersService {
   }
 
   async approve(id: string) {
-    return this.suppliers.save({ ...(await this.findOne(id)), isVerified: true });
+    return this.suppliers.save({
+      ...(await this.findOne(id)),
+      isVerified: true,
+    });
   }
 
   async reject(id: string) {
-    return this.suppliers.save({ ...(await this.findOne(id)), isVerified: false });
+    return this.suppliers.save({
+      ...(await this.findOne(id)),
+      isVerified: false,
+    });
   }
 
   async enable(id: string) {
@@ -69,7 +89,10 @@ export class AdminSuppliersService {
   }
 
   async disable(id: string) {
-    return this.suppliers.save({ ...(await this.findOne(id)), isActive: false });
+    return this.suppliers.save({
+      ...(await this.findOne(id)),
+      isActive: false,
+    });
   }
 
   async getDocuments(id: string) {
