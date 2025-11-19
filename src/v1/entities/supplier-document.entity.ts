@@ -30,9 +30,6 @@ export class SupplierDocument {
   s3Key!: string;
 
   @Column()
-  url!: string;
-
-  @Column()
   originalName!: string;
 
   @Column({ nullable: true })

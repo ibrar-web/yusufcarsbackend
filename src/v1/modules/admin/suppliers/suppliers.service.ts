@@ -4,7 +4,10 @@ import { FindOptionsWhere, ILike, Repository } from 'typeorm';
 import { Supplier } from '../../../entities/supplier.entity';
 import { UpdateAdminSupplierDto } from './dto/update-admin-supplier.dto';
 import { User } from 'src/v1/entities/user.entity';
-import { SupplierDocument } from '../../../entities/supplier-document.entity';
+import {
+  SupplierDocument,
+  SupplierDocumentType,
+} from '../../../entities/supplier-document.entity';
 import { KycDocsService } from '../../../common/aws/kyc-docs.service';
 
 type ListSuppliersParams = {
@@ -64,58 +67,73 @@ export class AdminSuppliersService {
   }
 
   async findOne(id: string) {
-    const supplier = await this.suppliers.findOne({ where: { user: { id } } });
-    if (!supplier) throw new NotFoundException('Supplier not found');
-    return supplier;
+    const supplier = await this.findSupplierEntity(id);
+    const documentFiles = await this.buildDocumentResponse(supplier.id);
+    return { ...supplier, documentFiles };
   }
 
   async update(id: string, dto: UpdateAdminSupplierDto) {
-    const supplier = await this.findOne(id);
+    const supplier = await this.findSupplierEntity(id);
     Object.assign(supplier, dto);
     return this.suppliers.save(supplier);
   }
 
   async approve(id: string) {
     return this.suppliers.save({
-      ...(await this.findOne(id)),
+      ...(await this.findSupplierEntity(id)),
       isVerified: true,
     });
   }
 
   async reject(id: string) {
     return this.suppliers.save({
-      ...(await this.findOne(id)),
+      ...(await this.findSupplierEntity(id)),
       isVerified: false,
     });
   }
 
   async enable(id: string) {
-    return this.suppliers.save({ ...(await this.findOne(id)), isActive: true });
+    return this.suppliers.save({
+      ...(await this.findSupplierEntity(id)),
+      isActive: true,
+    });
   }
 
   async disable(id: string) {
     return this.suppliers.save({
-      ...(await this.findOne(id)),
+      ...(await this.findSupplierEntity(id)),
       isActive: false,
     });
   }
 
   async getDocuments(id: string) {
-    const supplier = await this.findOne(id);
+    const supplier = await this.findSupplierEntity(id);
+    return this.buildDocumentResponse(supplier.id);
+  }
+
+  private async findSupplierEntity(id: string) {
+    const supplier = await this.suppliers.findOne({ where: { user: { id } } });
+    if (!supplier) throw new NotFoundException('Supplier not found');
+    return supplier;
+  }
+
+  private async buildDocumentResponse(supplierId: string) {
     const docs = await this.documents.find({
-      where: { supplier: { id: supplier.id } },
+      where: { supplier: { id: supplierId } },
       order: { createdAt: 'DESC' },
     });
-    const enrich = await Promise.all(
+    const withSignedUrl = await Promise.all(
       docs.map(async (doc) => ({
         ...doc,
         signedUrl: await this.kycDocs.getSignedUrl(doc.s3Key),
       })),
     );
-    const companyRegDoc =
-      enrich.find((doc) => doc.type === 'companyReg') || null;
-    const insuranceDoc =
-      enrich.find((doc) => doc.type === 'insurance') || null;
-    return { companyRegDoc, insuranceDoc };
+    const pickLatest = (type: SupplierDocumentType) =>
+      withSignedUrl.find((doc) => doc.type === type) || null;
+
+    return {
+      companyRegDoc: pickLatest('companyReg'),
+      insuranceDoc: pickLatest('insurance'),
+    };
   }
 }

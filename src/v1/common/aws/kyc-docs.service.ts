@@ -3,7 +3,6 @@ import { S3Service, type UploadedFile } from './s3.service';
 
 export type UploadedDocMeta = {
   key: string;
-  url: string;
   originalName: string;
   mimeType: string;
   size?: number;
@@ -26,7 +25,6 @@ export class KycDocsService {
             .uploadKycDocument(userId, docs.companyRegDoc, 'company-reg')
             .then((res) => ({
               key: res.key,
-              url: res.url,
               originalName: docs.companyRegDoc!.originalname,
               mimeType: docs.companyRegDoc!.mimetype,
               size: docs.companyRegDoc!.size,
@@ -37,7 +35,6 @@ export class KycDocsService {
             .uploadKycDocument(userId, docs.insuranceDoc, 'insurance')
             .then((res) => ({
               key: res.key,
-              url: res.url,
               originalName: docs.insuranceDoc!.originalname,
               mimeType: docs.insuranceDoc!.mimetype,
               size: docs.insuranceDoc!.size,

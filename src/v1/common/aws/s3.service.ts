@@ -5,7 +5,8 @@ import {
   GetObjectCommand,
   DeleteObjectCommand,
 } from '@aws-sdk/client-s3';
-import { createHash, createHmac, randomUUID } from 'crypto';
+import { createHash, randomUUID } from 'crypto';
+import { getSignedUrl as presign } from '@aws-sdk/s3-request-presigner';
 
 export type UploadedFile = {
   buffer: Buffer;
@@ -84,69 +85,11 @@ export class S3Service {
     if (!this.bucket) {
       throw new Error('AWS_KYC_S3_BUCKET (or AWS_S3_BUCKET) is not configured');
     }
-    const credentials = await this.client.config.credentials();
-    const hostname =
-      this.region === 'us-east-1'
-        ? `${this.bucket}.s3.amazonaws.com`
-        : `${this.bucket}.s3.${this.region}.amazonaws.com`;
-    const encodedKey = encodeURIComponent(key).replace(/%2F/g, '/');
-    const algorithm = 'AWS4-HMAC-SHA256';
-    const date = new Date();
-    const amzDate = date.toISOString().replace(/[:-]|\.\d{3}/g, '');
-    const dateStamp = amzDate.substring(0, 8);
-    const credentialScope = `${dateStamp}/${this.region}/s3/aws4_request`;
-    const signedHeaders = 'host';
-    const credential = encodeURIComponent(
-      `${credentials.accessKeyId}/${credentialScope}`,
-    );
-
-    const queryParams = [
-      `X-Amz-Algorithm=${algorithm}`,
-      `X-Amz-Credential=${credential}`,
-      `X-Amz-Date=${amzDate}`,
-      `X-Amz-Expires=${expiresIn}`,
-      `X-Amz-SignedHeaders=${signedHeaders}`,
-    ];
-
-    if (credentials.sessionToken) {
-      queryParams.push(
-        `X-Amz-Security-Token=${encodeURIComponent(credentials.sessionToken)}`,
-      );
-    }
-
-    const canonicalRequest = [
-      'GET',
-      `/${encodedKey}`,
-      queryParams.sort().join('&'),
-      `host:${hostname}\n`,
-      signedHeaders,
-      'UNSIGNED-PAYLOAD',
-    ].join('\n');
-
-    const hashedCanonicalRequest = createHash('sha256')
-      .update(canonicalRequest)
-      .digest('hex');
-    const stringToSign = [
-      algorithm,
-      amzDate,
-      credentialScope,
-      hashedCanonicalRequest,
-    ].join('\n');
-
-    const signingKey = this.getSigningKey(
-      credentials.secretAccessKey,
-      dateStamp,
-      this.region,
-      's3',
-    );
-    const signature = createHmac('sha256', signingKey)
-      .update(stringToSign)
-      .digest('hex');
-
-    const url = `https://${hostname}/${encodedKey}?${queryParams
-      .sort()
-      .join('&')}&X-Amz-Signature=${signature}`;
-    return url;
+    const command = new GetObjectCommand({
+      Bucket: this.bucket,
+      Key: key,
+    });
+    return presign(this.client, command, { expiresIn });
   }
 
   private buildPublicUrl(key: string) {
@@ -169,20 +112,4 @@ export class S3Service {
     return `${prefix}/${nano}-${docType}-${hash}`;
   }
 
-  private getSigningKey(
-    secretKey: string,
-    dateStamp: string,
-    regionName: string,
-    serviceName: string,
-  ) {
-    const kDate = createHmac('sha256', `AWS4${secretKey}`)
-      .update(dateStamp)
-      .digest();
-    const kRegion = createHmac('sha256', kDate).update(regionName).digest();
-    const kService = createHmac('sha256', kRegion).update(serviceName).digest();
-    const kSigning = createHmac('sha256', kService)
-      .update('aws4_request')
-      .digest();
-    return kSigning;
-  }
 }
