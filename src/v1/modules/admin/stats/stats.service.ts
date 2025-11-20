@@ -4,7 +4,7 @@ import { Between, Repository } from 'typeorm';
 import { User } from '../../../entities/user.entity';
 import { Supplier } from '../../../entities/supplier.entity';
 import { QuoteRequest } from '../../../entities/quote-request.entity';
-import { Quote } from '../../../entities/quote.entity';
+import { Quote } from '../../../entities/quote-offers.entity';
 
 @Injectable()
 export class AdminStatsService {

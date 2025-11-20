@@ -8,7 +8,7 @@ import {
 import { QuoteRequest } from './quote-request.entity';
 import { Supplier } from './supplier.entity';
 
-@Entity('quotes')
+@Entity('quotes_offers')
 export class Quote {
   @PrimaryGeneratedColumn('uuid')
   id!: string;

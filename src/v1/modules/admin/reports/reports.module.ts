@@ -3,7 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from '../../../entities/user.entity';
 import { Supplier } from '../../../entities/supplier.entity';
 import { QuoteRequest } from '../../../entities/quote-request.entity';
-import { Quote } from '../../../entities/quote.entity';
+import { Quote } from '../../../entities/quote-offers.entity';
 import { AdminReportsController } from './reports.controller';
 import { AdminReportsService } from './reports.service';
 import { JwtCookieGuard } from '../guards/jwt-cookie.guard';

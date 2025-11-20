@@ -7,7 +7,7 @@ import {
   CreateDateColumn,
 } from 'typeorm';
 import { User } from './user.entity';
-import { Quote } from './quote.entity';
+import { Quote } from './quote-offers.entity';
 
 @Entity('quote_requests')
 export class QuoteRequest {
