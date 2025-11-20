@@ -21,7 +21,10 @@ export class Messages {
 
   @Column({ type: 'text' })
   content: string;
+
   @Column({ default: false })
+  isRead: boolean;
+
   @CreateDateColumn()
   createdAt: Date;
 }
