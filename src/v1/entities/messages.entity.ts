@@ -1,0 +1,27 @@
+import {
+  Column,
+  Entity,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+  CreateDateColumn,
+} from 'typeorm';
+import { Chats } from './chats.entity';
+import { User } from './user.entity';
+
+@Entity('messages')
+export class Messages {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @ManyToOne(() => Chats, (chat) => chat.messages)
+  chat: Chats;
+
+  @ManyToOne(() => User)
+  sender: User;
+
+  @Column({ type: 'text' })
+  content: string;
+  @Column({ default: false })
+  @CreateDateColumn()
+  createdAt: Date;
+}
