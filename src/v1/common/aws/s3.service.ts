@@ -36,11 +36,11 @@ export class S3Service {
   }
 
   async uploadKycDocument(
-    userId: string,
+    prefix: string,
     file: UploadedFile,
     docType: KycDocumentType,
   ): Promise<{ key: string; url: string }> {
-    const key = this.generateKey(`${userId}/${docType}`, docType);
+    const key = this.generateKey(`${prefix}/${docType}`, docType);
     const url = await this.upload(key, file);
     return { key, url };
   }

@@ -20,7 +20,11 @@ export class KycDocsService {
     const entries = await Promise.all(
       Object.entries(docs).map(async ([key, file]) => {
         if (!file) return null;
-        const uploaded = await this.s3.uploadKycDocument(userId, file, key);
+        const uploaded = await this.s3.uploadKycDocument(
+          `supplier/${userId}`,
+          file,
+          key,
+        );
         return [
           key,
           {
