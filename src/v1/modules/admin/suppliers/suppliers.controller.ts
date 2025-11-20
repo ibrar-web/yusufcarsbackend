@@ -11,7 +11,6 @@ import { AdminSuppliersService } from './suppliers.service';
 import { JwtCookieGuard } from '../guards/jwt-cookie.guard';
 import { RolesGuard } from '../guards/roles.guard';
 import { Roles } from '../decorators/roles.decorator';
-import { UpdateAdminSupplierDto } from './dto/update-admin-supplier.dto';
 import { StatusReasonDto } from '../dto/status-reason.dto';
 import { SupplierApprovalStatus } from '../../../entities/supplier.entity';
 @Controller('admin/suppliers')
@@ -65,7 +64,7 @@ export class AdminSuppliersController {
 
   @Post(':id/disable')
   disable(@Param('id') id: string, @Body() dto: StatusReasonDto) {
-    console.log('disbale call: ', id,dto);
+    console.log('disbale call: ', id, dto);
     return this.suppliers.disable(id, dto.reason);
   }
 }
