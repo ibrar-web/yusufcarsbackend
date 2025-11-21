@@ -13,15 +13,11 @@ import { Transform } from 'class-transformer';
 export class CreateRequestQuoteDto {
   @IsString()
   @IsNotEmpty()
-  maker!: string;
+  model!: string;
 
   @IsString()
   @IsNotEmpty()
-  model!: string;
-
-  @IsOptional()
-  @IsString()
-  make?: string;
+  make!: string;
 
   @IsOptional()
   @IsString()

@@ -50,7 +50,6 @@ export class UserRequestQuoteService {
 
     const request = this.quoteRequests.create({
       user,
-      maker: dto.maker,
       model: dto.model,
       make: dto.make,
       registrationNumber: dto.registrationNumber,

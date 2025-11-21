@@ -88,7 +88,7 @@ export class QuoteRequest {
     enum: ['pending', 'expired', 'completed'],
     default: 'pending',
   })
-  status!: 'pending' | 'expired' | 'completed';
+  status!: 'pending' | 'expired';
 
   @Column({ type: 'timestamp', nullable: true })
   expiresAt?: Date;

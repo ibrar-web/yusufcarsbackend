@@ -28,9 +28,9 @@ export class SupplierQuotesService {
       ...(params.status ? { status: params.status } : {}),
       ...(params.search
         ? {
-            // Search on quoteRequest.maker/model
+            // Search on quoteRequest.make/model
             quoteRequest: {
-              maker: ILike(`%${params.search}%`),
+              make: ILike(`%${params.search}%`),
               model: ILike(`%${params.search}%`),
             } as any,
           }
