@@ -6,7 +6,7 @@ import { Roles } from '../../../common/decorators/roles.decorator';
 import { CurrentUser } from '../../admin/decorators/current-user.decorator';
 import { CreateQuoteOfferDto } from './dto/create-quote-offer.dto';
 
-@Controller('supplier/quote-offers')
+@Controller('supplier/quote')
 @UseGuards(AuthGuard, RolesGuard)
 @Roles('supplier')
 export class SupplierQuoteOffersController {

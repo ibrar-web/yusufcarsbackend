@@ -24,7 +24,7 @@ export class QuoteRequest {
   model!: string;
 
   @Column({ nullable: true })
-  year?: string;
+  yearOfManufacture?: string;
 
   @Column({ nullable: true })
   fuelType?: string;
@@ -38,9 +38,6 @@ export class QuoteRequest {
   @Column({ nullable: true })
   postcode?: string;
 
-  @Column({ default: false })
-  requireFitment!: boolean;
-
   @Column({ type: 'enum', enum: ['local', 'national'], default: 'local' })
   requestType!: 'local' | 'national';
 
@@ -53,12 +50,6 @@ export class QuoteRequest {
 
   @Column({ type: 'timestamp', nullable: true })
   expiresAt?: Date;
-
-  @Column({ nullable: true })
-  assignedToInternal?: string;
-
-  @Column({ type: 'text', nullable: true })
-  internalNotes?: string;
 
   @OneToMany(() => Quote, (q) => q.quoteRequest, { cascade: true })
   quotes!: Quote[];

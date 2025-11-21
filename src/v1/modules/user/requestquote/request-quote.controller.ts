@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthGuard } from '../../../common/guards/auth.guard';
 import { RolesGuard } from '../../../common/guards/roles.guard';
 import { Roles } from '../../../common/decorators/roles.decorator';
@@ -9,17 +17,14 @@ import { QuoteRequest } from '../../../entities/quote-request.entity';
 
 type QuoteRequestStatus = QuoteRequest['status'];
 
-@Controller('user/request-quotes')
+@Controller('user/quotes')
 @UseGuards(AuthGuard, RolesGuard)
 @Roles('user')
 export class UserRequestQuoteController {
   constructor(private readonly requestQuotes: UserRequestQuoteService) {}
 
   @Get()
-  list(
-    @CurrentUser() user: any,
-    @Query('status') status?: QuoteRequestStatus,
-  ) {
+  list(@CurrentUser() user: any, @Query('status') status?: QuoteRequestStatus) {
     return this.requestQuotes.list(user.sub, status);
   }
 

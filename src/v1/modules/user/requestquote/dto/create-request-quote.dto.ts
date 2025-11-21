@@ -19,7 +19,7 @@ export class CreateRequestQuoteDto {
 
   @IsOptional()
   @IsString()
-  year?: string;
+  yearOfManufacture?: string;
 
   @IsOptional()
   @IsString()
