@@ -5,7 +5,7 @@ import { User } from './entities/user.entity';
 import { Supplier } from './entities/supplier.entity';
 import { QuoteRequest } from './entities/quote-request.entity';
 import { Quote } from './entities/quote-offers.entity';
-import { QuotesGateway } from './modules/realtime/quotes.gateway';
+import { QuotesGateway } from './modules/sockets/quotes.gateway';
 import { S3Service } from './common/aws/s3.service';
 import { KycDocsService } from './common/aws/kyc-docs.service';
 import { AdminModule } from './modules/admin/admin.module';

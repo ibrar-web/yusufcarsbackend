@@ -6,7 +6,7 @@ import { SendMessageDto } from './dto/send-message.dto';
 import { Supplier } from '../../../entities/supplier.entity';
 import { User } from '../../../entities/user.entity';
 import { QuoteRequest } from '../../../entities/quote-request.entity';
-import { QuotesGateway } from '../../realtime/quotes.gateway';
+import { QuotesGateway } from '../../sockets/quotes.gateway';
 
 @Injectable()
 export class SupplierMessagesService {

@@ -6,7 +6,7 @@ import { User } from '../../../entities/user.entity';
 import { QuoteRequest } from '../../../entities/quote-request.entity';
 import { UserMessagesController } from './user-messages.controller';
 import { UserMessagesService } from './user-messages.service';
-import { QuotesGateway } from '../../realtime/quotes.gateway';
+import { QuotesGateway } from '../../sockets/quotes.gateway';
 import { AuthGuard } from '../../../common/guards/auth.guard';
 import { RolesGuard } from '../../../common/guards/roles.guard';
 import { JoseService } from '../../auth/jose.service';
