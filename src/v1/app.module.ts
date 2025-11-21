@@ -10,6 +10,7 @@ import { S3Service } from './common/aws/s3.service';
 import { KycDocsService } from './common/aws/kyc-docs.service';
 import { AdminModule } from './modules/admin/admin.module';
 import { SupplierQuotesModule } from './modules/supplier/quotes/quotes.module';
+import { SupplierQuoteOffersModule } from './modules/supplier/quoteoffers/quote-offers.module';
 import { SupplierAnalyticsModule } from './modules/supplier/analytics/analytics.module';
 import { SupplierMessagesModule } from './modules/supplier/messages/messages.module';
 import { SupplierProfileModule } from './modules/supplier/profile/profile.module';
@@ -17,6 +18,7 @@ import { UserMessagesModule } from './modules/user/messages/user-messages.module
 import { UserOrdersModule } from './modules/user/orders/user-orders.module';
 import { UserSettingsModule } from './modules/user/settings/user-settings.module';
 import { UserNotificationsModule } from './modules/user/notifications/user-notifications.module';
+import { UserRequestQuoteModule } from './modules/user/requestquote/request-quote.module';
 import { AuthModule } from './modules/auth/auth.module';
 
 @Module({
@@ -27,6 +29,7 @@ import { AuthModule } from './modules/auth/auth.module';
     }),
     AdminModule,
     SupplierQuotesModule,
+    SupplierQuoteOffersModule,
     SupplierAnalyticsModule,
     SupplierMessagesModule,
     SupplierProfileModule,
@@ -34,6 +37,7 @@ import { AuthModule } from './modules/auth/auth.module';
     UserOrdersModule,
     UserSettingsModule,
     UserNotificationsModule,
+    UserRequestQuoteModule,
     AuthModule,
   ],
   controllers: [],

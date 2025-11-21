@@ -3,6 +3,7 @@ import { SupplierAnalyticsModule } from './analytics/analytics.module';
 import { SupplierMessagesModule } from './messages/messages.module';
 import { SupplierProfileModule } from './profile/profile.module';
 import { SupplierQuotesModule } from './quotes/quotes.module';
+import { SupplierQuoteOffersModule } from './quoteoffers/quote-offers.module';
 
 @Module({
   imports: [
@@ -10,6 +11,7 @@ import { SupplierQuotesModule } from './quotes/quotes.module';
     SupplierMessagesModule,
     SupplierProfileModule,
     SupplierQuotesModule,
+    SupplierQuoteOffersModule,
   ],
 })
 export class SupplierModule {}
