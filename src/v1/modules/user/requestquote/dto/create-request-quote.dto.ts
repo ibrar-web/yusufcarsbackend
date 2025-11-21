@@ -12,8 +12,7 @@ import { Transform } from 'class-transformer';
 
 export class CreateRequestQuoteDto {
   @IsString()
-  @IsNotEmpty()
-  model!: string;
+  model?: string;
 
   @IsString()
   @IsNotEmpty()

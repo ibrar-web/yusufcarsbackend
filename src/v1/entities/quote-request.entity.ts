@@ -17,8 +17,8 @@ export class QuoteRequest {
   @ManyToOne(() => User, { eager: true, onDelete: 'CASCADE' })
   user!: User;
 
-  @Column()
-  model!: string;
+  @Column({ nullable: true })
+  model?: string;
 
   @Column()
   make!: string;
@@ -85,7 +85,7 @@ export class QuoteRequest {
 
   @Column({
     type: 'enum',
-    enum: ['pending', 'expired', 'completed'],
+    enum: ['pending', 'expired'],
     default: 'pending',
   })
   status!: 'pending' | 'expired';
