@@ -11,6 +11,7 @@ import {
 import { Transform } from 'class-transformer';
 
 export class CreateRequestQuoteDto {
+  @IsOptional()
   @IsString()
   model?: string;
 

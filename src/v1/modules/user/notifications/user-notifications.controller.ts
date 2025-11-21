@@ -16,7 +16,7 @@ export class UserNotificationsController {
     @CurrentUser() user: any,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
-    @Query('status') status?: 'pending' | 'expired' | 'completed',
+    @Query('status') status?: 'pending' | 'expired',
   ) {
     return this.notifications.availableQuotes(user.sub, {
       page: page ? parseInt(page, 10) : undefined,
