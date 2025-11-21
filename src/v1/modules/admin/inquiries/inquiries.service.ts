@@ -1,25 +1,29 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Between, Repository } from 'typeorm';
-import { QuoteRequest } from '../../../entities/quote-request.entity';
-import { AssignEnquiryDto } from './dto/assign-enquiry.dto';
+import { Repository } from 'typeorm';
+import {
+  Inquiries,
+  InquiryStatus,
+  UrgencyLevel,
+} from '../../../entities/inquiries.entity';
 import { UpdateEnquiryStatusDto } from './dto/update-enquiry-status.dto';
-import { AddEnquiryNoteDto } from './dto/add-enquiry-note.dto';
 
 type ListParams = {
   page?: number;
   limit?: number;
-  status?: QuoteRequest['status'];
+  status?: InquiryStatus;
+  urgency?: UrgencyLevel;
   from?: string;
   to?: string;
+  contact?: boolean;
   sortDir?: 'ASC' | 'DESC';
 };
 
 @Injectable()
 export class AdminEnquiriesService {
   constructor(
-    @InjectRepository(QuoteRequest)
-    private readonly enquiries: Repository<QuoteRequest>,
+    @InjectRepository(Inquiries)
+    private readonly enquiries: Repository<Inquiries>,
   ) {}
 
   async list(params: ListParams) {
@@ -28,12 +32,17 @@ export class AdminEnquiriesService {
       params.limit && params.limit > 0 ? Math.min(params.limit, 100) : 20;
     const skip = (page - 1) * limit;
 
-    const qb = this.enquiries
-      .createQueryBuilder('enquiry')
-      .leftJoinAndSelect('enquiry.user', 'user');
+    const qb = this.enquiries.createQueryBuilder('enquiry');
 
-    if (params.status)
+    if (params.status) {
       qb.andWhere('enquiry.status = :status', { status: params.status });
+    }
+    if (params.urgency) {
+      qb.andWhere('enquiry.urgency = :urgency', { urgency: params.urgency });
+    }
+    if (typeof params.contact === 'boolean') {
+      qb.andWhere('enquiry.contact = :contact', { contact: params.contact });
+    }
     if (params.from && params.to) {
       qb.andWhere('enquiry.createdAt BETWEEN :from AND :to', {
         from: new Date(params.from),
@@ -56,33 +65,14 @@ export class AdminEnquiriesService {
   }
 
   async findOne(id: string) {
-    const enquiry = await this.enquiries.findOne({
-      where: { id },
-      relations: ['user'],
-    });
+    const enquiry = await this.enquiries.findOne({ where: { id } });
     if (!enquiry) throw new NotFoundException('Enquiry not found');
     return enquiry;
-  }
-
-  async assign(id: string, dto: AssignEnquiryDto) {
-    const enquiry = await this.findOne(id);
-    enquiry.assignedToInternal = dto.assignedTo;
-    return this.enquiries.save(enquiry);
   }
 
   async updateStatus(id: string, dto: UpdateEnquiryStatusDto) {
     const enquiry = await this.findOne(id);
     enquiry.status = dto.status;
-    if (dto.internalNotes) {
-      enquiry.internalNotes = dto.internalNotes;
-    }
-    return this.enquiries.save(enquiry);
-  }
-
-  async addNote(id: string, dto: AddEnquiryNoteDto) {
-    const enquiry = await this.findOne(id);
-    const existing = enquiry.internalNotes ? `${enquiry.internalNotes}\n` : '';
-    enquiry.internalNotes = `${existing}${dto.note}`;
     return this.enquiries.save(enquiry);
   }
 }

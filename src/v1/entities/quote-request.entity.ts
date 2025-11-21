@@ -18,10 +18,22 @@ export class QuoteRequest {
   user!: User;
 
   @Column()
-  maker!: string;
+  model!: string;
 
   @Column()
-  model!: string;
+  make!: string;
+
+  @Column({ nullable: true })
+  registrationNumber?: string;
+
+  @Column({ nullable: true })
+  taxStatus?: string;
+
+  @Column({ nullable: true })
+  taxDueDate?: string;
+
+  @Column({ nullable: true })
+  motStatus?: string;
 
   @Column({ nullable: true })
   yearOfManufacture?: string;
@@ -31,6 +43,36 @@ export class QuoteRequest {
 
   @Column({ nullable: true })
   engineSize?: string;
+
+  @Column({ type: 'int', nullable: true })
+  engineCapacity?: number;
+
+  @Column({ type: 'int', nullable: true })
+  co2Emissions?: number;
+
+  @Column({ type: 'boolean', nullable: true })
+  markedForExport?: boolean;
+
+  @Column({ nullable: true })
+  colour?: string;
+
+  @Column({ nullable: true })
+  typeApproval?: string;
+
+  @Column({ type: 'int', nullable: true })
+  revenueWeight?: number;
+
+  @Column({ nullable: true })
+  dateOfLastV5CIssued?: string;
+
+  @Column({ nullable: true })
+  motExpiryDate?: string;
+
+  @Column({ nullable: true })
+  wheelplan?: string;
+
+  @Column({ nullable: true })
+  monthOfFirstRegistration?: string;
 
   @Column({ type: 'simple-array', nullable: true })
   services?: string[];

@@ -10,7 +10,7 @@ import { JwtCookieGuard } from './guards/jwt-cookie.guard';
 import { RolesGuard } from './guards/roles.guard';
 import { AdminUsersModule } from './users/users.module';
 import { AdminSuppliersModule } from './suppliers/suppliers.module';
-import { AdminEnquiriesModule } from './enquiries/enquiries.module';
+import { AdminEnquiriesModule } from './inquiries/inquiries.module';
 import { AdminReportsModule } from './reports/reports.module';
 import { AdminStatsModule } from './stats/stats.module';
 
