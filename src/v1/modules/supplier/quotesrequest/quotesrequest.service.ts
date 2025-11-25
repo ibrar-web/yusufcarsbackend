@@ -1,8 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsWhere, ILike, Repository } from 'typeorm';
-import { Quote } from '../../../entities/quote-offers.entity';
-import { QuoteStatus } from './quotesrequest.types';
+import { QuoteRequest } from '../../../entities/quote-request.entity';
+import type { QuoteStatus } from './quotesrequest.types';
 
 type ListParams = {
   page?: number;
@@ -15,7 +15,8 @@ type ListParams = {
 @Injectable()
 export class SupplierQuotesService {
   constructor(
-    @InjectRepository(Quote) private readonly quotes: Repository<Quote>,
+    @InjectRepository(QuoteRequest)
+    private readonly quotesRequest: Repository<QuoteRequest>,
   ) {}
 
   async listForSupplier(params: ListParams) {
@@ -23,23 +24,18 @@ export class SupplierQuotesService {
     const limit =
       params.limit && params.limit > 0 ? Math.min(params.limit, 100) : 20;
     const skip = (page - 1) * limit;
-
-    const where: FindOptionsWhere<Quote> = {
-      ...(params.status ? { status: params.status } : {}),
+    const where: FindOptionsWhere<QuoteRequest> = {
+      ...(params.status ? { status: params.status } : { status: 'pending' }),
       ...(params.search
         ? {
-            // Search on quoteRequest.make/model
-            quoteRequest: {
-              make: ILike(`%${params.search}%`),
-              model: ILike(`%${params.search}%`),
-            } as any,
+            make: ILike(`%${params.search}%`),
+            model: ILike(`%${params.search}%`),
           }
         : {}),
     };
-
-    const [data, total] = await this.quotes.findAndCount({
+    const [data, total] = await this.quotesRequest.findAndCount({
       where,
-      relations: ['quoteRequest', 'supplier'],
+      relations: ['user', 'quotes'],
       order: { createdAt: params.sortDir || 'DESC' },
       skip,
       take: limit,
@@ -49,11 +45,11 @@ export class SupplierQuotesService {
   }
 
   async detail(id: string) {
-    const quote = await this.quotes.findOne({
+    const request = await this.quotesRequest.findOne({
       where: { id },
-      relations: ['quoteRequest', 'supplier'],
+      relations: ['user', 'quotes'],
     });
-    if (!quote) throw new NotFoundException('Quote not found');
-    return quote;
+    if (!request) throw new NotFoundException('Quote request not found');
+    return request;
   }
 }

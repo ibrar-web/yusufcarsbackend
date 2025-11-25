@@ -22,7 +22,6 @@ export class SupplierQuotesController {
     return this.quotes.listForSupplier({
       page: page ? parseInt(page, 10) : undefined,
       limit: limit ? parseInt(limit, 10) : undefined,
-      status,
       sortDir: sortDir || 'DESC',
       search,
     });
