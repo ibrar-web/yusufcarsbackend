@@ -9,7 +9,7 @@ import { QuotesGateway } from './modules/sockets/quotes.gateway';
 import { S3Service } from './common/aws/s3.service';
 import { KycDocsService } from './common/aws/kyc-docs.service';
 import { AdminModule } from './modules/admin/admin.module';
-import { SupplierQuotesModule } from './modules/supplier/quotes/quotes.module';
+import { SupplierQuotesModule } from './modules/supplier/quotesrequest/quotesrequest.module';
 import { SupplierQuoteOffersModule } from './modules/supplier/quoteoffers/quote-offers.module';
 import { SupplierAnalyticsModule } from './modules/supplier/analytics/analytics.module';
 import { SupplierMessagesModule } from './modules/supplier/messages/messages.module';

@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsWhere, ILike, Repository } from 'typeorm';
 import { Quote } from '../../../entities/quote-offers.entity';
-import { QuoteStatus } from './quotes.types';
+import { QuoteStatus } from './quotesrequest.types';
 
 type ListParams = {
   page?: number;
