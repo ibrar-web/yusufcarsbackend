@@ -1,7 +1,7 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Brackets, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { QuoteRequest } from '../../../entities/quote-request.entity';
 import { QUOTE_REQUEST_LIFETIME_MS } from './request-quote.constants';
 
@@ -38,22 +38,14 @@ export class QuoteRequestExpiryService implements OnModuleInit {
 
   private async expirePendingRequests() {
     const now = new Date();
-    const createdDeadline = new Date(now.getTime() - QUOTE_REQUEST_LIFETIME_MS);
+    const deadline = new Date(now.getTime() - QUOTE_REQUEST_LIFETIME_MS);
 
     await this.quoteRequests
       .createQueryBuilder()
       .update(QuoteRequest)
       .set({ status: 'expired' })
       .where('"status" = :pending', { pending: 'pending' })
-      .andWhere(
-        new Brackets((qb) => {
-          qb.where('"expiresAt" IS NOT NULL AND "expiresAt" <= :now', {
-            now,
-          }).orWhere('"expiresAt" IS NULL AND "createdAt" <= :deadline', {
-            deadline: createdDeadline,
-          });
-        }),
-      )
+      .andWhere('"createdAt" <= :deadline', { deadline })
       .execute();
   }
 }
