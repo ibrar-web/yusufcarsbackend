@@ -2,13 +2,10 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsWhere, ILike, Repository } from 'typeorm';
 import { QuoteRequest } from '../../../entities/quote-request.entity';
-import type { QuoteStatus } from './quotesrequest.types';
 
 type ListParams = {
   page?: number;
   limit?: number;
-  status?: QuoteStatus;
-  sortDir?: 'ASC' | 'DESC';
   search?: string;
 };
 
@@ -25,7 +22,7 @@ export class SupplierQuotesService {
       params.limit && params.limit > 0 ? Math.min(params.limit, 100) : 20;
     const skip = (page - 1) * limit;
     const where: FindOptionsWhere<QuoteRequest> = {
-      ...(params.status ? { status: params.status } : { status: 'pending' }),
+      ...{ status: 'pending' },
       ...(params.search
         ? {
             make: ILike(`%${params.search}%`),
@@ -36,7 +33,7 @@ export class SupplierQuotesService {
     const [data, total] = await this.quotesRequest.findAndCount({
       where,
       relations: ['user', 'quotes'],
-      order: { createdAt: params.sortDir || 'DESC' },
+      order: { createdAt: 'DESC' },
       skip,
       take: limit,
     });

@@ -3,8 +3,6 @@ import { SupplierQuotesService } from './quotesrequest.service';
 import { AuthGuard } from '../../../common/guards/auth.guard';
 import { RolesGuard } from '../../../common/guards/roles.guard';
 import { Roles } from '../../../common/decorators/roles.decorator';
-import type { QuoteStatus } from './quotesrequest.types';
-
 @Controller('supplier/quotes/request')
 @UseGuards(AuthGuard, RolesGuard)
 @Roles('supplier')
@@ -15,14 +13,11 @@ export class SupplierQuotesController {
   list(
     @Query('page') page?: string,
     @Query('limit') limit?: string,
-    @Query('status') status?: QuoteStatus,
-    @Query('sortDir') sortDir?: 'ASC' | 'DESC',
     @Query('query') search?: string,
   ) {
     return this.quotes.listForSupplier({
       page: page ? parseInt(page, 10) : undefined,
       limit: limit ? parseInt(limit, 10) : undefined,
-      sortDir: sortDir || 'DESC',
       search,
     });
   }
