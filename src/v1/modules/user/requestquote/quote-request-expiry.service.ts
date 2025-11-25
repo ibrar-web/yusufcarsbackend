@@ -17,7 +17,10 @@ export class QuoteRequestExpiryService implements OnModuleInit {
   onModuleInit() {
     // ensure we catch up on any overdue requests immediately
     this.expirePendingRequests().catch((error) => {
-      this.logger.error('Initial quote request expiration failed', error.stack);
+      this.logger.error(
+        'Initial quote request expiration failed',
+        error instanceof Error ? error.stack : undefined,
+      );
     });
   }
 
@@ -44,13 +47,11 @@ export class QuoteRequestExpiryService implements OnModuleInit {
       .where('"status" = :pending', { pending: 'pending' })
       .andWhere(
         new Brackets((qb) => {
-          qb.where(
-            '"expiresAt" IS NOT NULL AND "expiresAt" <= :now',
-            { now },
-          ).orWhere(
-            '"expiresAt" IS NULL AND "createdAt" <= :deadline',
-            { deadline: createdDeadline },
-          );
+          qb.where('"expiresAt" IS NOT NULL AND "expiresAt" <= :now', {
+            now,
+          }).orWhere('"expiresAt" IS NULL AND "createdAt" <= :deadline', {
+            deadline: createdDeadline,
+          });
         }),
       )
       .execute();
