@@ -1,30 +1,30 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { Quote } from 'src/v1/entities/quote-offers.entity';
 import { Repository } from 'typeorm';
-import { QuoteRequest } from '../../../entities/quote-request.entity';
 
-type ListNotificationsParams = {
+type ListQupotesParams = {
   page?: number;
   limit?: number;
-  status?: QuoteRequest['status'];
+  status?: Quote['status'];
 };
 
 @Injectable()
-export class UserNotificationsService {
+export class UserQuotesService {
   constructor(
-    @InjectRepository(QuoteRequest)
-    private readonly requests: Repository<QuoteRequest>,
+    @InjectRepository(Quote)
+    private readonly offers: Repository<Quote>,
   ) {}
 
-  async availableQuotes(userId: string, params: ListNotificationsParams) {
+  async availableQuotes(userId: string, params: ListQupotesParams) {
     const page = params.page && params.page > 0 ? params.page : 1;
     const limit =
       params.limit && params.limit > 0 ? Math.min(params.limit, 100) : 20;
     const skip = (page - 1) * limit;
 
-    const [data, total] = await this.requests.findAndCount({
+    const [data, total] = await this.offers.findAndCount({
       where: {
-        user: { id: userId } as any,
+        quoteRequest: { user: { id: userId } as any } as any,
         ...(params.status ? { status: params.status } : {}),
       },
       order: { createdAt: 'DESC' },

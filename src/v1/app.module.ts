@@ -17,7 +17,7 @@ import { SupplierProfileModule } from './modules/supplier/profile/profile.module
 import { UserMessagesModule } from './modules/user/messages/user-messages.module';
 import { UserOrdersModule } from './modules/user/orders/user-orders.module';
 import { UserSettingsModule } from './modules/user/settings/user-settings.module';
-import { UserNotificationsModule } from './modules/user/notifications/user-notifications.module';
+import { UserQuotesModule } from './modules/user/quotes/user-quotes.module';
 import { UserRequestQuoteModule } from './modules/user/requestquote/request-quote.module';
 import { AuthModule } from './modules/auth/auth.module';
 
@@ -36,7 +36,7 @@ import { AuthModule } from './modules/auth/auth.module';
     UserMessagesModule,
     UserOrdersModule,
     UserSettingsModule,
-    UserNotificationsModule,
+    UserQuotesModule,
     UserRequestQuoteModule,
     AuthModule,
   ],
