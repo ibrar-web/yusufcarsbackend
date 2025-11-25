@@ -1,0 +1,1 @@
+export const QUOTE_REQUEST_LIFETIME_MS = 45 * 60 * 1000;

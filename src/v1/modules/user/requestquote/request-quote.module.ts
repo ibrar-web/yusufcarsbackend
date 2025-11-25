@@ -7,10 +7,17 @@ import { UserRequestQuoteService } from './request-quote.service';
 import { AuthGuard } from '../../../common/guards/auth.guard';
 import { RolesGuard } from '../../../common/guards/roles.guard';
 import { JoseService } from '../../auth/jose.service';
+import { QuoteRequestExpiryService } from './quote-request-expiry.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([QuoteRequest, User])],
   controllers: [UserRequestQuoteController],
-  providers: [UserRequestQuoteService, AuthGuard, RolesGuard, JoseService],
+  providers: [
+    UserRequestQuoteService,
+    QuoteRequestExpiryService,
+    AuthGuard,
+    RolesGuard,
+    JoseService,
+  ],
 })
 export class UserRequestQuoteModule {}

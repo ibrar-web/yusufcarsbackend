@@ -1,7 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FindOptionsWhere, ILike, Repository } from 'typeorm';
+import { Brackets, Repository } from 'typeorm';
 import { QuoteRequest } from '../../../entities/quote-request.entity';
+import { Supplier } from '../../../entities/supplier.entity';
 
 type ListParams = {
   page?: number;
@@ -14,29 +15,59 @@ export class SupplierQuotesService {
   constructor(
     @InjectRepository(QuoteRequest)
     private readonly quotesRequest: Repository<QuoteRequest>,
+    @InjectRepository(Supplier)
+    private readonly suppliers: Repository<Supplier>,
   ) {}
 
-  async listForSupplier(params: ListParams) {
+  async listForSupplier(userId: string, params: ListParams) {
+    const supplier = await this.suppliers.findOne({
+      where: { user: { id: userId } as any },
+      relations: ['user'],
+    });
+    if (!supplier) {
+      throw new NotFoundException('Supplier profile not found');
+    }
+
     const page = params.page && params.page > 0 ? params.page : 1;
     const limit =
       params.limit && params.limit > 0 ? Math.min(params.limit, 100) : 20;
     const skip = (page - 1) * limit;
-    const where: FindOptionsWhere<QuoteRequest> = {
-      ...{ status: 'pending' },
-      ...(params.search
-        ? {
-            make: ILike(`%${params.search}%`),
-            model: ILike(`%${params.search}%`),
-          }
-        : {}),
-    };
-    const [data, total] = await this.quotesRequest.findAndCount({
-      where,
-      relations: ['user', 'quotes'],
-      order: { createdAt: 'DESC' },
-      skip,
-      take: limit,
-    });
+    const search = params.search ? `%${params.search}%` : null;
+    const qb = this.quotesRequest
+      .createQueryBuilder('request')
+      .leftJoinAndSelect('request.user', 'user')
+      .leftJoinAndSelect('request.quotes', 'allQuotes')
+      .leftJoin(
+        'request.quotes',
+        'supplierQuote',
+        'supplierQuote.supplierId = :supplierId',
+        { supplierId: supplier.id },
+      )
+      .where('request.status = :pending', { pending: 'pending' })
+      .andWhere(
+        new Brackets((expr) => {
+          expr
+            .where('request."expiresAt" IS NULL')
+            .orWhere('request."expiresAt" > :now', { now: new Date() });
+        }),
+      )
+      .andWhere('supplierQuote.id IS NULL');
+
+    if (search) {
+      qb.andWhere(
+        new Brackets((expr) => {
+          expr
+            .where('request.make ILIKE :search', { search })
+            .orWhere('request.model ILIKE :search', { search });
+        }),
+      );
+    }
+
+    const [data, total] = await qb
+      .orderBy('request.createdAt', 'DESC')
+      .skip(skip)
+      .take(limit)
+      .getManyAndCount();
 
     return { data, meta: { total, page, limit } };
   }

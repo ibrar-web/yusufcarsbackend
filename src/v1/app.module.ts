@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { ScheduleModule } from '@nestjs/schedule';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { dataSourceOptions } from './config/ormconfig';
 import { User } from './entities/user.entity';
@@ -27,6 +28,7 @@ import { AuthModule } from './modules/auth/auth.module';
       ...dataSourceOptions,
       autoLoadEntities: true,
     }),
+    ScheduleModule.forRoot(),
     AdminModule,
     SupplierQuotesModule,
     SupplierQuoteOffersModule,

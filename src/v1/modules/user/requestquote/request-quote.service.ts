@@ -8,6 +8,7 @@ import { FindOptionsWhere, Repository } from 'typeorm';
 import { QuoteRequest } from '../../../entities/quote-request.entity';
 import { User } from '../../../entities/user.entity';
 import { CreateRequestQuoteDto } from './dto/create-request-quote.dto';
+import { QUOTE_REQUEST_LIFETIME_MS } from './request-quote.constants';
 
 type QuoteRequestStatus = QuoteRequest['status'];
 
@@ -44,9 +45,7 @@ export class UserRequestQuoteService {
     const user = await this.users.findOne({ where: { id: userId } });
     if (!user) throw new NotFoundException('User not found');
 
-    const expiresAt = dto.expiresAt
-      ? this.parseExpiry(dto.expiresAt)
-      : this.defaultExpiry();
+    const expiresAt = this.calculateExpiry(dto.expiresAt);
 
     const request = this.quoteRequests.create({
       user,
@@ -77,17 +76,13 @@ export class UserRequestQuoteService {
     return this.quoteRequests.save(request);
   }
 
-  private parseExpiry(value: string | Date) {
-    const date = value instanceof Date ? value : new Date(value);
-    if (Number.isNaN(date.getTime())) {
+  private calculateExpiry(value?: string | Date) {
+    const maxExpiry = new Date(Date.now() + QUOTE_REQUEST_LIFETIME_MS);
+    if (!value) return maxExpiry;
+    const parsed = value instanceof Date ? value : new Date(value);
+    if (Number.isNaN(parsed.getTime())) {
       throw new BadRequestException('Invalid expiresAt value');
     }
-    return date;
-  }
-
-  private defaultExpiry() {
-    const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + 7);
-    return expiresAt;
+    return parsed > maxExpiry ? maxExpiry : parsed;
   }
 }
