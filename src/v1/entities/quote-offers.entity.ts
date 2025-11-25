@@ -26,7 +26,13 @@ export class Quote {
   price!: number;
 
   @Column()
-  deliveryTime!: string;
+  estimatedTime!: string;
+
+  @Column({ nullable: true })
+  partCondition?: string;
+
+  @Column({ type: 'text', nullable: true })
+  notes?: string;
 
   @Column({ type: 'timestamp' })
   expiresAt!: Date;

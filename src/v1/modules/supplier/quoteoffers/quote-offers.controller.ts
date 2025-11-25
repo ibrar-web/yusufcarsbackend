@@ -6,13 +6,13 @@ import { Roles } from '../../../common/decorators/roles.decorator';
 import { CurrentUser } from '../../admin/decorators/current-user.decorator';
 import { CreateQuoteOfferDto } from './dto/create-quote-offer.dto';
 
-@Controller('supplier/quote')
+@Controller('supplier/quote/offer')
 @UseGuards(AuthGuard, RolesGuard)
 @Roles('supplier')
 export class SupplierQuoteOffersController {
   constructor(private readonly quoteOffers: SupplierQuoteOffersService) {}
 
-  @Get('requests')
+  @Get('')
   listAvailable(@CurrentUser() user: any) {
     return this.quoteOffers.listAvailableRequests(user.sub);
   }

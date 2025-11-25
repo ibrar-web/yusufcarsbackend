@@ -22,19 +22,11 @@ export class SupplierQuoteOffersService {
 
   async listAvailableRequests(userId: string) {
     const supplier = await this.findSupplier(userId);
-    const [pendingRequests, submitted] = await Promise.all([
-      this.quoteRequests.find({
-        where: { status: 'pending' },
-        order: { createdAt: 'DESC' },
-      }),
-      this.quotes.find({
-        where: { supplier: { id: supplier.id } as any },
-        relations: ['quoteRequest'],
-      }),
-    ]);
-
-    const submittedIds = new Set(submitted.map((quote) => quote.quoteRequest.id));
-    return pendingRequests.filter((request) => !submittedIds.has(request.id));
+    return this.quotes.find({
+      where: { supplier: { id: supplier.id } as any },
+      relations: ['quoteRequest'],
+      order: { createdAt: 'DESC' },
+    });
   }
 
   async createOffer(userId: string, dto: CreateQuoteOfferDto) {
@@ -44,10 +36,19 @@ export class SupplierQuoteOffersService {
     });
     if (!quoteRequest) throw new NotFoundException('Quote request not found');
 
+    const requestDeadline = new Date(
+      quoteRequest.createdAt.getTime() + 45 * 60 * 1000,
+    );
+    if (quoteRequest.status !== 'pending' || new Date() > requestDeadline) {
+      throw new BadRequestException(
+        'This quote request is no longer accepting offers',
+      );
+    }
+
     const existing = await this.quotes.findOne({
       where: {
         supplier: { id: supplier.id } as any,
-        quoteRequest: { id: quoteRequest.id } as any,
+        quoteRequest: { id: dto.quoteRequestId } as any,
       },
     });
     if (existing) {
@@ -64,7 +65,9 @@ export class SupplierQuoteOffersService {
       quoteRequest,
       supplier,
       price: dto.price,
-      deliveryTime: dto.deliveryTime,
+      estimatedTime: dto.estimatedTime,
+      partCondition: dto.partCondition,
+      notes: dto.notes,
       expiresAt,
     });
     return this.quotes.save(quote);

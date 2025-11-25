@@ -20,7 +20,15 @@ export class CreateQuoteOfferDto {
 
   @IsString()
   @IsNotEmpty()
-  deliveryTime!: string;
+  estimatedTime!: string;
+
+  @IsOptional()
+  @IsString()
+  partCondition?: string;
+
+  @IsOptional()
+  @IsString()
+  notes?: string;
 
   @IsOptional()
   @IsDateString()
