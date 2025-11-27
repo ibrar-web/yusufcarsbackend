@@ -2,7 +2,7 @@ import { IsString, IsUUID } from 'class-validator';
 
 export class SendMessageDto {
   @IsUUID()
-  userId!: string;
+  chatId!: string;
 
   @IsString()
   message!: string;
