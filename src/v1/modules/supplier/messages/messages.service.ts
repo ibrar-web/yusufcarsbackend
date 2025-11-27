@@ -18,7 +18,6 @@ type PublicUserProfile = {
   id: string;
   email: string;
   fullName: string;
-  firstName: string | null;
   role: AppRole;
   isActive: boolean;
   suspensionReason: string | null;
@@ -32,7 +31,6 @@ type MessageResponse = {
   isRead: boolean;
   createdAt: Date;
   deletedAt: Date | null;
-  senderId: string;
   sender: PublicUserProfile;
 };
 
@@ -68,7 +66,18 @@ export class SupplierMessagesService {
 
     if (!chat) throw new NotFoundException('Chat not found');
 
-    const userProfile = this.formatUserProfile(chat.user);
+    const userProfile = chat.user
+      ? {
+          id: chat.user.id,
+          email: chat.user.email,
+          fullName: chat.user.fullName,
+          role: chat.user.role,
+          isActive: chat.user.isActive,
+          suspensionReason: chat.user.suspensionReason ?? null,
+          createdAt: chat.user.createdAt,
+          postCode: chat.user.postCode ?? null,
+        }
+      : null;
     const userInfo = userProfile ? { ...userProfile, userId: userProfile.id } : null;
 
     const messages = chatExisted
@@ -78,7 +87,28 @@ export class SupplierMessagesService {
             order: { createdAt: 'DESC' },
             take: 100,
           })
-        ).map((message) => this.formatMessage(message))
+        ).map((message) => {
+          if (!message.sender) {
+            throw new Error('Message sender missing profile');
+          }
+          return {
+            id: message.id,
+            content: message.content,
+            isRead: message.isRead,
+            createdAt: message.createdAt,
+            deletedAt: message.deletedAt ?? null,
+            sender: {
+              id: message.sender.id,
+              email: message.sender.email,
+              fullName: message.sender.fullName,
+              role: message.sender.role,
+              isActive: message.sender.isActive,
+              suspensionReason: message.sender.suspensionReason ?? null,
+              createdAt: message.sender.createdAt,
+              postCode: message.sender.postCode ?? null,
+            },
+          };
+        })
       : [];
 
     return { user: userInfo, messages };
@@ -116,14 +146,44 @@ export class SupplierMessagesService {
         .getMany();
       for (const message of recentMessages) {
         if (!latestMap.has(message.chat.id)) {
-          latestMap.set(message.chat.id, this.formatMessage(message));
+          if (!message.sender) {
+            throw new Error('Message sender missing profile');
+          }
+          latestMap.set(message.chat.id, {
+            id: message.id,
+            content: message.content,
+            isRead: message.isRead,
+            createdAt: message.createdAt,
+            deletedAt: message.deletedAt ?? null,
+            sender: {
+              id: message.sender.id,
+              email: message.sender.email,
+              fullName: message.sender.fullName,
+              role: message.sender.role,
+              isActive: message.sender.isActive,
+              suspensionReason: message.sender.suspensionReason ?? null,
+              createdAt: message.sender.createdAt,
+              postCode: message.sender.postCode ?? null,
+            },
+          });
         }
       }
     }
 
     const data = chats.map((chat) => {
       const latestMessage = latestMap.get(chat.id) ?? null;
-      const userProfile = this.formatUserProfile(chat.user);
+      const userProfile = chat.user
+        ? {
+            id: chat.user.id,
+            email: chat.user.email,
+            fullName: chat.user.fullName,
+            role: chat.user.role,
+            isActive: chat.user.isActive,
+            suspensionReason: chat.user.suspensionReason ?? null,
+            createdAt: chat.user.createdAt,
+            postCode: chat.user.postCode ?? null,
+          }
+        : null;
       return {
         chat: {
           id: chat.id,
@@ -170,19 +230,47 @@ export class SupplierMessagesService {
     });
     await this.messages.save(message);
 
-    const userProfile = this.formatUserProfile(chat.user);
+    const userProfile = chat.user
+      ? {
+          id: chat.user.id,
+          email: chat.user.email,
+          fullName: chat.user.fullName,
+          role: chat.user.role,
+          isActive: chat.user.isActive,
+          suspensionReason: chat.user.suspensionReason ?? null,
+          createdAt: chat.user.createdAt,
+          postCode: chat.user.postCode ?? null,
+        }
+      : null;
     const userInfo = userProfile ? { ...userProfile, userId: userProfile.id } : null;
-    const messageResponse = this.formatMessage(message);
 
-    this.chatSocket.emitMessage({
-      messageId: message.id,
+    if (!message.sender) {
+      throw new Error('Message sender missing profile');
+    }
+    const messageResponse: MessageResponse = {
+      id: message.id,
+      content: message.content,
+      isRead: message.isRead,
+      createdAt: message.createdAt,
+      deletedAt: message.deletedAt ?? null,
+      sender: {
+        id: message.sender.id,
+        email: message.sender.email,
+        fullName: message.sender.fullName,
+        role: message.sender.role,
+        isActive: message.sender.isActive,
+        suspensionReason: message.sender.suspensionReason ?? null,
+        createdAt: message.sender.createdAt,
+        postCode: message.sender.postCode ?? null,
+      },
+    };
+    this.attachSocketMeta(messageResponse, {
       chatId: chat.id,
+      recipientId: chat.user.id,
       senderId: supplierUser.id,
       senderRole: 'supplier',
-      recipientId: chat.user.id,
-      content: dto.message,
-      createdAt: message.createdAt.toISOString(),
     });
+    this.chatSocket.emitMessage(messageResponse as any);
 
     return { user: userInfo, message: messageResponse };
   }
@@ -214,7 +302,6 @@ export class SupplierMessagesService {
       isRead: message.isRead,
       createdAt: message.createdAt,
       deletedAt: message.deletedAt ?? null,
-      senderId: message.sender.id,
       sender: senderProfile,
     };
   }
@@ -241,5 +328,21 @@ export class SupplierMessagesService {
 
     const chat = this.chats.create({ user, supplier: supplierUser });
     return this.chats.save(chat);
+  }
+  private attachSocketMeta(
+    message: MessageResponse,
+    meta: {
+      recipientId: string;
+      chatId: string;
+      senderId: string;
+      senderRole: 'user' | 'supplier';
+    },
+  ) {
+    Object.defineProperties(message, {
+      __recipientId: { value: meta.recipientId, enumerable: false },
+      __chatId: { value: meta.chatId, enumerable: false },
+      __senderId: { value: meta.senderId, enumerable: false },
+      __senderRole: { value: meta.senderRole, enumerable: false },
+    });
   }
 }
