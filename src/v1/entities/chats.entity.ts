@@ -6,10 +6,9 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { User } from './user.entity';
-import { Supplier } from './supplier.entity';
 import { Message } from './messages.entity';
 
-@Entity('user_supplier_chats')
+@Entity('chats')
 export class Chats {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -17,8 +16,8 @@ export class Chats {
   @ManyToOne(() => User, { eager: true, onDelete: 'CASCADE' })
   user: User;
 
-  @ManyToOne(() => Supplier, { eager: true, onDelete: 'CASCADE' })
-  supplier: Supplier;
+  @ManyToOne(() => User, { eager: true, onDelete: 'CASCADE' })
+  supplier: User;
 
   @OneToMany(() => Message, (message) => message.chat)
   messages!: Message[];

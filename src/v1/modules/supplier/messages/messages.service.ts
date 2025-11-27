@@ -20,18 +20,25 @@ export class SupplierMessagesService {
     private readonly chatSocket: ChatSocketService,
   ) {}
 
-  async listForSupplier(supplierId: string, userId?: string) {
+  async listForSupplier(supplierUserId: string, userId?: string) {
     if (userId) {
-      const chat = await this.ensureChat(userId, supplierId);
+      const chat = await this.ensureChat(userId, supplierUserId);
       return this.messages.find({
         where: { chat: { id: chat.id } as any },
-        relations: ['chat', 'chat.user', 'chat.supplier'],
+        relations: ['chat', 'chat.user', 'chat.supplier', 'sender'],
         order: { createdAt: 'ASC' },
         take: 100,
       });
     }
+
+    const supplier = await this.suppliers.findOne({
+      where: { user: { id: supplierUserId } as any },
+      relations: ['user'],
+    });
+    if (!supplier) throw new NotFoundException('Supplier profile not found');
+
     const chats = await this.chats.find({
-      where: { supplier: { id: supplierId } as any },
+      where: { supplier: { id: supplier.user.id } as any },
       relations: ['user'],
       order: { createdAt: 'DESC' },
       take: 20,
@@ -40,28 +47,35 @@ export class SupplierMessagesService {
     if (!chatIds.length) return [];
     return this.messages.find({
       where: { chat: { id: In(chatIds) } as any },
-      relations: ['chat', 'chat.user', 'chat.supplier'],
+      relations: ['chat', 'chat.user', 'chat.supplier', 'sender'],
       order: { createdAt: 'DESC' },
       take: 100,
     });
   }
 
-  async sendFromSupplier(supplierId: string, dto: SendMessageDto) {
+  async sendFromSupplier(supplierUserId: string, dto: SendMessageDto) {
+    const supplierUser = await this.users.findOne({
+      where: { id: supplierUserId },
+    });
+    if (!supplierUser || supplierUser.role !== 'supplier') {
+      throw new NotFoundException('Supplier user not found');
+    }
     const supplier = await this.suppliers.findOne({
-      where: { id: supplierId },
+      where: { user: { id: supplierUser.id } as any },
       relations: ['user'],
     });
-    if (!supplier || !supplier.user) throw new NotFoundException('Supplier not found');
-    const user = await this.users.findOne({
-      where: { id: dto.userId },
-    });
+    if (!supplier || !supplier.user) {
+      throw new NotFoundException('Supplier profile not found');
+    }
+
+    const user = await this.users.findOne({ where: { id: dto.userId } });
     if (!user) throw new NotFoundException('User not found');
 
-    const chat = await this.ensureChat(user.id, supplierId);
+    const chat = await this.ensureChat(user.id, supplierUser.id);
 
     const message = this.messages.create({
       chat,
-      sender: supplier.user,
+      sender: supplierUser,
       content: dto.message,
       isRead: false,
     });
@@ -70,7 +84,7 @@ export class SupplierMessagesService {
     this.chatSocket.emitMessage({
       messageId: message.id,
       chatId: chat.id,
-      senderId: supplier.user.id,
+      senderId: supplierUser.id,
       senderRole: 'supplier',
       recipientId: user.id,
       content: dto.message,
@@ -80,26 +94,27 @@ export class SupplierMessagesService {
     return message;
   }
 
-  private async ensureChat(userId: string, supplierId: string) {
+  private async ensureChat(userId: string, supplierUserId: string) {
     const existing = await this.chats.findOne({
       where: {
         user: { id: userId } as any,
-        supplier: { id: supplierId } as any,
+        supplier: { id: supplierUserId } as any,
       },
-      relations: ['user', 'supplier', 'supplier.user'],
+      relations: ['user', 'supplier'],
     });
     if (existing) return existing;
 
     const user = await this.users.findOne({ where: { id: userId } });
     if (!user) throw new NotFoundException('User not found');
 
-    const supplier = await this.suppliers.findOne({
-      where: { id: supplierId },
-      relations: ['user'],
+    const supplierUser = await this.users.findOne({
+      where: { id: supplierUserId },
     });
-    if (!supplier || !supplier.user) throw new NotFoundException('Supplier not found');
+    if (!supplierUser || supplierUser.role !== 'supplier') {
+      throw new NotFoundException('Supplier user not found');
+    }
 
-    const chat = this.chats.create({ user, supplier });
+    const chat = this.chats.create({ user, supplier: supplierUser });
     return this.chats.save(chat);
   }
 }

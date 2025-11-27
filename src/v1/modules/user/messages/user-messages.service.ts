@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 
 import { Message } from '../../../entities/messages.entity';
 import { SendUserMessageDto } from './dto/send-user-message.dto';
@@ -33,6 +33,7 @@ export class UserMessagesService {
         user: { id: userId } as any,
         supplier: { id: supplierId } as any,
       },
+      relations: ['supplier'],
     });
 
     if (!chat) {
@@ -42,7 +43,6 @@ export class UserMessagesService {
 
     return this.messages.find({
       where: { chat: { id: chat.id } as any },
-      relations: ['chat', 'chat.supplier', 'chat.user'],
       order: { createdAt: 'ASC' },
       take: 100,
     });
@@ -62,12 +62,34 @@ export class UserMessagesService {
       take: limit,
     });
 
+    const supplierUserIds = Array.from(
+      new Set(
+        chats
+          .map((chat) => chat.supplier?.id)
+          .filter((id): id is string => Boolean(id)),
+      ),
+    );
+    const supplierProfiles = supplierUserIds.length
+      ? await this.suppliers.find({
+          where: { user: { id: In(supplierUserIds) } as any },
+          relations: ['user'],
+        })
+      : [];
+    const supplierProfileMap = new Map<string, Supplier>();
+    for (const profile of supplierProfiles) {
+      const profileUserId = profile.user?.id;
+      if (profileUserId) {
+        supplierProfileMap.set(profileUserId, profile);
+      }
+    }
+
     const chatIds = chats.map((chat) => chat.id);
     const latestMap = new Map<string, Message>();
     if (chatIds.length) {
       const recentMessages = await this.messages
         .createQueryBuilder('message')
         .leftJoinAndSelect('message.chat', 'chat')
+        .leftJoinAndSelect('message.sender', 'sender')
         .where('message."chatId" IN (:...chatIds)', { chatIds })
         .orderBy('message."createdAt"', 'DESC')
         .getMany();
@@ -78,10 +100,38 @@ export class UserMessagesService {
       }
     }
 
-    const data = chats.map((chat) => ({
-      chat,
-      latestMessage: latestMap.get(chat.id) ?? null,
-    }));
+    const data = chats.map((chat) => {
+      const supplierProfile = chat.supplier
+        ? supplierProfileMap.get(chat.supplier.id)
+        : null;
+      const latestMessage = latestMap.get(chat.id);
+      return {
+        chat: {
+          id: chat.id,
+          supplier: chat.supplier
+            ? {
+                id: supplierProfile?.id ?? chat.supplier.id,
+                businessName: supplierProfile?.businessName ?? null,
+                userId: chat.supplier.id,
+                firstName:
+                  chat.supplier.fullName?.split(' ')?.[0] ??
+                  chat.supplier.fullName ??
+                  null,
+              }
+            : null,
+          createdAt: chat.createdAt,
+        },
+        latestMessage: latestMessage
+          ? {
+              id: latestMessage.id,
+              content: latestMessage.content,
+              senderId: latestMessage.sender.id,
+              createdAt: latestMessage.createdAt,
+              isRead: latestMessage.isRead,
+            }
+          : null,
+      };
+    });
 
     return { data, meta: { total, page, limit } };
   }
@@ -90,13 +140,13 @@ export class UserMessagesService {
     const user = await this.users.findOne({ where: { id: userId } });
     if (!user) throw new NotFoundException('User not found');
 
-    const supplier = await this.suppliers.findOne({
+    const supplierUser = await this.users.findOne({
       where: { id: dto.supplierId },
-      relations: ['user'],
     });
-    if (!supplier || !supplier.user)
-      throw new NotFoundException('Supplier not found');
-
+    console.log('supplierUser :', supplierUser);
+    if (!supplierUser || supplierUser.role !== 'supplier') {
+      throw new NotFoundException('Supplier user not found');
+    }
     const chat = await this.ensureChat(userId, dto.supplierId);
 
     const message = this.messages.create({
@@ -112,7 +162,7 @@ export class UserMessagesService {
       chatId: chat.id,
       senderId: user.id,
       senderRole: 'user',
-      recipientId: supplier.user.id,
+      recipientId: supplierUser.id,
       content: dto.message,
       createdAt: message.createdAt.toISOString(),
     });
@@ -120,28 +170,35 @@ export class UserMessagesService {
     return message;
   }
 
-  private async ensureChat(userId: string, supplierId: string) {
+  private async ensureChat(userId: string, supplierUserId: string) {
     const existing = await this.chats.findOne({
       where: {
         user: { id: userId } as any,
-        supplier: { id: supplierId } as any,
+        supplier: { id: supplierUserId } as any,
       },
-      relations: ['supplier', 'supplier.user'],
+      relations: ['supplier'],
     });
     if (existing) return existing;
 
     const user = await this.users.findOne({ where: { id: userId } });
     if (!user) throw new NotFoundException('User not found');
 
+    const supplierUser = await this.users.findOne({
+      where: { id: supplierUserId },
+    });
+    if (!supplierUser || supplierUser.role !== 'supplier') {
+      throw new NotFoundException('Supplier user not found');
+    }
+
     const supplier = await this.suppliers.findOne({
-      where: { id: supplierId },
+      where: { user: { id: supplierUser.id } as any },
       relations: ['user'],
     });
     if (!supplier || !supplier.user) {
-      throw new NotFoundException('Supplier not found');
+      throw new NotFoundException('Supplier profile not found');
     }
 
-    const chat = this.chats.create({ user, supplier });
+    const chat = this.chats.create({ user, supplier: supplierUser });
     return this.chats.save(chat);
   }
 }
