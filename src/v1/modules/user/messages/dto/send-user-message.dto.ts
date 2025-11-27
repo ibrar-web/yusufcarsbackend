@@ -2,7 +2,7 @@ import { IsString, IsUUID } from 'class-validator';
 
 export class SendUserMessageDto {
   @IsUUID()
-  supplierId!: string;
+  chatId!: string;
 
   @IsString()
   message!: string;

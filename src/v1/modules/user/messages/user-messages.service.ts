@@ -43,7 +43,7 @@ export class UserMessagesService {
 
     return this.messages.find({
       where: { chat: { id: chat.id } as any },
-      order: { createdAt: 'ASC' },
+      order: { createdAt: 'DESC' },
       take: 100,
     });
   }
@@ -140,14 +140,14 @@ export class UserMessagesService {
     const user = await this.users.findOne({ where: { id: userId } });
     if (!user) throw new NotFoundException('User not found');
 
-    const supplierUser = await this.users.findOne({
-      where: { id: dto.supplierId },
+    const chat = await this.chats.findOne({
+      where: { id: dto.chatId, user: { id: userId } as any },
+      relations: ['supplier'],
     });
-    console.log('supplierUser :', supplierUser);
-    if (!supplierUser || supplierUser.role !== 'supplier') {
+    if (!chat) throw new NotFoundException('Chat not found');
+    if (!chat.supplier || chat.supplier.role !== 'supplier') {
       throw new NotFoundException('Supplier user not found');
     }
-    const chat = await this.ensureChat(userId, dto.supplierId);
 
     const message = this.messages.create({
       chat,
@@ -162,7 +162,7 @@ export class UserMessagesService {
       chatId: chat.id,
       senderId: user.id,
       senderRole: 'user',
-      recipientId: supplierUser.id,
+      recipientId: chat.supplier.id,
       content: dto.message,
       createdAt: message.createdAt.toISOString(),
     });
