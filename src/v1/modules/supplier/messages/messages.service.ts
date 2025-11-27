@@ -275,37 +275,6 @@ export class SupplierMessagesService {
     return { user: userInfo, message: messageResponse };
   }
 
-  private formatUserProfile(user?: User | null): PublicUserProfile | null {
-    if (!user) return null;
-    return {
-      id: user.id,
-      email: user.email,
-      fullName: user.fullName,
-      firstName: user.fullName?.split(' ')?.[0] ?? user.fullName ?? null,
-      role: user.role,
-      isActive: user.isActive,
-      suspensionReason: user.suspensionReason ?? null,
-      createdAt: user.createdAt,
-      postCode: user.postCode ?? null,
-    };
-  }
-
-  private formatMessage(message: Message): MessageResponse {
-    const senderProfile = this.formatUserProfile(message.sender);
-    if (!senderProfile) {
-      throw new Error('Message sender missing profile');
-    }
-
-    return {
-      id: message.id,
-      content: message.content,
-      isRead: message.isRead,
-      createdAt: message.createdAt,
-      deletedAt: message.deletedAt ?? null,
-      sender: senderProfile,
-    };
-  }
-
   private async ensureChat(userId: string, supplierUserId: string) {
     const existing = await this.chats.findOne({
       where: {

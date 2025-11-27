@@ -63,10 +63,7 @@ export class ChatSocketService {
     };
   }
 
-  private toIsoString(value: Date | string | null | undefined) {
-    if (value instanceof Date) {
-      return value.toISOString();
-    }
-    return value ?? null;
+  private toIsoString(value: Date | string) {
+    return value instanceof Date ? value.toISOString() : value;
   }
 }
