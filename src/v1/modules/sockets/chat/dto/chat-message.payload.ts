@@ -5,7 +5,7 @@ export class ChatMessagePayload {
   messageId!: string;
 
   @IsUUID()
-  quoteRequestId!: string;
+  chatId!: string;
 
   @IsUUID()
   senderId!: string;
@@ -19,11 +19,8 @@ export class ChatMessagePayload {
   recipientId!: string;
 
   @IsString()
-  body!: string;
+  content!: string;
 
   @IsDateString()
   createdAt!: string;
-
-  @IsEnum(['user-to-supplier', 'supplier-to-user'] as const)
-  direction!: 'user-to-supplier' | 'supplier-to-user';
 }

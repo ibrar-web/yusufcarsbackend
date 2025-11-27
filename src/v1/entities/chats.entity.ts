@@ -6,21 +6,22 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { User } from './user.entity';
-import { Messages } from './messages.entity';
+import { Supplier } from './supplier.entity';
+import { Message } from './messages.entity';
 
-@Entity('chats')
+@Entity('user_supplier_chats')
 export class Chats {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @ManyToOne(() => User)
+  @ManyToOne(() => User, { eager: true, onDelete: 'CASCADE' })
   user: User;
 
-  @ManyToOne(() => User)
-  supplier: User;
+  @ManyToOne(() => Supplier, { eager: true, onDelete: 'CASCADE' })
+  supplier: Supplier;
 
-  @OneToMany(() => Messages, (message) => message.chat)
-  messages: Messages[];
+  @OneToMany(() => Message, (message) => message.chat)
+  messages!: Message[];
 
   @CreateDateColumn()
   createdAt: Date;

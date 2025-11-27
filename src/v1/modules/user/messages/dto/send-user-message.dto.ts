@@ -1,12 +1,9 @@
-import { IsString } from 'class-validator';
+import { IsString, IsUUID } from 'class-validator';
 
 export class SendUserMessageDto {
-  @IsString()
-  quoteRequestId!: string;
-
-  @IsString()
+  @IsUUID()
   supplierId!: string;
 
   @IsString()
-  body!: string;
+  message!: string;
 }

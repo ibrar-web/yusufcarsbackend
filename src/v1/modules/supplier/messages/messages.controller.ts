@@ -15,9 +15,9 @@ export class SupplierMessagesController {
   @Get()
   list(
     @CurrentUser() user: any,
-    @Query('quoteRequestId') quoteRequestId?: string,
+    @Query('userId') userId?: string,
   ) {
-    return this.messages.listForSupplier(user.sub, quoteRequestId);
+    return this.messages.listForSupplier(user.sub, userId);
   }
 
   @Post()

@@ -1,6 +1,7 @@
 import {
   Column,
   CreateDateColumn,
+  DeleteDateColumn,
   Entity,
   ManyToOne,
   PrimaryGeneratedColumn,
@@ -9,22 +10,25 @@ import { Chats } from './chats.entity';
 import { User } from './user.entity';
 
 @Entity('messages')
-export class Messages {
+export class Message {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
-  @ManyToOne(() => Chats, (chat) => chat.messages)
-  chat: Chats;
+  @ManyToOne(() => Chats, (chat) => chat.messages, { onDelete: 'CASCADE' })
+  chat!: Chats;
 
-  @ManyToOne(() => User)
-  sender: User;
+  @ManyToOne(() => User, { eager: true, onDelete: 'CASCADE' })
+  sender!: User;
 
   @Column({ type: 'text' })
-  content: string;
+  content!: string;
 
   @Column({ default: false })
-  isRead: boolean;
+  isRead!: boolean;
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
+
+  @DeleteDateColumn()
+  deletedAt?: Date | null;
 }

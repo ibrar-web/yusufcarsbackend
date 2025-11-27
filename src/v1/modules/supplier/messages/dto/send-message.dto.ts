@@ -1,12 +1,9 @@
-import { IsEnum, IsString } from 'class-validator';
+import { IsString, IsUUID } from 'class-validator';
 
 export class SendMessageDto {
-  @IsString()
-  quoteRequestId!: string;
-
-  @IsEnum(['supplier-to-user', 'user-to-supplier'])
-  direction!: 'supplier-to-user' | 'user-to-supplier';
+  @IsUUID()
+  userId!: string;
 
   @IsString()
-  body!: string;
+  message!: string;
 }
