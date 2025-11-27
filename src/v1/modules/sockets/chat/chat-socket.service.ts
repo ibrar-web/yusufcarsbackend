@@ -16,9 +16,10 @@ export class ChatSocketService {
   }
 
   registerClientRooms(client: Socket, user: SocketUserContext) {
-    client.join(this.roomForUser(user.id));
     if (user.role === 'supplier') {
       client.join(this.roomForSupplier(user.id));
+    } else {
+      client.join(this.roomForUser(user.id));
     }
   }
 
@@ -31,10 +32,10 @@ export class ChatSocketService {
     this.server
       .to([
         this.roomForUser(dto.recipientId),
-        this.roomForUser(dto.senderId),
         this.roomForSupplier(dto.recipientId),
       ])
       .emit('chat:message', dto);
+    console.log('message payload :', payload);
   }
 
   emitDelivered(payload: ChatDeliveredPayload) {

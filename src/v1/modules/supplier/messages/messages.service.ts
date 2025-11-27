@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import { Message } from '../../../entities/messages.entity';
 import { SendMessageDto } from './dto/send-message.dto';
 import { Supplier } from '../../../entities/supplier.entity';
-import { User } from '../../../entities/user.entity';
+import { AppRole, User } from '../../../entities/user.entity';
 import { Chats } from '../../../entities/chats.entity';
 import { ChatSocketService } from '../../sockets/chat/chat-socket.service';
 
@@ -12,6 +12,28 @@ type SupplierChatListOptions = {
   userId?: string;
   page?: number;
   limit?: number;
+};
+
+type PublicUserProfile = {
+  id: string;
+  email: string;
+  fullName: string;
+  firstName: string | null;
+  role: AppRole;
+  isActive: boolean;
+  suspensionReason: string | null;
+  createdAt: Date;
+  postCode: string | null;
+};
+
+type MessageResponse = {
+  id: string;
+  content: string;
+  isRead: boolean;
+  createdAt: Date;
+  deletedAt: Date | null;
+  senderId: string;
+  sender: PublicUserProfile;
 };
 
 @Injectable()
@@ -46,25 +68,17 @@ export class SupplierMessagesService {
 
     if (!chat) throw new NotFoundException('Chat not found');
 
-    const userInfo = chat.user
-      ? {
-          id: chat.user.id,
-          userId: chat.user.id,
-          firstName:
-            chat.user.fullName?.split(' ')?.[0] ??
-            chat.user.fullName ??
-            null,
-          fullName: chat.user.fullName ?? null,
-          email: chat.user.email ?? null,
-        }
-      : null;
+    const userProfile = this.formatUserProfile(chat.user);
+    const userInfo = userProfile ? { ...userProfile, userId: userProfile.id } : null;
 
     const messages = chatExisted
-      ? await this.messages.find({
-          where: { chat: { id: chat.id } as any },
-          order: { createdAt: 'DESC' },
-          take: 100,
-        })
+      ? (
+          await this.messages.find({
+            where: { chat: { id: chat.id } as any },
+            order: { createdAt: 'DESC' },
+            take: 100,
+          })
+        ).map((message) => this.formatMessage(message))
       : [];
 
     return { user: userInfo, messages };
@@ -91,7 +105,7 @@ export class SupplierMessagesService {
     });
 
     const chatIds = chats.map((chat) => chat.id);
-    const latestMap = new Map<string, Message>();
+    const latestMap = new Map<string, MessageResponse>();
     if (chatIds.length) {
       const recentMessages = await this.messages
         .createQueryBuilder('message')
@@ -102,39 +116,21 @@ export class SupplierMessagesService {
         .getMany();
       for (const message of recentMessages) {
         if (!latestMap.has(message.chat.id)) {
-          latestMap.set(message.chat.id, message);
+          latestMap.set(message.chat.id, this.formatMessage(message));
         }
       }
     }
 
     const data = chats.map((chat) => {
-      const latestMessage = latestMap.get(chat.id);
+      const latestMessage = latestMap.get(chat.id) ?? null;
+      const userProfile = this.formatUserProfile(chat.user);
       return {
         chat: {
           id: chat.id,
-          user: chat.user
-            ? {
-                id: chat.user.id,
-                userId: chat.user.id,
-                firstName:
-                  chat.user.fullName?.split(' ')?.[0] ??
-                  chat.user.fullName ??
-                  null,
-                fullName: chat.user.fullName ?? null,
-                email: chat.user.email ?? null,
-              }
-            : null,
+          user: userProfile ? { ...userProfile, userId: userProfile.id } : null,
           createdAt: chat.createdAt,
         },
-        latestMessage: latestMessage
-          ? {
-              id: latestMessage.id,
-              content: latestMessage.content,
-              senderId: latestMessage.sender.id,
-              createdAt: latestMessage.createdAt,
-              isRead: latestMessage.isRead,
-            }
-          : null,
+        latestMessage,
       };
     });
 
@@ -174,6 +170,10 @@ export class SupplierMessagesService {
     });
     await this.messages.save(message);
 
+    const userProfile = this.formatUserProfile(chat.user);
+    const userInfo = userProfile ? { ...userProfile, userId: userProfile.id } : null;
+    const messageResponse = this.formatMessage(message);
+
     this.chatSocket.emitMessage({
       messageId: message.id,
       chatId: chat.id,
@@ -182,9 +182,57 @@ export class SupplierMessagesService {
       recipientId: chat.user.id,
       content: dto.message,
       createdAt: message.createdAt.toISOString(),
+      message: this.serializeMessageForSocket(messageResponse),
     });
 
-    return message;
+    return { user: userInfo, message: messageResponse };
+  }
+
+  private formatUserProfile(user?: User | null): PublicUserProfile | null {
+    if (!user) return null;
+    return {
+      id: user.id,
+      email: user.email,
+      fullName: user.fullName,
+      firstName: user.fullName?.split(' ')?.[0] ?? user.fullName ?? null,
+      role: user.role,
+      isActive: user.isActive,
+      suspensionReason: user.suspensionReason ?? null,
+      createdAt: user.createdAt,
+      postCode: user.postCode ?? null,
+    };
+  }
+
+  private formatMessage(message: Message): MessageResponse {
+    const senderProfile = this.formatUserProfile(message.sender);
+    if (!senderProfile) {
+      throw new Error('Message sender missing profile');
+    }
+
+    return {
+      id: message.id,
+      content: message.content,
+      isRead: message.isRead,
+      createdAt: message.createdAt,
+      deletedAt: message.deletedAt ?? null,
+      senderId: message.sender.id,
+      sender: senderProfile,
+    };
+  }
+
+  private serializeMessageForSocket(message: MessageResponse) {
+    return {
+      id: message.id,
+      senderId: message.senderId,
+      content: message.content,
+      isRead: message.isRead,
+      createdAt: message.createdAt.toISOString(),
+      deletedAt: message.deletedAt ? message.deletedAt.toISOString() : null,
+      sender: {
+        ...message.sender,
+        createdAt: message.sender.createdAt.toISOString(),
+      },
+    };
   }
 
   private async ensureChat(userId: string, supplierUserId: string) {

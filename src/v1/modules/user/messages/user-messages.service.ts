@@ -5,7 +5,7 @@ import { In, Repository } from 'typeorm';
 import { Message } from '../../../entities/messages.entity';
 import { SendUserMessageDto } from './dto/send-user-message.dto';
 import { Supplier } from '../../../entities/supplier.entity';
-import { User } from '../../../entities/user.entity';
+import { AppRole, User } from '../../../entities/user.entity';
 import { Chats } from '../../../entities/chats.entity';
 import { ChatSocketService } from '../../sockets/chat/chat-socket.service';
 
@@ -13,6 +13,35 @@ type ChatListOptions = {
   supplierId?: string;
   page?: number;
   limit?: number;
+};
+
+type SupplierInfo = {
+  id: string;
+  businessName: string | null;
+  userId: string;
+  firstName: string | null;
+};
+
+type PublicUserProfile = {
+  id: string;
+  email: string;
+  fullName: string;
+  firstName: string | null;
+  role: AppRole;
+  isActive: boolean;
+  suspensionReason: string | null;
+  createdAt: Date;
+  postCode: string | null;
+};
+
+type MessageResponse = {
+  id: string;
+  content: string;
+  isRead: boolean;
+  createdAt: Date;
+  deletedAt: Date | null;
+  senderId: string;
+  sender: PublicUserProfile;
 };
 
 @Injectable()
@@ -56,25 +85,17 @@ export class UserMessagesService {
         })
       : null;
 
-    const supplierInfo = chat.supplier
-      ? {
-          id: supplierProfile?.id ?? chat.supplier.id,
-          businessName: supplierProfile?.businessName ?? null,
-          userId: chat.supplier.id,
-          firstName:
-            chat.supplier.fullName?.split(' ')?.[0] ??
-            chat.supplier.fullName ??
-            null,
-        }
-      : null;
+    const supplierInfo = this.formatSupplierInfo(chat.supplier, supplierProfile);
 
     const messages = isNewChat
       ? []
-      : await this.messages.find({
-          where: { chat: { id: chat.id } as any },
-          order: { createdAt: 'DESC' },
-          take: 100,
-        });
+      : (
+          await this.messages.find({
+            where: { chat: { id: chat.id } as any },
+            order: { createdAt: 'DESC' },
+            take: 100,
+          })
+        ).map((message) => this.formatMessage(message));
 
     return { supplier: supplierInfo, messages };
   }
@@ -115,7 +136,7 @@ export class UserMessagesService {
     }
 
     const chatIds = chats.map((chat) => chat.id);
-    const latestMap = new Map<string, Message>();
+    const latestMap = new Map<string, MessageResponse>();
     if (chatIds.length) {
       const recentMessages = await this.messages
         .createQueryBuilder('message')
@@ -126,7 +147,7 @@ export class UserMessagesService {
         .getMany();
       for (const message of recentMessages) {
         if (!latestMap.has(message.chat.id)) {
-          latestMap.set(message.chat.id, message);
+          latestMap.set(message.chat.id, this.formatMessage(message));
         }
       }
     }
@@ -135,32 +156,14 @@ export class UserMessagesService {
       const supplierProfile = chat.supplier
         ? supplierProfileMap.get(chat.supplier.id)
         : null;
-      const latestMessage = latestMap.get(chat.id);
+      const latestMessage = latestMap.get(chat.id) ?? null;
       return {
         chat: {
           id: chat.id,
-          supplier: chat.supplier
-            ? {
-                id: supplierProfile?.id ?? chat.supplier.id,
-                businessName: supplierProfile?.businessName ?? null,
-                userId: chat.supplier.id,
-                firstName:
-                  chat.supplier.fullName?.split(' ')?.[0] ??
-                  chat.supplier.fullName ??
-                  null,
-              }
-            : null,
+          supplier: this.formatSupplierInfo(chat.supplier, supplierProfile),
           createdAt: chat.createdAt,
         },
-        latestMessage: latestMessage
-          ? {
-              id: latestMessage.id,
-              content: latestMessage.content,
-              senderId: latestMessage.sender.id,
-              createdAt: latestMessage.createdAt,
-              isRead: latestMessage.isRead,
-            }
-          : null,
+        latestMessage,
       };
     });
 
@@ -180,6 +183,11 @@ export class UserMessagesService {
       throw new NotFoundException('Supplier user not found');
     }
 
+    const supplierProfile = await this.suppliers.findOne({
+      where: { user: { id: chat.supplier.id } as any },
+      relations: ['user'],
+    });
+
     const message = this.messages.create({
       chat,
       sender: user,
@@ -187,6 +195,9 @@ export class UserMessagesService {
       isRead: false,
     });
     await this.messages.save(message);
+
+    const supplierInfo = this.formatSupplierInfo(chat.supplier, supplierProfile);
+    const messageResponse = this.formatMessage(message);
 
     this.chatSocket.emitMessage({
       messageId: message.id,
@@ -196,9 +207,71 @@ export class UserMessagesService {
       recipientId: chat.supplier.id,
       content: dto.message,
       createdAt: message.createdAt.toISOString(),
+      message: this.serializeMessageForSocket(messageResponse),
     });
 
-    return message;
+    return { supplier: supplierInfo, message: messageResponse };
+  }
+
+  private formatSupplierInfo(
+    supplierUser?: User | null,
+    supplierProfile?: Supplier | null,
+  ): SupplierInfo | null {
+    if (!supplierUser) return null;
+    return {
+      id: supplierProfile?.id ?? supplierUser.id,
+      businessName: supplierProfile?.businessName ?? null,
+      userId: supplierUser.id,
+      firstName:
+        supplierUser.fullName?.split(' ')?.[0] ?? supplierUser.fullName ?? null,
+    };
+  }
+
+  private formatUserProfile(user?: User | null): PublicUserProfile | null {
+    if (!user) return null;
+    return {
+      id: user.id,
+      email: user.email,
+      fullName: user.fullName,
+      firstName: user.fullName?.split(' ')?.[0] ?? user.fullName ?? null,
+      role: user.role,
+      isActive: user.isActive,
+      suspensionReason: user.suspensionReason ?? null,
+      createdAt: user.createdAt,
+      postCode: user.postCode ?? null,
+    };
+  }
+
+  private formatMessage(message: Message): MessageResponse {
+    const senderProfile = this.formatUserProfile(message.sender);
+    if (!senderProfile) {
+      throw new Error('Message sender missing profile');
+    }
+
+    return {
+      id: message.id,
+      content: message.content,
+      isRead: message.isRead,
+      createdAt: message.createdAt,
+      deletedAt: message.deletedAt ?? null,
+      senderId: message.sender.id,
+      sender: senderProfile,
+    };
+  }
+
+  private serializeMessageForSocket(message: MessageResponse) {
+    return {
+      id: message.id,
+      senderId: message.senderId,
+      content: message.content,
+      isRead: message.isRead,
+      createdAt: message.createdAt.toISOString(),
+      deletedAt: message.deletedAt ? message.deletedAt.toISOString() : null,
+      sender: {
+        ...message.sender,
+        createdAt: message.sender.createdAt.toISOString(),
+      },
+    };
   }
 
   private async ensureChat(userId: string, supplierUserId: string) {
