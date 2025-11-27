@@ -4,7 +4,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { LessThanOrEqual, Repository } from 'typeorm';
 import { QuoteRequest } from '../../../entities/quote-request.entity';
 import { QUOTE_REQUEST_LIFETIME_MS } from './request-quote.constants';
-import { QuoteRequestSocketService } from '../../sockets/quote-requests/quote-request-socket.service';
 
 @Injectable()
 export class QuoteRequestExpiryService implements OnModuleInit {
@@ -13,7 +12,6 @@ export class QuoteRequestExpiryService implements OnModuleInit {
   constructor(
     @InjectRepository(QuoteRequest)
     private readonly quoteRequests: Repository<QuoteRequest>,
-    private readonly quoteRequestSocket: QuoteRequestSocketService,
   ) {}
 
   onModuleInit() {
@@ -59,15 +57,6 @@ export class QuoteRequestExpiryService implements OnModuleInit {
       .andWhere('"createdAt" <= :deadline', { deadline })
       .execute();
 
-    const updatedAt = now.toISOString();
-    targets.forEach((request) =>
-      this.quoteRequestSocket.emitUpdated({
-        requestId: request.id,
-        status: 'expired',
-        postCode: request.postcode ?? null,
-        serviceCategories: request.services ?? [],
-        updatedAt,
-      }),
-    );
+    // No-op for notifications in the simplified socket setup
   }
 }

@@ -9,7 +9,6 @@ import { QuoteRequest } from '../../../entities/quote-request.entity';
 import { User } from '../../../entities/user.entity';
 import { CreateRequestQuoteDto } from './dto/create-request-quote.dto';
 import { QUOTE_REQUEST_LIFETIME_MS } from './request-quote.constants';
-import { QuoteRequestSocketService } from '../../sockets/quote-requests/quote-request-socket.service';
 
 type QuoteRequestStatus = QuoteRequest['status'];
 
@@ -20,7 +19,6 @@ export class UserRequestQuoteService {
     private readonly quoteRequests: Repository<QuoteRequest>,
     @InjectRepository(User)
     private readonly users: Repository<User>,
-    private readonly quoteRequestSocket: QuoteRequestSocketService,
   ) {}
 
   async list(userId: string, status?: QuoteRequestStatus) {
@@ -75,17 +73,7 @@ export class UserRequestQuoteService {
       requestType: dto.requestType ?? 'local',
       expiresAt,
     });
-    const saved = await this.quoteRequests.save(request);
-
-    this.quoteRequestSocket.emitCreated({
-      requestId: saved.id,
-      userId: user.id,
-      postCode: saved.postcode ?? null,
-      serviceCategories: saved.services ?? [],
-      createdAt: saved.createdAt.toISOString(),
-    });
-
-    return saved;
+    return this.quoteRequests.save(request);
   }
 
   private calculateExpiry(value?: string | Date) {

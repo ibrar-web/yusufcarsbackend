@@ -207,7 +207,6 @@ export class UserMessagesService {
       recipientId: chat.supplier.id,
       content: dto.message,
       createdAt: message.createdAt.toISOString(),
-      message: this.serializeMessageForSocket(messageResponse),
     });
 
     return { supplier: supplierInfo, message: messageResponse };
@@ -256,21 +255,6 @@ export class UserMessagesService {
       deletedAt: message.deletedAt ?? null,
       senderId: message.sender.id,
       sender: senderProfile,
-    };
-  }
-
-  private serializeMessageForSocket(message: MessageResponse) {
-    return {
-      id: message.id,
-      senderId: message.senderId,
-      content: message.content,
-      isRead: message.isRead,
-      createdAt: message.createdAt.toISOString(),
-      deletedAt: message.deletedAt ? message.deletedAt.toISOString() : null,
-      sender: {
-        ...message.sender,
-        createdAt: message.sender.createdAt.toISOString(),
-      },
     };
   }
 

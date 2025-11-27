@@ -1,4 +1,4 @@
-import { UseGuards } from '@nestjs/common';
+import { Logger } from '@nestjs/common';
 import {
   OnGatewayConnection,
   OnGatewayDisconnect,
@@ -7,36 +7,46 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { SocketAuthGuard } from '../socket-auth.guard';
-import { SocketAuthService } from '../socket-auth.service';
-import { SocketConnectionRegistry } from '../socket-connection.registry';
 import { ChatSocketService } from './chat-socket.service';
 
 @WebSocketGateway({ cors: { origin: '*' } })
-@UseGuards(SocketAuthGuard)
 export class ChatGateway
   implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
 {
+  private readonly logger = new Logger(ChatGateway.name);
+
   @WebSocketServer()
   server!: Server;
 
-  constructor(
-    private readonly auth: SocketAuthService,
-    private readonly registry: SocketConnectionRegistry,
-    private readonly chatService: ChatSocketService,
-  ) {}
+  constructor(private readonly chatService: ChatSocketService) {}
 
   afterInit() {
     this.chatService.attachServer(this.server);
   }
 
-  async handleConnection(client: Socket) {
-    const user = await this.auth.authenticate(client);
-    this.registry.register(client, user);
-    this.chatService.registerClientRooms(client, user);
+  handleConnection(client: Socket) {
+    const userId = this.extractUserId(client);
+    if (!userId) {
+      client.emit('chat:error', { message: 'Missing userId query param' });
+      client.disconnect(true);
+      return;
+    }
+    this.chatService.registerClient(client, userId);
   }
 
   handleDisconnect(client: Socket) {
-    this.registry.unregister(client.id);
+    this.chatService.unregisterClient(client.id);
+  }
+
+  private extractUserId(client: Socket) {
+    const raw = client.handshake.query.userId;
+    if (typeof raw === 'string' && raw.trim().length) {
+      return raw.trim();
+    }
+    if (Array.isArray(raw) && raw.length && raw[0]?.trim().length) {
+      return raw[0].trim();
+    }
+    this.logger.warn('Socket connection rejected due to missing userId');
+    return undefined;
   }
 }
