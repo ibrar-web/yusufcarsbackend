@@ -12,7 +12,7 @@ import { SocketAuthService } from '../socket-auth.service';
 import { SocketConnectionRegistry } from '../socket-connection.registry';
 import { QuoteRequestSocketService } from './quote-request-socket.service';
 
-@WebSocketGateway({ namespace: '/quote-requests', cors: { origin: '*' } })
+@WebSocketGateway({ cors: { origin: '*' } })
 @UseGuards(SocketAuthGuard)
 export class QuoteRequestGateway
   implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect

@@ -12,7 +12,7 @@ import { SocketAuthService } from '../socket-auth.service';
 import { SocketConnectionRegistry } from '../socket-connection.registry';
 import { ChatSocketService } from './chat-socket.service';
 
-@WebSocketGateway({ namespace: '/chat', cors: { origin: '*' } })
+@WebSocketGateway({ cors: { origin: '*' } })
 @UseGuards(SocketAuthGuard)
 export class ChatGateway
   implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
