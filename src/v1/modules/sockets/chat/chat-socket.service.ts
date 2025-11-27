@@ -44,7 +44,10 @@ export class ChatSocketService {
     }
     const dto = validatePayload(ChatDeliveredPayload, payload);
     this.server
-      .to([this.roomForUser(dto.recipientId), this.roomForSupplier(dto.recipientId)])
+      .to([
+        this.roomForUser(dto.recipientId),
+        this.roomForSupplier(dto.recipientId),
+      ])
       .emit('chat:delivered', dto);
   }
 

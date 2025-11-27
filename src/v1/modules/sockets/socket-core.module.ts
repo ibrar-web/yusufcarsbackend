@@ -8,7 +8,12 @@ import { SocketConnectionRegistry } from './socket-connection.registry';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Supplier])],
-  providers: [SocketAuthService, SocketAuthGuard, SocketConnectionRegistry, JoseService],
+  providers: [
+    SocketAuthService,
+    SocketAuthGuard,
+    SocketConnectionRegistry,
+    JoseService,
+  ],
   exports: [SocketAuthService, SocketAuthGuard, SocketConnectionRegistry],
 })
 export class SocketCoreModule {}
