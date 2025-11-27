@@ -6,7 +6,7 @@ import { SendUserMessageDto } from './dto/send-user-message.dto';
 import { Supplier } from '../../../entities/supplier.entity';
 import { User } from '../../../entities/user.entity';
 import { QuoteRequest } from '../../../entities/quote-request.entity';
-import { QuotesGateway } from '../../sockets/quotes.gateway';
+import { ChatSocketService } from '../../sockets/chat/chat-socket.service';
 
 @Injectable()
 export class UserMessagesService {
@@ -17,7 +17,7 @@ export class UserMessagesService {
     @InjectRepository(User) private readonly users: Repository<User>,
     @InjectRepository(QuoteRequest)
     private readonly requests: Repository<QuoteRequest>,
-    private readonly gateway: QuotesGateway,
+    private readonly chatSocket: ChatSocketService,
   ) {}
 
   async list(userId: string, quoteRequestId?: string) {
@@ -40,6 +40,7 @@ export class UserMessagesService {
 
     const supplier = await this.suppliers.findOne({
       where: { id: dto.supplierId },
+      relations: ['user'],
     });
     if (!supplier) throw new NotFoundException('Supplier not found');
 
@@ -58,13 +59,15 @@ export class UserMessagesService {
     });
     await this.messages.save(message);
 
-    this.gateway.emitChatMessage({
+    this.chatSocket.emitMessage({
+      messageId: message.id,
       quoteRequestId: dto.quoteRequestId,
-      supplierId: supplier.id,
-      userId: user.id,
+      senderId: user.id,
+      senderRole: 'user',
+      recipientId: supplier.user.id,
       body: dto.body,
+      createdAt: message.createdAt.toISOString(),
       direction: 'user-to-supplier',
-      createdAt: message.createdAt,
     });
 
     return message;

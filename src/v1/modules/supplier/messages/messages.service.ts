@@ -6,7 +6,7 @@ import { SendMessageDto } from './dto/send-message.dto';
 import { Supplier } from '../../../entities/supplier.entity';
 import { User } from '../../../entities/user.entity';
 import { QuoteRequest } from '../../../entities/quote-request.entity';
-import { QuotesGateway } from '../../sockets/quotes.gateway';
+import { ChatSocketService } from '../../sockets/chat/chat-socket.service';
 
 @Injectable()
 export class SupplierMessagesService {
@@ -17,7 +17,7 @@ export class SupplierMessagesService {
     @InjectRepository(User) private readonly users: Repository<User>,
     @InjectRepository(QuoteRequest)
     private readonly requests: Repository<QuoteRequest>,
-    private readonly quotesGateway: QuotesGateway,
+    private readonly chatSocket: ChatSocketService,
   ) {}
 
   async listForSupplier(supplierId: string, quoteRequestId?: string) {
@@ -37,6 +37,7 @@ export class SupplierMessagesService {
   async sendFromSupplier(supplierId: string, dto: SendMessageDto) {
     const supplier = await this.suppliers.findOne({
       where: { id: supplierId },
+      relations: ['user'],
     });
     if (!supplier) throw new NotFoundException('Supplier not found');
     const quoteRequest = await this.requests.findOne({
@@ -54,13 +55,15 @@ export class SupplierMessagesService {
     });
     await this.messages.save(message);
 
-    this.quotesGateway.emitChatMessage({
+    this.chatSocket.emitMessage({
+      messageId: message.id,
       quoteRequestId: dto.quoteRequestId,
-      supplierId,
-      userId: quoteRequest.user.id,
+      senderId: supplier.user.id,
+      senderRole: 'supplier',
+      recipientId: quoteRequest.user.id,
       body: dto.body,
-      direction: dto.direction,
-      createdAt: message.createdAt,
+      createdAt: message.createdAt.toISOString(),
+      direction: 'supplier-to-user',
     });
 
     return message;

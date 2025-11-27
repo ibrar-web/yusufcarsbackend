@@ -2,7 +2,6 @@ import { Module } from '@nestjs/common';
 import { ScheduleModule } from '@nestjs/schedule';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { dataSourceOptions } from './config/ormconfig';
-import { QuotesGateway } from './modules/sockets/quotes.gateway';
 import { S3Service } from './common/aws/s3.service';
 import { KycDocsService } from './common/aws/kyc-docs.service';
 import { AdminModule } from './modules/admin/admin.module';
@@ -17,6 +16,7 @@ import { UserSettingsModule } from './modules/user/settings/user-settings.module
 import { UserQuotesModule } from './modules/user/quotes/user-quotes.module';
 import { UserRequestQuoteModule } from './modules/user/requestquote/request-quote.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { SocketsModule } from './modules/sockets/sockets.module';
 
 @Module({
   imports: [
@@ -37,8 +37,9 @@ import { AuthModule } from './modules/auth/auth.module';
     UserQuotesModule,
     UserRequestQuoteModule,
     AuthModule,
+    SocketsModule,
   ],
   controllers: [],
-  providers: [QuotesGateway, S3Service, KycDocsService],
+  providers: [S3Service, KycDocsService],
 })
 export class AppModule {}

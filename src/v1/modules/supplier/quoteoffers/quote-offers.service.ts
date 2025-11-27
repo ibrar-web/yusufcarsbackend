@@ -9,6 +9,7 @@ import { Quote } from '../../../entities/quote-offers.entity';
 import { QuoteRequest } from '../../../entities/quote-request.entity';
 import { Supplier } from '../../../entities/supplier.entity';
 import { CreateQuoteOfferDto } from './dto/create-quote-offer.dto';
+import { QuoteOfferSocketService } from '../../sockets/quote-offers/quote-offer-socket.service';
 
 @Injectable()
 export class SupplierQuoteOffersService {
@@ -18,6 +19,7 @@ export class SupplierQuoteOffersService {
     private readonly quoteRequests: Repository<QuoteRequest>,
     @InjectRepository(Supplier)
     private readonly suppliers: Repository<Supplier>,
+    private readonly quoteOfferSocket: QuoteOfferSocketService,
   ) {}
 
   async listAvailableRequests(userId: string) {
@@ -33,6 +35,7 @@ export class SupplierQuoteOffersService {
     const supplier = await this.findSupplier(userId);
     const quoteRequest = await this.quoteRequests.findOne({
       where: { id: dto.quoteRequestId },
+      relations: ['user'],
     });
     if (!quoteRequest) throw new NotFoundException('Quote request not found');
 
@@ -70,7 +73,19 @@ export class SupplierQuoteOffersService {
       notes: dto.notes,
       expiresAt,
     });
-    return this.quotes.save(quote);
+    const saved = await this.quotes.save(quote);
+
+    this.quoteOfferSocket.emitOfferReceived({
+      offerId: saved.id,
+      quoteRequestId: quoteRequest.id,
+      userId: quoteRequest.user.id,
+      price: saved.price,
+      supplierName: supplier.businessName,
+      notes: saved.notes,
+      createdAt: saved.createdAt.toISOString(),
+    });
+
+    return saved;
   }
 
   private async findSupplier(userId: string) {

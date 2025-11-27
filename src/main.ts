@@ -13,7 +13,7 @@ async function bootstrap() {
   app.use(cookieParser());
   app.use(express.json());
   app.enableCors({
-    origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+    origin: process.env.CORS_ORIGIN || 'http://192.168.100.20:3000',
     credentials: true,
   });
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
