@@ -26,7 +26,6 @@ type PublicUserProfile = {
   id: string;
   email: string;
   fullName: string;
-  firstName: string | null;
   role: AppRole;
   isActive: boolean;
   suspensionReason: string | null;
@@ -40,7 +39,6 @@ type MessageResponse = {
   isRead: boolean;
   createdAt: Date;
   deletedAt: Date | null;
-  senderId: string;
   sender: PublicUserProfile;
 };
 
@@ -232,7 +230,6 @@ export class UserMessagesService {
       id: user.id,
       email: user.email,
       fullName: user.fullName,
-      firstName: user.fullName?.split(' ')?.[0] ?? user.fullName ?? null,
       role: user.role,
       isActive: user.isActive,
       suspensionReason: user.suspensionReason ?? null,
@@ -253,7 +250,6 @@ export class UserMessagesService {
       isRead: message.isRead,
       createdAt: message.createdAt,
       deletedAt: message.deletedAt ?? null,
-      senderId: message.sender.id,
       sender: senderProfile,
     };
   }

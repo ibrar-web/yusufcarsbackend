@@ -26,12 +26,8 @@ export class ChatSocketService {
       this.logger.warn('Chat server not initialized');
       return;
     }
-    this.server
-      .to([
-        this.roomForUser(payload.recipientId),
-        this.roomForUser(payload.senderId),
-      ])
-      .emit('chat:message', payload);
+    this.server.to(this.roomForUser(payload.recipientId)).emit('chat:message', payload);
+    console.log('message emitted to recipient:', payload.recipientId);
   }
 
   private roomForUser(userId: string) {
