@@ -36,16 +36,47 @@ export class UserMessagesService {
       relations: ['supplier'],
     });
 
+    const isNewChat = !chat;
     if (!chat) {
-      chat = await this.ensureChat(userId, supplierId);
-      return [];
+      const newChat = await this.ensureChat(userId, supplierId);
+      chat = await this.chats.findOne({
+        where: { id: newChat.id },
+        relations: ['supplier'],
+      });
     }
 
-    return this.messages.find({
-      where: { chat: { id: chat.id } as any },
-      order: { createdAt: 'DESC' },
-      take: 100,
-    });
+    if (!chat) {
+      throw new NotFoundException('Chat not found');
+    }
+
+    const supplierProfile = chat.supplier
+      ? await this.suppliers.findOne({
+          where: { user: { id: chat.supplier.id } as any },
+          relations: ['user'],
+        })
+      : null;
+
+    const supplierInfo = chat.supplier
+      ? {
+          id: supplierProfile?.id ?? chat.supplier.id,
+          businessName: supplierProfile?.businessName ?? null,
+          userId: chat.supplier.id,
+          firstName:
+            chat.supplier.fullName?.split(' ')?.[0] ??
+            chat.supplier.fullName ??
+            null,
+        }
+      : null;
+
+    const messages = isNewChat
+      ? []
+      : await this.messages.find({
+          where: { chat: { id: chat.id } as any },
+          order: { createdAt: 'DESC' },
+          take: 100,
+        });
+
+    return { supplier: supplierInfo, messages };
   }
 
   async listChats(userId: string, options: ChatListOptions = {}) {

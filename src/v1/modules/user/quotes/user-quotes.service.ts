@@ -9,6 +9,13 @@ type ListQupotesParams = {
   status?: Quote['status'];
 };
 
+type LimitedSupplier = {
+  id: string;
+  userId: string | null;
+  businessName: string | null;
+  tradingAs: string | null;
+};
+
 @Injectable()
 export class UserQuotesService {
   constructor(
@@ -32,6 +39,28 @@ export class UserQuotesService {
       take: limit,
     });
 
-    return { data, meta: { total, page, limit } };
+    const sanitizedData = data.map((quote) => {
+      const { supplier, quoteRequest, ...rest } = quote;
+      const sanitizedQuoteRequest = quoteRequest
+        ? { ...quoteRequest }
+        : null;
+      if (sanitizedQuoteRequest) {
+        delete (sanitizedQuoteRequest as any).user;
+      }
+      return {
+        ...rest,
+        quoteRequest: sanitizedQuoteRequest,
+        supplier: supplier
+          ? ({
+              id: supplier.id,
+              userId: supplier.user?.id ?? supplier.userId ?? null,
+              businessName: supplier.businessName ?? null,
+              tradingAs: supplier.tradingAs ?? null,
+            } as LimitedSupplier)
+          : null,
+      };
+    });
+
+    return { data: sanitizedData, meta: { total, page, limit } };
   }
 }
