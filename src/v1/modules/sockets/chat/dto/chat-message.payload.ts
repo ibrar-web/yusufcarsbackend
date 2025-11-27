@@ -1,17 +1,19 @@
+import { AppRole } from 'src/v1/common/decorators/roles.decorator';
+
 export type ChatMessagePayload = {
   id: string;
   content: string;
   isRead: boolean;
-  createdAt: string;
-  deletedAt: string | null;
+  createdAt: Date;
+  deletedAt: Date | null;
   sender: {
     id: string;
     email: string;
     fullName: string;
-    role: 'user' | 'supplier' | 'admin';
+    role: AppRole;
     isActive: boolean;
     suspensionReason: string | null;
-    createdAt: string;
+    createdAt: Date;
     postCode: string | null;
   };
 };

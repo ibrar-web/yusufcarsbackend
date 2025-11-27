@@ -7,6 +7,7 @@ import { Supplier } from '../../../entities/supplier.entity';
 import { AppRole, User } from '../../../entities/user.entity';
 import { Chats } from '../../../entities/chats.entity';
 import { ChatSocketService } from '../../sockets/chat/chat-socket.service';
+import { ChatMessagePayload } from '../../sockets/chat/dto/chat-message.payload';
 
 type SupplierChatListOptions = {
   userId?: string;
@@ -49,8 +50,8 @@ export class SupplierMessagesService {
   async list(supplierUserId: string, userId: string) {
     let chat = await this.chats.findOne({
       where: {
-        supplier: { id: supplierUserId } as any,
-        user: { id: userId } as any,
+        supplier: { id: supplierUserId },
+        user: { id: userId },
       },
       relations: ['user'],
     });
@@ -78,12 +79,14 @@ export class SupplierMessagesService {
           postCode: chat.user.postCode ?? null,
         }
       : null;
-    const userInfo = userProfile ? { ...userProfile, userId: userProfile.id } : null;
+    const userInfo = userProfile
+      ? { ...userProfile, userId: userProfile.id }
+      : null;
 
     const messages = chatExisted
       ? (
           await this.messages.find({
-            where: { chat: { id: chat.id } as any },
+            where: { chat: { id: chat.id } },
             order: { createdAt: 'DESC' },
             take: 100,
           })
@@ -125,8 +128,8 @@ export class SupplierMessagesService {
 
     const [chats, total] = await this.chats.findAndCount({
       where: {
-        supplier: { id: supplierUserId } as any,
-        ...(options.userId ? { user: { id: options.userId } as any } : {}),
+        supplier: { id: supplierUserId },
+        ...(options.userId ? { user: { id: options.userId } } : {}),
       },
       relations: ['user'],
       order: { createdAt: 'DESC' },
@@ -205,7 +208,7 @@ export class SupplierMessagesService {
       throw new NotFoundException('Supplier user not found');
     }
     const supplier = await this.suppliers.findOne({
-      where: { user: { id: supplierUser.id } as any },
+      where: { user: { id: supplierUser.id } },
       relations: ['user'],
     });
     if (!supplier || !supplier.user) {
@@ -215,7 +218,7 @@ export class SupplierMessagesService {
     const chat = await this.chats.findOne({
       where: {
         id: dto.chatId,
-        supplier: { id: supplierUserId } as any,
+        supplier: { id: supplierUserId },
       },
       relations: ['user', 'supplier'],
     });
@@ -242,12 +245,14 @@ export class SupplierMessagesService {
           postCode: chat.user.postCode ?? null,
         }
       : null;
-    const userInfo = userProfile ? { ...userProfile, userId: userProfile.id } : null;
+    const userInfo = userProfile
+      ? { ...userProfile, userId: userProfile.id }
+      : null;
 
     if (!message.sender) {
       throw new Error('Message sender missing profile');
     }
-    const messageResponse: MessageResponse = {
+    const messageResponse: ChatMessagePayload = {
       id: message.id,
       content: message.content,
       isRead: message.isRead,
@@ -257,7 +262,7 @@ export class SupplierMessagesService {
         id: message.sender.id,
         email: message.sender.email,
         fullName: message.sender.fullName,
-        role: message.sender.role,
+        role: 'supplier',
         isActive: message.sender.isActive,
         suspensionReason: message.sender.suspensionReason ?? null,
         createdAt: message.sender.createdAt,
@@ -270,7 +275,7 @@ export class SupplierMessagesService {
       senderId: supplierUser.id,
       senderRole: 'supplier',
     });
-    this.chatSocket.emitMessage(messageResponse as any);
+    this.chatSocket.emitMessage(messageResponse);
 
     return { user: userInfo, message: messageResponse };
   }
@@ -278,8 +283,8 @@ export class SupplierMessagesService {
   private async ensureChat(userId: string, supplierUserId: string) {
     const existing = await this.chats.findOne({
       where: {
-        user: { id: userId } as any,
-        supplier: { id: supplierUserId } as any,
+        user: { id: userId },
+        supplier: { id: supplierUserId },
       },
       relations: ['user', 'supplier'],
     });

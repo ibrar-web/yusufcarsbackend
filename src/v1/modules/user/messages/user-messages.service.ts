@@ -5,41 +5,15 @@ import { In, Repository } from 'typeorm';
 import { Message } from '../../../entities/messages.entity';
 import { SendUserMessageDto } from './dto/send-user-message.dto';
 import { Supplier } from '../../../entities/supplier.entity';
-import { AppRole, User } from '../../../entities/user.entity';
 import { Chats } from '../../../entities/chats.entity';
 import { ChatSocketService } from '../../sockets/chat/chat-socket.service';
+import { User } from 'src/v1/entities/user.entity';
+import { ChatMessagePayload } from '../../sockets/chat/dto/chat-message.payload';
 
 type ChatListOptions = {
   supplierId?: string;
   page?: number;
   limit?: number;
-};
-
-type SupplierInfo = {
-  id: string;
-  businessName: string | null;
-  userId: string;
-  firstName: string | null;
-};
-
-type PublicUserProfile = {
-  id: string;
-  email: string;
-  fullName: string;
-  role: AppRole;
-  isActive: boolean;
-  suspensionReason: string | null;
-  createdAt: Date;
-  postCode: string | null;
-};
-
-type MessageResponse = {
-  id: string;
-  content: string;
-  isRead: boolean;
-  createdAt: Date;
-  deletedAt: Date | null;
-  sender: PublicUserProfile;
 };
 
 @Injectable()
@@ -57,8 +31,8 @@ export class UserMessagesService {
   async list(userId: string, supplierId: string) {
     let chat = await this.chats.findOne({
       where: {
-        user: { id: userId } as any,
-        supplier: { id: supplierId } as any,
+        user: { id: userId },
+        supplier: { id: supplierId },
       },
       relations: ['supplier'],
     });
@@ -78,7 +52,7 @@ export class UserMessagesService {
 
     const supplierProfile = chat.supplier
       ? await this.suppliers.findOne({
-          where: { user: { id: chat.supplier.id } as any },
+          where: { user: { id: chat.supplier.id } },
           relations: ['user'],
         })
       : null;
@@ -99,7 +73,7 @@ export class UserMessagesService {
       ? []
       : (
           await this.messages.find({
-            where: { chat: { id: chat.id } as any },
+            where: { chat: { id: chat.id } },
             order: { createdAt: 'DESC' },
             take: 100,
           })
@@ -136,7 +110,7 @@ export class UserMessagesService {
     const skip = (page - 1) * limit;
 
     const [chats, total] = await this.chats.findAndCount({
-      where: { user: { id: userId } as any },
+      where: { user: { id: userId } },
       relations: ['supplier'],
       order: { createdAt: 'DESC' },
       skip,
@@ -152,7 +126,7 @@ export class UserMessagesService {
     );
     const supplierProfiles = supplierUserIds.length
       ? await this.suppliers.find({
-          where: { user: { id: In(supplierUserIds) } as any },
+          where: { user: { id: In(supplierUserIds) } },
           relations: ['user'],
         })
       : [];
@@ -165,7 +139,7 @@ export class UserMessagesService {
     }
 
     const chatIds = chats.map((chat) => chat.id);
-    const latestMap = new Map<string, MessageResponse>();
+    const latestMap = new Map<string, ChatMessagePayload>();
     if (chatIds.length) {
       const recentMessages = await this.messages
         .createQueryBuilder('message')
@@ -189,7 +163,7 @@ export class UserMessagesService {
               id: message.sender.id,
               email: message.sender.email,
               fullName: message.sender.fullName,
-              role: message.sender.role,
+              role: 'user',
               isActive: message.sender.isActive,
               suspensionReason: message.sender.suspensionReason ?? null,
               createdAt: message.sender.createdAt,
@@ -234,7 +208,7 @@ export class UserMessagesService {
     if (!user) throw new NotFoundException('User not found');
 
     const chat = await this.chats.findOne({
-      where: { id: dto.chatId, user: { id: userId } as any },
+      where: { id: dto.chatId, user: { id: userId } },
       relations: ['supplier'],
     });
     if (!chat) throw new NotFoundException('Chat not found');
@@ -243,7 +217,7 @@ export class UserMessagesService {
     }
 
     const supplierProfile = await this.suppliers.findOne({
-      where: { user: { id: chat.supplier.id } as any },
+      where: { user: { id: chat.supplier.id } },
       relations: ['user'],
     });
 
@@ -269,7 +243,7 @@ export class UserMessagesService {
     if (!message.sender) {
       throw new Error('Message sender missing profile');
     }
-    const messageResponse: MessageResponse = {
+    const messageResponse: ChatMessagePayload = {
       id: message.id,
       content: message.content,
       isRead: message.isRead,
@@ -279,7 +253,7 @@ export class UserMessagesService {
         id: message.sender.id,
         email: message.sender.email,
         fullName: message.sender.fullName,
-        role: message.sender.role,
+        role: 'user',
         isActive: message.sender.isActive,
         suspensionReason: message.sender.suspensionReason ?? null,
         createdAt: message.sender.createdAt,
@@ -293,7 +267,7 @@ export class UserMessagesService {
       senderId: user.id,
       senderRole: 'user',
     });
-    this.chatSocket.emitMessage(messageResponse as any);
+    this.chatSocket.emitMessage(messageResponse);
 
     return { supplier: supplierInfo, message: messageResponse };
   }
@@ -301,8 +275,8 @@ export class UserMessagesService {
   private async ensureChat(userId: string, supplierUserId: string) {
     const existing = await this.chats.findOne({
       where: {
-        user: { id: userId } as any,
-        supplier: { id: supplierUserId } as any,
+        user: { id: userId },
+        supplier: { id: supplierUserId },
       },
       relations: ['supplier'],
     });
@@ -319,7 +293,7 @@ export class UserMessagesService {
     }
 
     const supplier = await this.suppliers.findOne({
-      where: { user: { id: supplierUser.id } as any },
+      where: { user: { id: supplierUser.id } },
       relations: ['user'],
     });
     if (!supplier || !supplier.user) {
@@ -331,7 +305,7 @@ export class UserMessagesService {
   }
 
   private attachSocketMeta(
-    message: MessageResponse,
+    message: ChatMessagePayload,
     meta: {
       recipientId: string;
       chatId: string;
