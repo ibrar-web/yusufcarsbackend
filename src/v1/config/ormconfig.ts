@@ -12,7 +12,10 @@ export const dataSourceOptions: DataSourceOptions = {
   database: process.env.DATABASE_NAME,
   synchronize: true,
   logging: false,
-  entities: [__dirname + '/../v1/modules/**/*.entity{.ts,.js}'],
+  entities: [
+    __dirname + '/../entities/**/*.entity{.ts,.js}',
+    __dirname + '/../modules/**/*.entity{.ts,.js}',
+  ],
   // migrations: ['src/migrations/*.ts'],
 };
 

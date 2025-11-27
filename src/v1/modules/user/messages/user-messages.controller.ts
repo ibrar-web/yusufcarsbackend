@@ -6,18 +6,29 @@ import { Roles } from '../../../common/decorators/roles.decorator';
 import { CurrentUser } from '../../admin/decorators/current-user.decorator';
 import { SendUserMessageDto } from './dto/send-user-message.dto';
 
-@Controller('user/messages')
+@Controller('user/chat')
 @UseGuards(AuthGuard, RolesGuard)
 @Roles('user')
 export class UserMessagesController {
   constructor(private readonly messages: UserMessagesService) {}
 
   @Get()
-  list(
+  list(@CurrentUser() user: any, @Query('supplierId') supplierId: string) {
+    return this.messages.list(user.sub, supplierId);
+  }
+
+  @Get('list')
+  listChats(
     @CurrentUser() user: any,
-    @Query('quoteRequestId') quoteRequestId?: string,
+    @Query('supplierId') supplierId?: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
   ) {
-    return this.messages.list(user.sub, quoteRequestId);
+    return this.messages.listChats(user.sub, {
+      supplierId,
+      page: page ? parseInt(page, 10) : undefined,
+      limit: limit ? parseInt(limit, 10) : undefined,
+    });
   }
 
   @Post()
