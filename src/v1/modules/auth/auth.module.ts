@@ -9,6 +9,7 @@ import { SupplierDocument } from '../../entities/supplier-document.entity';
 import { SupplierDocumentType } from '../../entities/supplier-document-type.entity';
 import { KycDocsService } from '../../common/aws/kyc-docs.service';
 import { S3Service } from '../../common/aws/s3.service';
+import { GoogleGeocodingService } from '../../common/geocoding/google-geocoding.service';
 
 @Module({
   imports: [
@@ -20,7 +21,13 @@ import { S3Service } from '../../common/aws/s3.service';
     ]),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JoseService, KycDocsService, S3Service],
+  providers: [
+    AuthService,
+    JoseService,
+    KycDocsService,
+    S3Service,
+    GoogleGeocodingService,
+  ],
   exports: [AuthService],
 })
 export class AuthModule {}

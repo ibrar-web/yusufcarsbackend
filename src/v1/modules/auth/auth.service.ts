@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException, Logger } from '@nestjs/common';
 import { In, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
@@ -15,9 +15,12 @@ import {
   KycDocsService,
   type UploadedDocMeta,
 } from '../../common/aws/kyc-docs.service';
+import { GoogleGeocodingService } from '../../common/geocoding/google-geocoding.service';
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
     @InjectRepository(User) private readonly users: Repository<User>,
     @InjectRepository(Supplier)
@@ -28,6 +31,7 @@ export class AuthService {
     private readonly documentTypes: Repository<SupplierDocumentType>,
     private readonly jose: JoseService,
     private readonly kycDocs: KycDocsService,
+    private readonly geocoding: GoogleGeocodingService,
   ) {}
 
   async register(
@@ -38,6 +42,9 @@ export class AuthService {
     if (existing) throw new BadRequestException('Email already in use');
 
     const supplierDto = dto as SupplierRegisterDto;
+    const postCode = this.resolvePostCode(dto);
+    if (!postCode) throw new BadRequestException('Postcode is required');
+    const coordinates = await this.lookupCoordinates(postCode);
     const fullName =
       dto.fullName ||
       supplierDto.firstName ||
@@ -48,7 +55,9 @@ export class AuthService {
       password: dto.password,
       fullName,
       role: dto.role ?? 'user',
-      postCode: supplierDto.postCode,
+      postCode,
+      latitude: coordinates?.latitude,
+      longitude: coordinates?.longitude,
     });
     await this.users.save(user);
 
@@ -83,6 +92,28 @@ export class AuthService {
     }
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return user.toPublic();
+  }
+
+  private resolvePostCode(dto: UserRegisterDto | SupplierRegisterDto) {
+    const supplierDto = dto as SupplierRegisterDto;
+    return (
+      dto.postCode ||
+      supplierDto.postCode ||
+      supplierDto.contactPostcode ||
+      ''
+    ).trim();
+  }
+
+  private async lookupCoordinates(postCode: string) {
+    try {
+      return await this.geocoding.lookupPostcode(postCode);
+    } catch (error) {
+      this.logger.error(
+        `Failed to lookup coordinates for ${postCode}`,
+        error instanceof Error ? error.stack : undefined,
+      );
+      return null;
+    }
   }
 
   private async saveUploadedDocuments(

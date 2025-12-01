@@ -55,11 +55,11 @@ export class User {
   postCode: string;
 
   @Index()
-  @Column({ type: 'float' })
+  @Column({ type: 'float', nullable: true })
   latitude?: number;
 
   @Index()
-  @Column({ type: 'float' })
+  @Column({ type: 'float', nullable: true })
   longitude?: number;
 
   @OneToOne(() => Supplier, (supplier) => supplier.user, {
