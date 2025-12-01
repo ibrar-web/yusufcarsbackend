@@ -22,10 +22,7 @@ type PublicUserProfile = {
   email: string;
   fullName: string;
   role: AppRole;
-  isActive: boolean;
-  suspensionReason: string | null;
   createdAt: Date;
-  postCode: string | null;
 };
 
 type MessageResponse = {
@@ -198,10 +195,7 @@ export class SupplierMessagesService {
               email: message.sender.email,
               fullName: message.sender.fullName,
               role: message.sender.role,
-              isActive: message.sender.isActive,
-              suspensionReason: message.sender.suspensionReason ?? null,
               createdAt: message.sender.createdAt,
-              postCode: message.sender.postCode ?? null,
             },
           });
         }
@@ -301,10 +295,7 @@ export class SupplierMessagesService {
         email: message.sender.email,
         fullName: message.sender.fullName,
         role: 'supplier',
-        isActive: message.sender.isActive,
-        suspensionReason: message.sender.suspensionReason ?? null,
         createdAt: message.sender.createdAt,
-        postCode: message.sender.postCode ?? null,
       },
     };
     this.attachSocketMeta(messageResponse, {

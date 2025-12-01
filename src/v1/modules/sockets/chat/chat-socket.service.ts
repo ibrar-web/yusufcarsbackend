@@ -31,36 +31,12 @@ export class ChatSocketService {
       this.logger.warn('Socket payload missing recipientId');
       return;
     }
-    const wirePayload = this.sanitizePayload(payload);
-    this.server
-      .to(this.roomForUser(recipientId))
-      .emit('chat:message', wirePayload);
+
+    this.server.to(this.roomForUser(recipientId)).emit('chat:message', payload);
   }
 
   private roomForUser(userId: string) {
     return `chat:user:${userId}`;
-  }
-
-  private sanitizePayload(
-    payload: ChatMessagePayload & Record<string, any>,
-  ): ChatMessagePayload {
-    return {
-      id: payload.id,
-      content: payload.content,
-      isRead: payload.isRead,
-      createdAt: this.toIsoString(payload.createdAt),
-      deletedAt: payload.deletedAt ? this.toIsoString(payload.deletedAt) : null,
-      sender: {
-        id: payload.sender.id,
-        email: payload.sender.email,
-        fullName: payload.sender.fullName,
-        role: payload.sender.role,
-        isActive: payload.sender.isActive,
-        suspensionReason: payload.sender.suspensionReason ?? null,
-        createdAt: this.toIsoString(payload.sender.createdAt),
-        postCode: payload.sender.postCode ?? null,
-      },
-    };
   }
 
   private toIsoString(value: Date | string) {

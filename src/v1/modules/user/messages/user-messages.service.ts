@@ -30,10 +30,7 @@ type MessageResponse = {
     email: string;
     fullName: string;
     role: AppRole;
-    isActive: boolean;
-    suspensionReason: string | null;
     createdAt: Date;
-    postCode: string | null;
   };
 };
 
@@ -136,10 +133,7 @@ export class UserMessagesService {
             email: message.sender.email,
             fullName: message.sender.fullName,
             role: message.sender.role,
-            isActive: message.sender.isActive,
-            suspensionReason: message.sender.suspensionReason ?? null,
             createdAt: message.sender.createdAt,
-            postCode: message.sender.postCode ?? null,
           },
         };
       });
@@ -219,10 +213,7 @@ export class UserMessagesService {
               email: message.sender.email,
               fullName: message.sender.fullName,
               role: 'user',
-              isActive: message.sender.isActive,
-              suspensionReason: message.sender.suspensionReason ?? null,
               createdAt: message.sender.createdAt,
-              postCode: message.sender.postCode ?? null,
             },
           });
         }
@@ -312,10 +303,7 @@ export class UserMessagesService {
         email: message.sender.email,
         fullName: message.sender.fullName,
         role: 'user',
-        isActive: message.sender.isActive,
-        suspensionReason: message.sender.suspensionReason ?? null,
         createdAt: message.sender.createdAt,
-        postCode: message.sender.postCode ?? null,
       },
     };
 

@@ -6,14 +6,12 @@ export type ChatMessagePayload = {
   isRead: boolean;
   createdAt: Date | string;
   deletedAt: Date | string | null;
+  chatId: string;
   sender: {
     id: string;
     email: string;
     fullName: string;
     role: AppRole;
-    isActive: boolean;
-    suspensionReason: string | null;
     createdAt: Date | string;
-    postCode: string | null;
   };
 };
