@@ -5,11 +5,23 @@ import {
   ManyToOne,
   OneToMany,
   CreateDateColumn,
+  UpdateDateColumn,
+  Index,
 } from 'typeorm';
 import { User } from '../user.entity';
 import { Quote } from './quote-offers.entity';
 
+export enum QuoteRequestStatus {
+  PENDING = 'pending',
+  EXPIRED = 'expired',
+  QUOTED = 'quoted',
+  ACCEPTED = 'accepted',
+  CONVERTED = 'converted',
+}
+
 @Entity('quote_requests')
+@Index(['status'])
+@Index(['postcode', 'requestType'])
 export class QuoteRequest {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
@@ -17,23 +29,20 @@ export class QuoteRequest {
   @ManyToOne(() => User, { eager: true, onDelete: 'CASCADE' })
   user!: User;
 
+  @Column()
+  registrationNumber!: string;
+
+  @Column()
+  postcode!: string;
+
   @Column({ nullable: true })
-  model?: string;
+  vin?: string;
 
   @Column()
   make!: string;
 
   @Column({ nullable: true })
-  registrationNumber?: string;
-
-  @Column({ nullable: true })
-  taxStatus?: string;
-
-  @Column({ nullable: true })
-  taxDueDate?: string;
-
-  @Column({ nullable: true })
-  motStatus?: string;
+  model?: string;
 
   @Column({ nullable: true })
   yearOfManufacture?: string;
@@ -47,48 +56,21 @@ export class QuoteRequest {
   @Column({ type: 'int', nullable: true })
   engineCapacity?: number;
 
-  @Column({ type: 'int', nullable: true })
-  co2Emissions?: number;
-
-  @Column({ type: 'boolean', nullable: true })
-  markedForExport?: boolean;
-
-  @Column({ nullable: true })
-  colour?: string;
-
-  @Column({ nullable: true })
-  typeApproval?: string;
-
-  @Column({ type: 'int', nullable: true })
-  revenueWeight?: number;
-
-  @Column({ nullable: true })
-  dateOfLastV5CIssued?: string;
-
-  @Column({ nullable: true })
-  motExpiryDate?: string;
-
-  @Column({ nullable: true })
-  wheelplan?: string;
-
-  @Column({ nullable: true })
-  monthOfFirstRegistration?: string;
+  @Column({ type: 'boolean', default: false })
+  requireFitment!: boolean;
 
   @Column({ type: 'simple-array', nullable: true })
   services?: string[];
-
-  @Column({ nullable: true })
-  postcode?: string;
 
   @Column({ type: 'enum', enum: ['local', 'national'], default: 'local' })
   requestType!: 'local' | 'national';
 
   @Column({
     type: 'enum',
-    enum: ['pending', 'expired'],
-    default: 'pending',
+    enum: QuoteRequestStatus,
+    default: QuoteRequestStatus.PENDING,
   })
-  status!: 'pending' | 'expired';
+  status!: QuoteRequestStatus;
 
   @Column({ type: 'timestamp', nullable: true })
   expiresAt?: Date;
@@ -98,4 +80,7 @@ export class QuoteRequest {
 
   @CreateDateColumn()
   createdAt!: Date;
+
+  @UpdateDateColumn()
+  updatedAt!: Date;
 }

@@ -2,24 +2,26 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   ManyToOne,
+  OneToOne,
+  JoinColumn,
   Column,
   CreateDateColumn,
   UpdateDateColumn,
   RelationId,
   Index,
-  OneToOne,
-  JoinColumn,
 } from 'typeorm';
 import { Supplier } from '../supplier.entity';
 import { QuoteRequest } from './quote-request.entity';
 import { Quote } from './quote-offers.entity';
+import { User } from '../user.entity';
 
-export type OrderStatus =
-  | 'pending_delivery'
-  | 'in_transit'
-  | 'delivered'
-  | 'completed'
-  | 'cancelled';
+export enum OrderStatus {
+  PENDING_DELIVERY = 'pending_delivery',
+  IN_TRANSIT = 'in_transit',
+  DELIVERED = 'delivered',
+  COMPLETED = 'completed',
+  CANCELLED = 'cancelled',
+}
 
 @Entity('orders')
 @Index(['supplierId'])
@@ -50,19 +52,16 @@ export class Order {
   @RelationId((o: Order) => o.acceptedQuote)
   acceptedQuoteId!: string;
 
-  @Column({ type: 'uuid', nullable: false })
+  @ManyToOne(() => User, { nullable: false })
+  buyer!: User;
+
+  @RelationId((o: Order) => o.buyer)
   buyerId!: string;
 
   @Column({
     type: 'enum',
-    enum: [
-      'pending_delivery',
-      'in_transit',
-      'delivered',
-      'completed',
-      'cancelled',
-    ],
-    default: 'pending_delivery',
+    enum: OrderStatus,
+    default: OrderStatus.PENDING_DELIVERY,
   })
   status!: OrderStatus;
 
@@ -70,7 +69,7 @@ export class Order {
   deliveryDate?: Date;
 
   @Column({ type: 'json', nullable: true })
-  trackingInfo?: any;
+  trackingInfo?: Record<string, unknown>;
 
   @Column({ type: 'text', nullable: true })
   cancellationReason?: string | null;

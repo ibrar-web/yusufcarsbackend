@@ -55,7 +55,7 @@ export class SupplierQuoteNotification {
 
   @Index()
   @Column({ type: 'timestamptz', nullable: false })
-  expiresAt!: Date;
+  expiresAt!: Date; // 45-min quote window enforced in backend
 
   @Column({ type: 'float', nullable: true })
   priorityScore?: number;
