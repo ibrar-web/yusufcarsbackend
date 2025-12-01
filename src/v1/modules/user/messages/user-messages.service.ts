@@ -7,13 +7,30 @@ import { SendUserMessageDto } from './dto/send-user-message.dto';
 import { Supplier } from '../../../entities/supplier.entity';
 import { Chats } from '../../../entities/chats.entity';
 import { ChatSocketService } from '../../sockets/chat/chat-socket.service';
-import { User } from 'src/v1/entities/user.entity';
-import { ChatMessagePayload } from '../../sockets/chat/dto/chat-message.payload';
+import { AppRole, User } from 'src/v1/entities/user.entity';
 
 type ChatListOptions = {
   supplierId?: string;
   page?: number;
   limit?: number;
+};
+
+type MessageResponse = {
+  id: string;
+  content: string;
+  isRead: boolean;
+  createdAt: Date;
+  deletedAt: Date | null;
+  sender: {
+    id: string;
+    email: string;
+    fullName: string;
+    role: AppRole;
+    isActive: boolean;
+    suspensionReason: string | null;
+    createdAt: Date;
+    postCode: string | null;
+  };
 };
 
 @Injectable()
@@ -103,7 +120,7 @@ export class UserMessagesService {
     const chatInfo = {
       id: chat.id,
       createdAt: chat.createdAt,
-      userId: chat.user.id,
+      userId,
       supplierId: chat.supplier?.id ?? supplierId,
     };
 
@@ -146,7 +163,7 @@ export class UserMessagesService {
     }
 
     const chatIds = chats.map((chat) => chat.id);
-    const latestMap = new Map<string, ChatMessagePayload>();
+    const latestMap = new Map<string, MessageResponse>();
     if (chatIds.length) {
       const recentMessages = await this.messages
         .createQueryBuilder('message')
@@ -202,7 +219,7 @@ export class UserMessagesService {
           id: chat.id,
           supplier: supplierInfo,
           createdAt: chat.createdAt,
-          userId: chat.user.id,
+          userId,
           supplierId: chat.supplier?.id ?? null,
         },
         latestMessage,
@@ -252,7 +269,7 @@ export class UserMessagesService {
     if (!message.sender) {
       throw new Error('Message sender missing profile');
     }
-    const messageResponse: ChatMessagePayload = {
+    const messageResponse: MessageResponse = {
       id: message.id,
       content: message.content,
       isRead: message.isRead,
@@ -270,6 +287,13 @@ export class UserMessagesService {
       },
     };
 
+    const chatInfo = {
+      id: chat.id,
+      createdAt: chat.createdAt,
+      userId,
+      supplierId: chat.supplier.id,
+    };
+
     this.attachSocketMeta(messageResponse, {
       chatId: chat.id,
       recipientId: chat.supplier.id,
@@ -278,7 +302,7 @@ export class UserMessagesService {
     });
     this.chatSocket.emitMessage(messageResponse);
 
-    return { supplier: supplierInfo, message: messageResponse };
+    return { chat: chatInfo, supplier: supplierInfo, message: messageResponse };
   }
 
   private async ensureChat(userId: string, supplierUserId: string) {
@@ -314,7 +338,7 @@ export class UserMessagesService {
   }
 
   private attachSocketMeta(
-    message: ChatMessagePayload,
+    message: MessageResponse,
     meta: {
       recipientId: string;
       chatId: string;

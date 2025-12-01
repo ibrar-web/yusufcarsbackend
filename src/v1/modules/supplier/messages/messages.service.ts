@@ -7,7 +7,6 @@ import { Supplier } from '../../../entities/supplier.entity';
 import { AppRole, User } from '../../../entities/user.entity';
 import { Chats } from '../../../entities/chats.entity';
 import { ChatSocketService } from '../../sockets/chat/chat-socket.service';
-import { ChatMessagePayload } from '../../sockets/chat/dto/chat-message.payload';
 
 type SupplierChatListOptions = {
   userId?: string;
@@ -261,7 +260,7 @@ export class SupplierMessagesService {
     if (!message.sender) {
       throw new Error('Message sender missing profile');
     }
-    const messageResponse: ChatMessagePayload = {
+    const messageResponse: MessageResponse = {
       id: message.id,
       content: message.content,
       isRead: message.isRead,

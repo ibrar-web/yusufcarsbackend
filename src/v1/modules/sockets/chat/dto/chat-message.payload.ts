@@ -1,11 +1,11 @@
-import { AppRole } from 'src/v1/common/decorators/roles.decorator';
+import { AppRole } from 'src/v1/entities/user.entity';
 
 export type ChatMessagePayload = {
   id: string;
   content: string;
   isRead: boolean;
-  createdAt: Date;
-  deletedAt: Date | null;
+  createdAt: Date | string;
+  deletedAt: Date | string | null;
   sender: {
     id: string;
     email: string;
@@ -13,7 +13,7 @@ export type ChatMessagePayload = {
     role: AppRole;
     isActive: boolean;
     suspensionReason: string | null;
-    createdAt: Date;
+    createdAt: Date | string;
     postCode: string | null;
   };
 };
