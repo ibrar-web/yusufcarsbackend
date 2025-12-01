@@ -31,4 +31,49 @@ type ChatMessagePayload = {
 };
 ```
 
-No other events are currently emitted. Additional events can be layered on later as requirements grow.
+### Quote Requests
+
+- **Connection**: suppliers connect to `/` with `?supplierId=<uuid>` (or `handshake.query.supplierId`). Each socket joins `quote-request:supplier:<supplierId>`.
+- **Events**:
+
+```ts
+type QuoteRequestCreatedPayload = {
+  requestId: string;
+  userId: string;
+  postCode?: string | null;
+  serviceCategories: string[];
+  createdAt: string; // ISO8601
+};
+
+type QuoteRequestUpdatedPayload = {
+  requestId: string;
+  status?: string;
+  postCode?: string | null;
+  serviceCategories?: string[];
+  updatedAt: string; // ISO8601
+};
+```
+
+### Quote Offers
+
+- **Connection**: users connect with `?userId=<uuid>` and join `quote-offer:user:<userId>`.
+- **Events**:
+
+```ts
+type QuoteOfferReceivedPayload = {
+  offerId: string;
+  quoteRequestId: string;
+  userId: string;
+  price: number;
+  supplierName: string;
+  notes?: string;
+  createdAt: string; // ISO8601
+};
+
+type QuoteOfferUpdatedPayload = {
+  offerId: string;
+  userId: string;
+  status?: string;
+  updatedAt: string; // ISO8601
+};
+```
