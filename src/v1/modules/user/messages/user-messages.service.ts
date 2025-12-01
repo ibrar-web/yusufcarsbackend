@@ -100,7 +100,14 @@ export class UserMessagesService {
           };
         });
 
-    return { supplier: supplierInfo, messages };
+    const chatInfo = {
+      id: chat.id,
+      createdAt: chat.createdAt,
+      userId: chat.user.id,
+      supplierId: chat.supplier?.id ?? supplierId,
+    };
+
+    return { chat: chatInfo, supplier: supplierInfo, messages };
   }
 
   async listChats(userId: string, options: ChatListOptions = {}) {
@@ -195,6 +202,8 @@ export class UserMessagesService {
           id: chat.id,
           supplier: supplierInfo,
           createdAt: chat.createdAt,
+          userId: chat.user.id,
+          supplierId: chat.supplier?.id ?? null,
         },
         latestMessage,
       };

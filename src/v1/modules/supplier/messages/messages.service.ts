@@ -114,7 +114,14 @@ export class SupplierMessagesService {
         })
       : [];
 
-    return { user: userInfo, messages };
+    const chatInfo = {
+      id: chat.id,
+      createdAt: chat.createdAt,
+      userId: chat.user.id,
+      supplierId: supplierUserId,
+    };
+
+    return { chat: chatInfo, user: userInfo, messages };
   }
 
   async listChats(
@@ -192,6 +199,8 @@ export class SupplierMessagesService {
           id: chat.id,
           user: userProfile ? { ...userProfile, userId: userProfile.id } : null,
           createdAt: chat.createdAt,
+          userId: chat.user?.id ?? null,
+          supplierId: supplierUserId,
         },
         latestMessage,
       };
@@ -277,7 +286,14 @@ export class SupplierMessagesService {
     });
     this.chatSocket.emitMessage(messageResponse);
 
-    return { user: userInfo, message: messageResponse };
+    const chatInfo = {
+      id: chat.id,
+      createdAt: chat.createdAt,
+      userId: chat.user.id,
+      supplierId: supplierUserId,
+    };
+
+    return { chat: chatInfo, user: userInfo, message: messageResponse };
   }
 
   private async ensureChat(userId: string, supplierUserId: string) {
