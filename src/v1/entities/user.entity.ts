@@ -34,6 +34,7 @@ export class User {
   @Column()
   fullName!: string;
 
+  @Index()
   @Column({
     type: 'enum',
     enum: ['admin', 'user', 'supplier', 'garage', 'mechanic', 'dealer'],
