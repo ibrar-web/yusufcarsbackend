@@ -6,6 +6,7 @@ import {
   BeforeInsert,
   BeforeUpdate,
   OneToOne,
+  Index,
 } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { Supplier } from './supplier.entity';
@@ -49,8 +50,16 @@ export class User {
   @CreateDateColumn()
   createdAt!: Date;
 
-  @Column({ nullable: true })
-  postCode?: string;
+  @Column({ nullable: false })
+  postCode: string;
+
+  @Index()
+  @Column({ type: 'float' })
+  latitude?: number;
+
+  @Index()
+  @Column({ type: 'float' })
+  longitude?: number;
 
   @OneToOne(() => Supplier, (supplier) => supplier.user, {
     nullable: true,
