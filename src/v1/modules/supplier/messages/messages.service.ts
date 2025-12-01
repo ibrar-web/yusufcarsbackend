@@ -8,10 +8,13 @@ import { AppRole, User } from '../../../entities/user.entity';
 import { Chats } from '../../../entities/chats.entity';
 import { ChatSocketService } from '../../sockets/chat/chat-socket.service';
 
-type SupplierChatListOptions = {
-  userId?: string;
+type PaginationOptions = {
   page?: number;
   limit?: number;
+};
+
+type SupplierChatListOptions = PaginationOptions & {
+  userId?: string;
 };
 
 type PublicUserProfile = {
@@ -31,7 +34,14 @@ type MessageResponse = {
   isRead: boolean;
   createdAt: Date;
   deletedAt: Date | null;
+  chatId: string;
   sender: PublicUserProfile;
+};
+
+type MessagePageMeta = {
+  total: number;
+  page: number;
+  limit: number;
 };
 
 @Injectable()
@@ -46,7 +56,11 @@ export class SupplierMessagesService {
     private readonly chatSocket: ChatSocketService,
   ) {}
 
-  async list(supplierUserId: string, userId: string) {
+  async list(
+    supplierUserId: string,
+    userId: string,
+    options: PaginationOptions = {},
+  ) {
     let chat = await this.chats.findOne({
       where: {
         supplier: { id: supplierUserId },
@@ -81,37 +95,49 @@ export class SupplierMessagesService {
     const userInfo = userProfile
       ? { ...userProfile, userId: userProfile.id }
       : null;
+    const page = options.page && options.page > 0 ? options.page : 1;
+    const limit =
+      options.limit && options.limit > 0 ? Math.min(options.limit, 100) : 50;
+    const skip = (page - 1) * limit;
 
-    const messages = chatExisted
-      ? (
-          await this.messages.find({
-            where: { chat: { id: chat.id } },
-            order: { createdAt: 'DESC' },
-            take: 100,
-          })
-        ).map((message) => {
-          if (!message.sender) {
-            throw new Error('Message sender missing profile');
-          }
-          return {
-            id: message.id,
-            content: message.content,
-            isRead: message.isRead,
-            createdAt: message.createdAt,
-            deletedAt: message.deletedAt ?? null,
-            sender: {
-              id: message.sender.id,
-              email: message.sender.email,
-              fullName: message.sender.fullName,
-              role: message.sender.role,
-              isActive: message.sender.isActive,
-              suspensionReason: message.sender.suspensionReason ?? null,
-              createdAt: message.sender.createdAt,
-              postCode: message.sender.postCode ?? null,
-            },
-          };
-        })
-      : [];
+    let messages: MessageResponse[] = [];
+    let total = 0;
+    if (chatExisted) {
+      const [records, count] = await this.messages.findAndCount({
+        where: { chat: { id: chat.id } },
+        relations: ['sender', 'chat'],
+        order: { createdAt: 'DESC' },
+        take: limit,
+        skip,
+      });
+      total = count;
+      messages = records.map((message) => {
+        if (!message.sender) {
+          throw new Error('Message sender missing profile');
+        }
+        if (!message.chat) {
+          throw new Error('Message chat missing');
+        }
+        return {
+          id: message.id,
+          content: message.content,
+          isRead: message.isRead,
+          createdAt: message.createdAt,
+          deletedAt: message.deletedAt ?? null,
+          chatId: message.chat.id,
+          sender: {
+            id: message.sender.id,
+            email: message.sender.email,
+            fullName: message.sender.fullName,
+            role: message.sender.role,
+            isActive: message.sender.isActive,
+            suspensionReason: message.sender.suspensionReason ?? null,
+            createdAt: message.sender.createdAt,
+            postCode: message.sender.postCode ?? null,
+          },
+        };
+      });
+    }
 
     const chatInfo = {
       id: chat.id,
@@ -120,7 +146,9 @@ export class SupplierMessagesService {
       supplierId: supplierUserId,
     };
 
-    return { chat: chatInfo, user: userInfo, messages };
+    const meta: MessagePageMeta = { total, page, limit };
+
+    return { chat: chatInfo, user: userInfo, messages, meta };
   }
 
   async listChats(
@@ -164,6 +192,7 @@ export class SupplierMessagesService {
             isRead: message.isRead,
             createdAt: message.createdAt,
             deletedAt: message.deletedAt ?? null,
+            chatId: message.chat.id,
             sender: {
               id: message.sender.id,
               email: message.sender.email,
@@ -266,6 +295,7 @@ export class SupplierMessagesService {
       isRead: message.isRead,
       createdAt: message.createdAt,
       deletedAt: message.deletedAt ?? null,
+      chatId: chat.id,
       sender: {
         id: message.sender.id,
         email: message.sender.email,

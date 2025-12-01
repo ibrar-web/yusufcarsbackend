@@ -13,8 +13,16 @@ export class UserMessagesController {
   constructor(private readonly messages: UserMessagesService) {}
 
   @Get()
-  list(@CurrentUser() user: any, @Query('supplierId') supplierId: string) {
-    return this.messages.list(user.sub, supplierId);
+  list(
+    @CurrentUser() user: any,
+    @Query('supplierId') supplierId: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
+    return this.messages.list(user.sub, supplierId, {
+      page: page ? parseInt(page, 10) : undefined,
+      limit: limit ? parseInt(limit, 10) : undefined,
+    });
   }
 
   @Get('list')
