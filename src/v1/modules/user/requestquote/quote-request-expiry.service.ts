@@ -2,7 +2,7 @@ import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { LessThanOrEqual, Repository } from 'typeorm';
-import { QuoteRequest } from '../../../entities/quote-request.entity';
+import { QuoteRequest } from '../../../entities/quotes/quote-request.entity';
 import { QUOTE_REQUEST_LIFETIME_MS } from './request-quote.constants';
 
 @Injectable()

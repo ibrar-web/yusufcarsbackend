@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { QuoteRequest } from '../../../entities/quote-request.entity';
+import { QuoteRequest } from '../../../entities/quotes/quote-request.entity';
 import { Supplier } from '../../../entities/supplier.entity';
 import { SupplierQuotesController } from './quotesrequest.controller';
 import { SupplierQuotesService } from './quotesrequest.service';

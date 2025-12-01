@@ -10,7 +10,7 @@ import {
   OneToOne,
   JoinColumn,
 } from 'typeorm';
-import { Supplier } from './supplier.entity';
+import { Supplier } from '../supplier.entity';
 import { QuoteRequest } from './quote-request.entity';
 import { Quote } from './quote-offers.entity';
 
@@ -29,10 +29,12 @@ export class Order {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  @ManyToOne(() => QuoteRequest, { nullable: false })
+  @OneToOne(() => QuoteRequest, { nullable: false })
+  @JoinColumn({ name: 'request_id' })
   request!: QuoteRequest;
 
   @RelationId((o: Order) => o.request)
+  @Index({ unique: true })
   requestId!: string;
 
   @ManyToOne(() => Supplier, { nullable: false })
@@ -41,7 +43,6 @@ export class Order {
   @RelationId((o: Order) => o.supplier)
   supplierId!: string;
 
-  /** The accepted quote from Supplier */
   @OneToOne(() => Quote, { nullable: false, onDelete: 'CASCADE' })
   @JoinColumn({ name: 'accepted_quote_id' })
   acceptedQuote!: Quote;
@@ -50,7 +51,7 @@ export class Order {
   acceptedQuoteId!: string;
 
   @Column({ type: 'uuid', nullable: false })
-  buyerId!: string; // Buyer userId (garage or consumer)
+  buyerId!: string;
 
   @Column({
     type: 'enum',

@@ -6,7 +6,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Quote } from '../../../entities/quote-offers.entity';
-import { QuoteRequest } from '../../../entities/quote-request.entity';
+import { QuoteRequest } from '../../../entities/quotes/quote-request.entity';
 import { Supplier } from '../../../entities/supplier.entity';
 import { CreateQuoteOfferDto } from './dto/create-quote-offer.dto';
 

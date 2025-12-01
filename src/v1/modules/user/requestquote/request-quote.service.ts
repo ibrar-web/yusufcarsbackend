@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsWhere, Repository } from 'typeorm';
-import { QuoteRequest } from '../../../entities/quote-request.entity';
+import { QuoteRequest } from '../../../entities/quotes/quote-request.entity';
 import { User } from '../../../entities/user.entity';
 import { CreateRequestQuoteDto } from './dto/create-request-quote.dto';
 import { QUOTE_REQUEST_LIFETIME_MS } from './request-quote.constants';

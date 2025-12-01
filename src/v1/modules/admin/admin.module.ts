@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from '../../entities/user.entity';
 import { Supplier } from '../../entities/supplier.entity';
-import { QuoteRequest } from '../../entities/quote-request.entity';
+import { QuoteRequest } from '../../entities/quotes/quote-request.entity';
 import { Quote } from '../../entities/quote-offers.entity';
 import { JoseService } from '../auth/jose.service';
 import { JwtCookieStrategy } from './strategies/jwt-cookie.strategy';

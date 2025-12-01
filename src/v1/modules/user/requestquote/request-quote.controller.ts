@@ -13,7 +13,7 @@ import { Roles } from '../../../common/decorators/roles.decorator';
 import { CurrentUser } from '../../admin/decorators/current-user.decorator';
 import { UserRequestQuoteService } from './request-quote.service';
 import { CreateRequestQuoteDto } from './dto/create-request-quote.dto';
-import { QuoteRequest } from '../../../entities/quote-request.entity';
+import { QuoteRequest } from '../../../entities/quotes/quote-request.entity';
 
 type QuoteRequestStatus = QuoteRequest['status'];
 

@@ -8,20 +8,22 @@ import {
   RelationId,
   Index,
 } from 'typeorm';
-import { Supplier } from './supplier.entity';
+import { Supplier } from '../supplier.entity';
 import { QuoteRequest } from './quote-request.entity';
 
-export type SupplierNotificationStatus =
-  | 'pending'
-  | 'quoted'
-  | 'expired'
-  | 'accepted'
-  | 'rejected';
+export enum SupplierNotificationStatus {
+  PENDING = 'pending',
+  QUOTED = 'quoted',
+  EXPIRED = 'expired',
+  ACCEPTED = 'accepted',
+  REJECTED = 'rejected',
+}
 
 @Entity('supplier_quote_notifications')
-@Index(['supplierId', 'status', 'expiresAt'])
-@Index(['requestId'])
+@Index(['supplierId', 'requestId'], { unique: true })
 @Index(['supplierId'])
+@Index(['requestId'])
+@Index(['status'])
 export class SupplierQuoteNotification {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
@@ -38,35 +40,29 @@ export class SupplierQuoteNotification {
   @RelationId((n: SupplierQuoteNotification) => n.request)
   requestId!: string;
 
-  /** Distance (for Local requests) */
   @Column({ type: 'float', nullable: true })
   distanceKm?: number;
 
-  /** Metadata about WHY this supplier was matched */
   @Column({ type: 'json', nullable: true })
-  matchingDetails?: Record<string, any>;
+  matchingDetails?: Record<string, unknown>;
 
-  /** Pending, quoted, expired, accepted, rejected */
   @Column({
     type: 'enum',
-    enum: ['pending', 'quoted', 'expired', 'accepted', 'rejected'],
-    default: 'pending',
+    enum: SupplierNotificationStatus,
+    default: SupplierNotificationStatus.PENDING,
   })
   status!: SupplierNotificationStatus;
 
-  /** The moment this supplier’s quoting window closes */
+  @Index()
   @Column({ type: 'timestamptz', nullable: false })
   expiresAt!: Date;
 
-  /** Optional ranking score for future priority algorithm */
   @Column({ type: 'float', nullable: true })
   priorityScore?: number;
 
-  /** Timestamp when supplier submitted a quote */
   @Column({ type: 'timestamptz', nullable: true })
   quotedAt?: Date;
 
-  /** Reason if rejected */
   @Column({ type: 'text', nullable: true })
   rejectionReason?: string | null;
 

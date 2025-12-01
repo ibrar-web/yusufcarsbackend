@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Quote } from '../../../entities/quote-offers.entity';
-import { QuoteRequest } from '../../../entities/quote-request.entity';
+import { QuoteRequest } from '../../../entities/quotes/quote-request.entity';
 import { Supplier } from '../../../entities/supplier.entity';
 import { SupplierQuoteOffersController } from './quote-offers.controller';
 import { SupplierQuoteOffersService } from './quote-offers.service';
