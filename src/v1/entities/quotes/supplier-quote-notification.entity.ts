@@ -8,7 +8,7 @@ import {
   RelationId,
   Index,
 } from 'typeorm';
-import { Supplier } from '../supplier.entity';
+import { User } from '../user.entity';
 import { QuoteRequest } from './quote-request.entity';
 
 export enum SupplierNotificationStatus {
@@ -28,8 +28,8 @@ export class SupplierQuoteNotification {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  @ManyToOne(() => Supplier, { nullable: false, onDelete: 'CASCADE' })
-  supplier!: Supplier;
+  @ManyToOne(() => User, { nullable: false, onDelete: 'CASCADE' })
+  supplier!: User;
 
   @RelationId((n: SupplierQuoteNotification) => n.supplier)
   supplierId!: string;

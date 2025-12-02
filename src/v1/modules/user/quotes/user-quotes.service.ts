@@ -26,9 +26,8 @@ type ListQupotesParams = {
 
 type LimitedSupplier = {
   id: string;
-  userId: string | null;
-  businessName: string | null;
-  tradingAs: string | null;
+  email: string | null;
+  fullName: string | null;
 };
 
 @Injectable()
@@ -59,9 +58,7 @@ export class UserQuotesService {
 
     const sanitizedData = data.map((quote) => {
       const { supplier, quoteRequest, ...rest } = quote;
-      const sanitizedQuoteRequest = quoteRequest
-        ? { ...quoteRequest }
-        : null;
+      const sanitizedQuoteRequest = quoteRequest ? { ...quoteRequest } : null;
       if (sanitizedQuoteRequest) {
         delete (sanitizedQuoteRequest as any).user;
       }
@@ -71,9 +68,8 @@ export class UserQuotesService {
         supplier: supplier
           ? ({
               id: supplier.id,
-              userId: supplier.user?.id ?? supplier.userId ?? null,
-              businessName: supplier.businessName ?? null,
-              tradingAs: supplier.tradingAs ?? null,
+              email: supplier.email ?? null,
+              fullName: supplier.fullName ?? null,
             } as LimitedSupplier)
           : null,
       };
@@ -88,8 +84,9 @@ export class UserQuotesService {
         const quoteRepo = entityManager.getRepository(Quote);
         const requestRepo = entityManager.getRepository(QuoteRequest);
         const orderRepo = entityManager.getRepository(Order);
-        const notificationRepo =
-          entityManager.getRepository(SupplierQuoteNotification);
+        const notificationRepo = entityManager.getRepository(
+          SupplierQuoteNotification,
+        );
 
         const quote = await quoteRepo.findOne({
           where: { id: quoteId },

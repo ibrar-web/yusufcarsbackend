@@ -1,10 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import {
-  Supplier,
-  SupplierApprovalStatus,
-} from '../../../entities/supplier.entity';
+import { SupplierApprovalStatus } from '../../../entities/supplier.entity';
+import { User } from '../../../entities/user.entity';
 import {
   SupplierQuoteNotification,
   SupplierNotificationStatus,
@@ -21,15 +19,15 @@ export class QuoteRequestNotificationService {
   private readonly logger = new Logger(QuoteRequestNotificationService.name);
 
   constructor(
-    @InjectRepository(Supplier)
-    private readonly suppliers: Repository<Supplier>,
+    @InjectRepository(User)
+    private readonly users: Repository<User>,
     @InjectRepository(SupplierQuoteNotification)
     private readonly notifications: Repository<SupplierQuoteNotification>,
     private readonly sockets: QuoteRequestSocketService,
   ) {}
 
   async distribute(request: QuoteRequest) {
-    const suppliers = await this.findSuppliersForRequest(request);
+    const suppliers = await this.findSupplierUsersForRequest(request);
     if (!suppliers.length) {
       this.logger.debug(
         `No supplier matches found for quote request ${request.id}`,
@@ -54,7 +52,7 @@ export class QuoteRequestNotificationService {
     }
   }
 
-  private async findSuppliersForRequest(request: QuoteRequest) {
+  private async findSupplierUsersForRequest(request: QuoteRequest) {
     const isLocal = request.requestType === 'local';
     if (isLocal && (!request.latitude || !request.longitude)) {
       this.logger.warn(
@@ -62,13 +60,14 @@ export class QuoteRequestNotificationService {
       );
       return [];
     }
-    const qb = this.suppliers
-      .createQueryBuilder('supplier')
-      .leftJoinAndSelect('supplier.user', 'user')
-      .where('supplier.approvalStatus = :approved', {
+    const qb = this.users
+      .createQueryBuilder('user')
+      .innerJoinAndSelect('user.supplier', 'supplier')
+      .where('user.role = :role', { role: 'supplier' })
+      .andWhere('user.isActive = :active', { active: true })
+      .andWhere('supplier.approvalStatus = :approved', {
         approved: SupplierApprovalStatus.APPROVED,
-      })
-      .andWhere('user.isActive = :active', { active: true });
+      });
     if (isLocal) {
       qb.andWhere('user.latitude IS NOT NULL AND user.longitude IS NOT NULL');
     }
@@ -76,10 +75,10 @@ export class QuoteRequestNotificationService {
     if (!isLocal) {
       return candidates;
     }
-    const matches: Supplier[] = [];
+    const matches: User[] = [];
     for (const supplier of candidates) {
-      const lat = supplier.user?.latitude;
-      const lon = supplier.user?.longitude;
+      const lat = supplier.latitude;
+      const lon = supplier.longitude;
       if (typeof lat !== 'number' || typeof lon !== 'number') continue;
       const distance = this.haversineMiles(
         request.latitude!,

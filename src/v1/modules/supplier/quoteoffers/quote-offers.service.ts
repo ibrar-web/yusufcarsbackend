@@ -32,7 +32,7 @@ export class SupplierQuoteOffersService {
   async listAvailableRequests(userId: string) {
     const supplier = await this.findSupplier(userId);
     return this.quotes.find({
-      where: { supplier: { id: supplier.id } as any },
+      where: { supplier: { id: supplier.userId } as any },
       relations: ['quoteRequest'],
       order: { createdAt: 'DESC' },
     });
@@ -42,7 +42,7 @@ export class SupplierQuoteOffersService {
     const supplier = await this.findSupplier(userId);
     const notification = await this.supplierNotifications.findOne({
       where: {
-        supplier: { id: supplier.id } as any,
+        supplier: { id: supplier.userId } as any,
         request: { id: dto.quoteRequestId } as any,
       },
       relations: ['request', 'request.user'],
@@ -78,7 +78,7 @@ export class SupplierQuoteOffersService {
 
     const existing = await this.quotes.findOne({
       where: {
-        supplier: { id: supplier.id } as any,
+        supplier: { id: supplier.userId } as any,
         quoteRequest: { id: dto.quoteRequestId } as any,
       },
     });
@@ -94,7 +94,7 @@ export class SupplierQuoteOffersService {
 
     const quote = this.quotes.create({
       quoteRequest,
-      supplier,
+      supplier: supplier.user,
       partName: dto.partName,
       brand: dto.brand,
       price: dto.price,

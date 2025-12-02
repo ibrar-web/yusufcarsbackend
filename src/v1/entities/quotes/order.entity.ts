@@ -10,7 +10,6 @@ import {
   RelationId,
   Index,
 } from 'typeorm';
-import { Supplier } from '../supplier.entity';
 import { QuoteRequest } from './quote-request.entity';
 import { Quote } from './quote-offers.entity';
 import { User } from '../user.entity';
@@ -39,8 +38,8 @@ export class Order {
   @RelationId((o: Order) => o.request)
   requestId!: string;
 
-  @ManyToOne(() => Supplier, { nullable: false })
-  supplier!: Supplier;
+  @ManyToOne(() => User, { nullable: false, onDelete: 'CASCADE' })
+  supplier!: User;
 
   @RelationId((o: Order) => o.supplier)
   supplierId!: string;

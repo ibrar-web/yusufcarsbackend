@@ -8,7 +8,7 @@ import {
   Index,
 } from 'typeorm';
 import { QuoteRequest } from './quote-request.entity';
-import { Supplier } from '../supplier.entity';
+import { User } from '../user.entity';
 
 export enum QuoteStatus {
   PENDING = 'pending',
@@ -29,8 +29,8 @@ export class Quote {
   })
   quoteRequest!: QuoteRequest;
 
-  @ManyToOne(() => Supplier, { eager: true, onDelete: 'CASCADE' })
-  supplier!: Supplier;
+  @ManyToOne(() => User, { eager: true, onDelete: 'CASCADE' })
+  supplier!: User;
 
   @Column()
   partName!: string;
