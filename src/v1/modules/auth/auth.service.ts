@@ -193,6 +193,7 @@ export class AuthService {
     if (!user) return null;
     const ok = await bcrypt.compare(password, user.password);
     if (!ok) return null;
+    if (user.status !== UserStatus.ACTIVE) return null;
     return user.toPublic();
   }
 
