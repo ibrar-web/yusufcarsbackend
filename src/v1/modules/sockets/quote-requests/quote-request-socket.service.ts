@@ -31,6 +31,21 @@ export class QuoteRequestSocketService {
     this.server.emit('quote:request:created', dto);
   }
 
+  emitCreatedForSuppliers(
+    payload: QuoteRequestCreatedPayload,
+    supplierIds: string[],
+  ) {
+    if (!this.server) {
+      this.logger.warn('Quote request socket not initialized');
+      return;
+    }
+    if (!supplierIds.length) return;
+    const dto = this.normalizeCreatedPayload(payload);
+    for (const supplierId of supplierIds) {
+      this.server.to(this.roomForSupplier(supplierId)).emit('quote:request:created', dto);
+    }
+  }
+
   emitUpdated(payload: QuoteRequestUpdatedPayload) {
     if (!this.server) {
       this.logger.warn('Quote request socket not initialized');

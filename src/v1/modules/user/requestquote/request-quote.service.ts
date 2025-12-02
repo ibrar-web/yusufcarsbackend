@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -9,16 +10,24 @@ import { QuoteRequest } from '../../../entities/quotes/quote-request.entity';
 import { User } from '../../../entities/user.entity';
 import { CreateRequestQuoteDto } from './dto/create-request-quote.dto';
 import { QUOTE_REQUEST_LIFETIME_MS } from './request-quote.constants';
+import { QuoteRequestNotificationService } from './quote-request-notification.service';
+import { QuoteExpiryQueueService } from '../../../common/aws/quote-expiry-queue.service';
+import { GoogleGeocodingService } from '../../../common/geocoding/google-geocoding.service';
 
 type QuoteRequestStatus = QuoteRequest['status'];
 
 @Injectable()
 export class UserRequestQuoteService {
+  private readonly logger = new Logger(UserRequestQuoteService.name);
+
   constructor(
     @InjectRepository(QuoteRequest)
     private readonly quoteRequests: Repository<QuoteRequest>,
     @InjectRepository(User)
     private readonly users: Repository<User>,
+    private readonly notifications: QuoteRequestNotificationService,
+    private readonly expiryQueue: QuoteExpiryQueueService,
+    private readonly geocoding: GoogleGeocodingService,
   ) {}
 
   async list(userId: string, status?: QuoteRequestStatus) {
@@ -45,6 +54,17 @@ export class UserRequestQuoteService {
     const user = await this.users.findOne({ where: { id: userId } });
     if (!user) throw new NotFoundException('User not found');
 
+    const resolvedPostcode = dto.postcode ?? user.postCode ?? '';
+    const targetPostcode = resolvedPostcode.trim();
+    if (!targetPostcode) {
+      throw new BadRequestException('Postcode is required to create a request');
+    }
+
+    const coordinates =
+      (await this.lookupCoordinates(targetPostcode)) ||
+      (user.latitude && user.longitude
+        ? { latitude: user.latitude, longitude: user.longitude }
+        : undefined);
     const expiresAt = this.calculateExpiry(dto.expiresAt);
 
     const request = this.quoteRequests.create({
@@ -61,7 +81,7 @@ export class UserRequestQuoteService {
       engineCapacity: dto.engineCapacity,
       co2Emissions: dto.co2Emissions,
       services: dto.services,
-      postcode: dto.postcode ?? user.postCode,
+      postcode: targetPostcode,
       markedForExport: dto.markedForExport ?? false,
       colour: dto.colour,
       typeApproval: dto.typeApproval,
@@ -72,8 +92,19 @@ export class UserRequestQuoteService {
       monthOfFirstRegistration: dto.monthOfFirstRegistration,
       requestType: dto.requestType ?? 'local',
       expiresAt,
+      latitude: coordinates?.latitude,
+      longitude: coordinates?.longitude,
     });
-    return this.quoteRequests.save(request);
+    const saved = await this.quoteRequests.save(request);
+    saved.user = user;
+    if (saved.expiresAt) {
+      await this.expiryQueue.scheduleQuoteRequestExpiry(
+        saved.id,
+        saved.expiresAt,
+      );
+    }
+    await this.notifications.distribute(saved);
+    return saved;
   }
 
   private calculateExpiry(value?: string | Date) {
@@ -84,5 +115,17 @@ export class UserRequestQuoteService {
       throw new BadRequestException('Invalid expiresAt value');
     }
     return parsed > maxExpiry ? maxExpiry : parsed;
+  }
+
+  private async lookupCoordinates(postCode: string) {
+    try {
+      return await this.geocoding.lookupPostcode(postCode);
+    } catch (error) {
+      this.logger.error(
+        `Failed to lookup coordinates for ${postCode}`,
+        error instanceof Error ? error.stack : undefined,
+      );
+      return null;
+    }
   }
 }

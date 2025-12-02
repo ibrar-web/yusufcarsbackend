@@ -13,6 +13,14 @@ export class CreateQuoteOfferDto {
   @IsUUID()
   quoteRequestId!: string;
 
+  @IsString()
+  @IsNotEmpty()
+  partName!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  brand!: string;
+
   @Type(() => Number)
   @IsNumber()
   @Min(0)

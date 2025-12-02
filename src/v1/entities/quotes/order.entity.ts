@@ -24,8 +24,9 @@ export enum OrderStatus {
 }
 
 @Entity('orders')
-@Index(['supplierId'])
-@Index(['buyerId'])
+@Index(['request'], { unique: true })
+@Index(['supplier'])
+@Index(['buyer'])
 @Index(['status'])
 export class Order {
   @PrimaryGeneratedColumn('uuid')
@@ -36,7 +37,6 @@ export class Order {
   request!: QuoteRequest;
 
   @RelationId((o: Order) => o.request)
-  @Index({ unique: true })
   requestId!: string;
 
   @ManyToOne(() => Supplier, { nullable: false })

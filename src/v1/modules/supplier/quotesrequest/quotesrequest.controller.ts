@@ -25,7 +25,7 @@ export class SupplierQuotesController {
   }
 
   @Get(':id')
-  detail(@Param('id') id: string) {
-    return this.quotes.detail(id);
+  detail(@CurrentUser() user: any, @Param('id') id: string) {
+    return this.quotes.detail(user.sub, id);
   }
 }

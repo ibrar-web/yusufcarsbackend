@@ -18,13 +18,23 @@ type GeocodeResponse = {
   error_message?: string;
 };
 
+type FetchResponse = {
+  ok: boolean;
+  status: number;
+  json(): Promise<unknown>;
+};
+
+type FetchLike = (
+  input: string | URL,
+  init?: Record<string, unknown>,
+) => Promise<FetchResponse>;
+
 @Injectable()
 export class GoogleGeocodingService {
   private readonly logger = new Logger(GoogleGeocodingService.name);
   private readonly endpoint =
     'https://maps.googleapis.com/maps/api/geocode/json';
-  private readonly apiKey =
-    process.env.GOOGLE_GEOCODING_API_KEY || process.env.GOOGLE_MAPS_API_KEY;
+  private readonly apiKey = process.env.GOOGLE_GEOCODING_API_KEY;
 
   async lookupPostcode(postCode: string): Promise<Coordinates | null> {
     const trimmed = postCode?.trim();
@@ -36,7 +46,7 @@ export class GoogleGeocodingService {
       return null;
     }
 
-    const fetchImpl: typeof fetch | undefined = (globalThis as any).fetch;
+    const fetchImpl: FetchLike | undefined = (globalThis as any).fetch;
     if (!fetchImpl) {
       this.logger.error('Fetch API not available in current runtime');
       return null;

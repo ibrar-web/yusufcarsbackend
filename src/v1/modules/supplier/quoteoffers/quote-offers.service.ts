@@ -6,9 +6,16 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Quote } from '../../../entities/quote-offers.entity';
-import { QuoteRequest } from '../../../entities/quotes/quote-request.entity';
+import {
+  QuoteRequest,
+  QuoteRequestStatus,
+} from '../../../entities/quotes/quote-request.entity';
 import { Supplier } from '../../../entities/supplier.entity';
 import { CreateQuoteOfferDto } from './dto/create-quote-offer.dto';
+import {
+  SupplierNotificationStatus,
+  SupplierQuoteNotification,
+} from '../../../entities/quotes/supplier-quote-notification.entity';
 
 @Injectable()
 export class SupplierQuoteOffersService {
@@ -18,6 +25,8 @@ export class SupplierQuoteOffersService {
     private readonly quoteRequests: Repository<QuoteRequest>,
     @InjectRepository(Supplier)
     private readonly suppliers: Repository<Supplier>,
+    @InjectRepository(SupplierQuoteNotification)
+    private readonly supplierNotifications: Repository<SupplierQuoteNotification>,
   ) {}
 
   async listAvailableRequests(userId: string) {
@@ -31,16 +40,37 @@ export class SupplierQuoteOffersService {
 
   async createOffer(userId: string, dto: CreateQuoteOfferDto) {
     const supplier = await this.findSupplier(userId);
-    const quoteRequest = await this.quoteRequests.findOne({
-      where: { id: dto.quoteRequestId },
-      relations: ['user'],
+    const notification = await this.supplierNotifications.findOne({
+      where: {
+        supplier: { id: supplier.id } as any,
+        request: { id: dto.quoteRequestId } as any,
+      },
+      relations: ['request', 'request.user'],
     });
-    if (!quoteRequest) throw new NotFoundException('Quote request not found');
+    if (!notification || !notification.request) {
+      throw new NotFoundException(
+        'You are not authorized to quote on this request',
+      );
+    }
+    if (notification.status !== SupplierNotificationStatus.PENDING) {
+      throw new BadRequestException(
+        'This quote request notification is no longer active',
+      );
+    }
+    if (notification.expiresAt <= new Date()) {
+      throw new BadRequestException(
+        'This quote request notification has expired',
+      );
+    }
+    const quoteRequest = notification.request;
 
     const requestDeadline = new Date(
       quoteRequest.createdAt.getTime() + 45 * 60 * 1000,
     );
-    if (quoteRequest.status !== 'pending' || new Date() > requestDeadline) {
+    if (
+      quoteRequest.status !== QuoteRequestStatus.PENDING ||
+      new Date() > requestDeadline
+    ) {
       throw new BadRequestException(
         'This quote request is no longer accepting offers',
       );
@@ -65,13 +95,23 @@ export class SupplierQuoteOffersService {
     const quote = this.quotes.create({
       quoteRequest,
       supplier,
+      partName: dto.partName,
+      brand: dto.brand,
       price: dto.price,
       estimatedTime: dto.estimatedTime,
       partCondition: dto.partCondition,
       notes: dto.notes,
       expiresAt,
     });
-    return this.quotes.save(quote);
+    const saved = await this.quotes.save(quote);
+    notification.status = SupplierNotificationStatus.QUOTED;
+    notification.quotedAt = new Date();
+    await this.supplierNotifications.save(notification);
+    if (quoteRequest.status === QuoteRequestStatus.PENDING) {
+      quoteRequest.status = QuoteRequestStatus.QUOTED;
+      await this.quoteRequests.save(quoteRequest);
+    }
+    return saved;
   }
 
   private async findSupplier(userId: string) {

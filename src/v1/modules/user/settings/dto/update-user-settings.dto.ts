@@ -23,4 +23,8 @@ export class UpdateUserSettingsDto {
   @IsOptional()
   @IsBoolean()
   marketingOptIn?: boolean;
+
+  @IsOptional()
+  @IsString()
+  postCode?: string;
 }

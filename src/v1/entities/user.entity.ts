@@ -51,7 +51,7 @@ export class User {
   @CreateDateColumn()
   createdAt!: Date;
 
-  @Column({ nullable: false })
+  @Column()
   postCode: string;
 
   @Index()

@@ -6,10 +6,17 @@ import { UserSettingsService } from './user-settings.service';
 import { AuthGuard } from '../../../common/guards/auth.guard';
 import { RolesGuard } from '../../../common/guards/roles.guard';
 import { JoseService } from '../../auth/jose.service';
+import { GoogleGeocodingService } from '../../../common/geocoding/google-geocoding.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([User])],
   controllers: [UserSettingsController],
-  providers: [UserSettingsService, AuthGuard, RolesGuard, JoseService],
+  providers: [
+    UserSettingsService,
+    AuthGuard,
+    RolesGuard,
+    JoseService,
+    GoogleGeocodingService,
+  ],
 })
 export class UserSettingsModule {}

@@ -20,9 +20,9 @@ export enum SupplierNotificationStatus {
 }
 
 @Entity('supplier_quote_notifications')
-@Index(['supplierId', 'requestId'], { unique: true })
-@Index(['supplierId'])
-@Index(['requestId'])
+@Index(['supplier', 'request'], { unique: true })
+@Index(['supplier'])
+@Index(['request'])
 @Index(['status'])
 export class SupplierQuoteNotification {
   @PrimaryGeneratedColumn('uuid')
@@ -41,7 +41,7 @@ export class SupplierQuoteNotification {
   requestId!: string;
 
   @Column({ type: 'float', nullable: true })
-  distanceKm?: number;
+  distanceKm?: number | null;
 
   @Column({ type: 'json', nullable: true })
   matchingDetails?: Record<string, unknown>;
@@ -58,10 +58,10 @@ export class SupplierQuoteNotification {
   expiresAt!: Date; // 45-min quote window enforced in backend
 
   @Column({ type: 'float', nullable: true })
-  priorityScore?: number;
+  priorityScore?: number | null;
 
   @Column({ type: 'timestamptz', nullable: true })
-  quotedAt?: Date;
+  quotedAt?: Date | null;
 
   @Column({ type: 'text', nullable: true })
   rejectionReason?: string | null;
