@@ -9,6 +9,7 @@ import {
   UploadedFiles,
   UseInterceptors,
   UnauthorizedException,
+  BadRequestException,
 } from '@nestjs/common';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import type { Response, Request } from 'express';
@@ -48,7 +49,11 @@ export class AuthController {
         ? plainToInstance(SupplierRegisterDto, body)
         : plainToInstance(UserRegisterDto, body);
 
-    await validateOrReject(dto);
+    try {
+      await validateOrReject(dto);
+    } catch (error) {
+      throw new BadRequestException(this.formatValidationErrors(error));
+    }
 
     const docUploads: Record<string, UploadedFile | undefined> = {};
     if (files?.companyRegDoc?.[0]) {
@@ -106,5 +111,16 @@ export class AuthController {
   )
   async registerAdmin(@Body() body: AdminRegisterDto) {
     return await this.auth.register(body);
+  }
+
+  private formatValidationErrors(error: unknown) {
+    if (!Array.isArray(error)) return 'Invalid request payload';
+    const messages: string[] = [];
+    for (const err of error) {
+      if (err?.constraints) {
+        messages.push(...Object.values(err.constraints));
+      }
+    }
+    return messages.length ? messages.join(', ') : 'Invalid request payload';
   }
 }
