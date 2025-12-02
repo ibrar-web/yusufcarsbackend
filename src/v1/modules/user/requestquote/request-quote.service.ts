@@ -11,7 +11,6 @@ import { User } from '../../../entities/user.entity';
 import { CreateRequestQuoteDto } from './dto/create-request-quote.dto';
 import { QUOTE_REQUEST_LIFETIME_MS } from './request-quote.constants';
 import { QuoteRequestNotificationService } from './quote-request-notification.service';
-import { QuoteExpiryQueueService } from '../../../common/aws/quote-expiry-queue.service';
 import { GoogleGeocodingService } from '../../../common/geocoding/google-geocoding.service';
 
 type QuoteRequestStatus = QuoteRequest['status'];
@@ -26,7 +25,6 @@ export class UserRequestQuoteService {
     @InjectRepository(User)
     private readonly users: Repository<User>,
     private readonly notifications: QuoteRequestNotificationService,
-    private readonly expiryQueue: QuoteExpiryQueueService,
     private readonly geocoding: GoogleGeocodingService,
   ) {}
 
@@ -102,12 +100,6 @@ export class UserRequestQuoteService {
     });
     const saved = await this.quoteRequests.save(request);
     saved.user = user;
-    if (saved.expiresAt) {
-      await this.expiryQueue.scheduleQuoteRequestExpiry(
-        saved.id,
-        saved.expiresAt,
-      );
-    }
     await this.notifications.distribute(saved);
     return saved;
   }

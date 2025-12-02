@@ -11,7 +11,6 @@ import {
 } from '../../../entities/quotes/supplier-quote-notification.entity';
 import { QuoteRequest } from '../../../entities/quotes/quote-request.entity';
 import { QUOTE_REQUEST_LIFETIME_MS } from './request-quote.constants';
-import { QuoteExpiryQueueService } from '../../../common/aws/quote-expiry-queue.service';
 import { QuoteRequestSocketService } from '../../sockets/quote-requests/quote-request-socket.service';
 import { QuoteRequestCreatedPayload } from '../../sockets/quote-requests/dto/quote-request-created.payload';
 
@@ -26,7 +25,6 @@ export class QuoteRequestNotificationService {
     private readonly suppliers: Repository<Supplier>,
     @InjectRepository(SupplierQuoteNotification)
     private readonly notifications: Repository<SupplierQuoteNotification>,
-    private readonly queue: QuoteExpiryQueueService,
     private readonly sockets: QuoteRequestSocketService,
   ) {}
 
@@ -49,12 +47,6 @@ export class QuoteRequestNotificationService {
       }),
     );
     const saved = await this.notifications.save(notificationEntities);
-    for (const notification of saved) {
-      await this.queue.scheduleNotificationExpiry(
-        notification.id,
-        notification.expiresAt,
-      );
-    }
     const supplierIds = saved.map((notification) => notification.supplierId);
     const payload = this.buildSocketPayload(request);
     if (payload && supplierIds.length) {

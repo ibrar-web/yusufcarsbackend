@@ -10,7 +10,6 @@ import { AuthGuard } from '../../../common/guards/auth.guard';
 import { RolesGuard } from '../../../common/guards/roles.guard';
 import { JoseService } from '../../auth/jose.service';
 import { QuoteRequestExpiryService } from './quote-request-expiry.service';
-import { QuoteExpiryQueueService } from '../../../common/aws/quote-expiry-queue.service';
 import { QuoteRequestNotificationService } from './quote-request-notification.service';
 import { GoogleGeocodingService } from '../../../common/geocoding/google-geocoding.service';
 
@@ -28,7 +27,6 @@ import { GoogleGeocodingService } from '../../../common/geocoding/google-geocodi
     UserRequestQuoteService,
     QuoteRequestExpiryService,
     QuoteRequestNotificationService,
-    QuoteExpiryQueueService,
     AuthGuard,
     RolesGuard,
     JoseService,
