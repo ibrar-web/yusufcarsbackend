@@ -1,7 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Brackets, Repository } from 'typeorm';
-import { Supplier } from '../../../entities/supplier.entity';
 import {
   SupplierNotificationStatus,
   SupplierQuoteNotification,
@@ -16,13 +15,11 @@ type ListParams = {
 @Injectable()
 export class SupplierQuotesService {
   constructor(
-    @InjectRepository(Supplier)
-    private readonly suppliers: Repository<Supplier>,
     @InjectRepository(SupplierQuoteNotification)
     private readonly supplierNotifications: Repository<SupplierQuoteNotification>,
   ) {}
 
-  async listForSupplier(userId: string, params: ListParams) {
+  async listSupplierNotifications(userId: string, params: ListParams) {
     const supplierUserId = userId;
 
     const page = params.page && params.page > 0 ? params.page : 1;
@@ -57,18 +54,7 @@ export class SupplierQuotesService {
       .take(limit)
       .getManyAndCount();
 
-    const data = notifications.map((notification) => ({
-      id: notification.request.id,
-      make: notification.request.make,
-      model: notification.request.model,
-      services: notification.request.services,
-      registrationNumber: notification.request.registrationNumber,
-      postcode: notification.request.postcode,
-      createdAt: notification.request.createdAt,
-      supplierNotification: notification,
-    }));
-
-    return { data, meta: { total, page, limit } };
+    return { data: notifications, meta: { total, page, limit } };
   }
 
   async detail(userId: string, requestId: string) {

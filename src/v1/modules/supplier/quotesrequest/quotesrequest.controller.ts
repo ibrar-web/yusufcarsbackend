@@ -17,7 +17,7 @@ export class SupplierQuotesController {
     @Query('limit') limit?: string,
     @Query('query') search?: string,
   ) {
-    return this.quotes.listForSupplier(user.sub, {
+    return this.quotes.listSupplierNotifications(user.sub, {
       page: page ? parseInt(page, 10) : undefined,
       limit: limit ? parseInt(limit, 10) : undefined,
       search,
