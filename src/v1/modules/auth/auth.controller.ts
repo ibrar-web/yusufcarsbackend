@@ -117,8 +117,13 @@ export class AuthController {
     if (!Array.isArray(error)) return 'Invalid request payload';
     const messages: string[] = [];
     for (const err of error) {
-      if (err?.constraints) {
-        messages.push(...Object.values(err.constraints));
+      const constraints = err?.constraints;
+      if (constraints && typeof constraints === 'object') {
+        for (const value of Object.values(constraints)) {
+          if (typeof value === 'string') {
+            messages.push(value);
+          }
+        }
       }
     }
     return messages.length ? messages.join(', ') : 'Invalid request payload';
