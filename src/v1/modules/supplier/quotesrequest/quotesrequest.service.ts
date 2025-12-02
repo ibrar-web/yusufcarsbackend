@@ -30,6 +30,8 @@ export class SupplierQuotesService {
     const qb = this.supplierNotifications
       .createQueryBuilder('notification')
       .leftJoinAndSelect('notification.request', 'request')
+      .leftJoin('request.user', 'user')
+      .addSelect(['user.id', 'user.fullName'])
       .where('notification.supplierId = :supplierId', {
         supplierId: supplierUserId,
       })
