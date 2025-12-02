@@ -40,12 +40,6 @@ export class SupplierQuoteNotification {
   @RelationId((n: SupplierQuoteNotification) => n.request)
   requestId!: string;
 
-  @Column({ type: 'float', nullable: true })
-  distanceKm?: number | null;
-
-  @Column({ type: 'json', nullable: true })
-  matchingDetails?: Record<string, unknown>;
-
   @Column({
     type: 'enum',
     enum: SupplierNotificationStatus,
@@ -56,9 +50,6 @@ export class SupplierQuoteNotification {
   @Index()
   @Column({ type: 'timestamptz', nullable: false })
   expiresAt!: Date; // 45-min quote window enforced in backend
-
-  @Column({ type: 'float', nullable: true })
-  priorityScore?: number | null;
 
   @Column({ type: 'timestamptz', nullable: true })
   quotedAt?: Date | null;

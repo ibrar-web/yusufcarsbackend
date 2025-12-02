@@ -13,7 +13,6 @@ import { QuoteRequestSocketService } from '../../sockets/quote-requests/quote-re
 import { QuoteRequestCreatedPayload } from '../../sockets/quote-requests/dto/quote-request-created.payload';
 
 const LOCAL_RADIUS_MILES = 5;
-const MILES_TO_KM = 1.60934;
 
 @Injectable()
 export class QuoteRequestNotificationService {
@@ -38,11 +37,10 @@ export class QuoteRequestNotificationService {
     }
     const expiresAt =
       request.expiresAt || new Date(Date.now() + QUOTE_REQUEST_LIFETIME_MS);
-    const notificationEntities = suppliers.map(({ supplier, distanceKm }) =>
+    const notificationEntities = suppliers.map((supplier) =>
       this.notifications.create({
         request,
         supplier,
-        distanceKm,
         expiresAt,
         status: SupplierNotificationStatus.PENDING,
       }),
@@ -81,9 +79,9 @@ export class QuoteRequestNotificationService {
     }
     const candidates = await qb.getMany();
     if (!isLocal) {
-      return candidates.map((supplier) => ({ supplier, distanceKm: null }));
+      return candidates;
     }
-    const matches = [];
+    const matches: Supplier[] = [];
     for (const supplier of candidates) {
       const lat = supplier.user?.latitude;
       const lon = supplier.user?.longitude;
@@ -95,10 +93,7 @@ export class QuoteRequestNotificationService {
         lon,
       );
       if (distance <= LOCAL_RADIUS_MILES) {
-        matches.push({
-          supplier,
-          distanceKm: Number((distance * MILES_TO_KM).toFixed(3)),
-        });
+        matches.push(supplier);
       }
     }
     return matches;
