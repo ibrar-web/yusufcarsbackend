@@ -65,6 +65,11 @@ export class UserRequestQuoteService {
       (user.latitude && user.longitude
         ? { latitude: user.latitude, longitude: user.longitude }
         : undefined);
+    if (dto.requestType === 'local' && !coordinates) {
+      throw new BadRequestException(
+        'Local quote requests require a valid postcode with known coordinates.',
+      );
+    }
     const expiresAt = this.calculateExpiry(dto.expiresAt);
 
     const request = this.quoteRequests.create({
@@ -90,7 +95,7 @@ export class UserRequestQuoteService {
       motExpiryDate: dto.motExpiryDate,
       wheelplan: dto.wheelplan,
       monthOfFirstRegistration: dto.monthOfFirstRegistration,
-      requestType: dto.requestType ?? 'local',
+      requestType: dto.requestType,
       expiresAt,
       latitude: coordinates?.latitude,
       longitude: coordinates?.longitude,

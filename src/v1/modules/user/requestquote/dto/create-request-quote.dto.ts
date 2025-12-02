@@ -122,9 +122,8 @@ export class CreateRequestQuoteDto {
   @IsString()
   monthOfFirstRegistration?: string;
 
-  @IsOptional()
   @IsEnum(['local', 'national'])
-  requestType?: 'local' | 'national';
+  requestType!: 'local' | 'national';
 
   @IsOptional()
   @IsString()
