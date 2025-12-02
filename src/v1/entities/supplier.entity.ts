@@ -57,7 +57,6 @@ export class Supplier {
   @Column()
   city!: string;
 
-  @Index()
   @Column()
   postCode!: string;
 
