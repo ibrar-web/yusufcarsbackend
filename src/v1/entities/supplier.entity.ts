@@ -36,30 +36,30 @@ export class Supplier {
   @Column()
   businessName!: string;
 
-  @Column({ nullable: true })
-  tradingAs?: string;
+  @Column()
+  tradingAs!: string;
 
-  @Column({ nullable: true })
-  businessType?: string;
+  @Column()
+  businessType!: string;
 
-  @Column({ nullable: true })
-  vatNumber?: string;
+  @Column()
+  vatNumber!: string;
 
-  @Column({ nullable: true })
-  description?: string;
+  @Column()
+  description!: string;
 
-  @Column({ nullable: true })
-  addressLine1?: string;
+  @Column()
+  addressLine1!: string;
 
   @Column({ nullable: true })
   addressLine2?: string;
 
-  @Column({ nullable: true })
-  city?: string;
+  @Column()
+  city!: string;
 
   @Index()
-  @Column({ nullable: true })
-  postCode?: string;
+  @Column()
+  postCode!: string;
 
   @Column({ nullable: true })
   country?: string;
@@ -67,24 +67,21 @@ export class Supplier {
   @Column({ nullable: true })
   state?: string;
 
-  @Column({ nullable: true })
-  phone?: string;
+  @Column()
+  phone!: string;
 
-  @Column({ nullable: true })
-  contactPostcode?: string;
+  @Column()
+  contactPostcode!: string;
 
-  @Column({ nullable: true })
-  serviceRadius?: string;
+  @Column()
+  termsAccepted!: boolean;
 
-  @Column({ default: false })
-  termsAccepted?: boolean;
-
-  @Column({ default: false })
-  gdprConsent?: boolean;
+  @Column()
+  gdprConsent!: boolean;
 
   @Index()
-  @Column({ type: 'simple-array', nullable: true })
-  categories?: string[];
+  @Column({ type: 'simple-array' })
+  categories!: string[];
 
   @Column({
     type: 'enum',

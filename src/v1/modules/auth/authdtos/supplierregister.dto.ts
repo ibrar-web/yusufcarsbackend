@@ -6,6 +6,8 @@ import {
   IsBoolean,
   IsEnum,
   IsArray,
+  IsNotEmpty,
+  ArrayNotEmpty,
 } from 'class-validator';
 import { Transform } from 'class-transformer';
 import * as userEntity from '../../../entities/user.entity';
@@ -14,76 +16,70 @@ export class SupplierRegisterDto {
   @IsEnum(['admin', 'user', 'supplier', 'garage'])
   role?: userEntity.AppRole;
 
-  @IsOptional()
   @IsString()
-  businessName?: string;
+  @IsNotEmpty()
+  businessName!: string;
 
   @IsOptional()
   @IsString()
   firstName?: string;
 
-  @IsOptional()
   @IsString()
-  tradingAs?: string;
+  @IsNotEmpty()
+  tradingAs!: string;
 
-  @IsOptional()
   @IsString()
-  businessType?: string;
+  @IsNotEmpty()
+  businessType!: string;
 
-  @IsOptional()
   @IsString()
-  vatNumber?: string;
+  @IsNotEmpty()
+  vatNumber!: string;
 
-  @IsOptional()
   @IsString()
-  description: string;
+  @IsNotEmpty()
+  description!: string;
 
-  @IsOptional()
   @IsString()
-  addressLine1?: string;
+  @IsNotEmpty()
+  addressLine1!: string;
 
   @IsOptional()
   @IsString()
   addressLine2?: string;
 
-  @IsOptional()
   @IsString()
-  phone: string;
+  @IsNotEmpty()
+  phone!: string;
 
-  @IsOptional()
   @IsString()
-  city?: string;
+  @IsNotEmpty()
+  city!: string;
 
-  @IsOptional()
   @IsString()
-  postCode?: string;
+  @IsNotEmpty()
+  postCode!: string;
 
-  @IsOptional()
   @IsString()
-  contactPostcode?: string;
+  @IsNotEmpty()
+  contactPostcode!: string;
 
-  @IsOptional()
-  @IsString()
-  serviceRadius?: string;
-
-  @IsOptional()
   @Transform(({ value }) => value === 'true' || value === true)
   @IsBoolean()
-  termsAccepted?: boolean;
+  termsAccepted!: boolean;
 
-  @IsOptional()
   @Transform(({ value }) => value === 'true' || value === true)
   @IsBoolean()
-  gdprConsent?: boolean;
+  gdprConsent!: boolean;
 
-  @IsOptional()
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   @Transform(({ value }) =>
     Array.isArray(value) ? value : value ? [value] : [],
   )
   @IsArray()
+  @ArrayNotEmpty()
   @IsString({ each: true })
-  categories?: string[];
+  categories!: string[];
 
   // USER DATA ALSO REQUIRED
   @IsString()

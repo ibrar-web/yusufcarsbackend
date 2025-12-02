@@ -62,6 +62,7 @@ export class AuthService {
     await this.users.save(user);
 
     if (user.role === 'supplier') {
+      this.ensureSupplierDocuments(docs);
       const uploadedDocs = await this.kycDocs.uploadSupplierDocs(user.id, docs);
       const businessName =
         supplierDto.businessName ||
@@ -81,7 +82,6 @@ export class AuthService {
         postCode: supplierDto.postCode || supplierDto.contactPostcode,
         phone: supplierDto.phone,
         contactPostcode: supplierDto.contactPostcode,
-        serviceRadius: supplierDto.serviceRadius,
         termsAccepted: supplierDto.termsAccepted,
         gdprConsent: supplierDto.gdprConsent,
         categories: supplierDto.categories,
@@ -113,6 +113,18 @@ export class AuthService {
         error instanceof Error ? error.stack : undefined,
       );
       return null;
+    }
+  }
+
+  private ensureSupplierDocuments(
+    docs?: Record<string, UploadedFile | undefined>,
+  ) {
+    const required = ['company_registration', 'insurance_certificate'];
+    const missing = required.filter((key) => !docs?.[key]);
+    if (missing.length) {
+      throw new BadRequestException(
+        `Missing mandatory supplier documents: ${missing.join(', ')}`,
+      );
     }
   }
 
