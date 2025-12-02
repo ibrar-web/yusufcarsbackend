@@ -23,8 +23,7 @@ export class SupplierQuotesService {
   ) {}
 
   async listForSupplier(userId: string, params: ListParams) {
-    const supplier = await this.findSupplier(userId);
-    const supplierUserId = supplier.userId;
+    const supplierUserId = userId;
 
     const page = params.page && params.page > 0 ? params.page : 1;
     const limit =
@@ -37,12 +36,9 @@ export class SupplierQuotesService {
       .where('notification.supplierId = :supplierId', {
         supplierId: supplierUserId,
       })
-      .andWhere(
-        'notification.status IN (:...statuses)',
-        {
-          statuses: [SupplierNotificationStatus.PENDING],
-        },
-      )
+      .andWhere('notification.status IN (:...statuses)', {
+        statuses: [SupplierNotificationStatus.PENDING],
+      })
       .andWhere('notification."expiresAt" > :now', { now: new Date() });
 
     if (search) {
@@ -76,11 +72,10 @@ export class SupplierQuotesService {
   }
 
   async detail(userId: string, requestId: string) {
-    const supplier = await this.findSupplier(userId);
     const notification = await this.supplierNotifications.findOne({
       where: {
-        supplier: { id: supplier.userId } as any,
-        request: { id: requestId } as any,
+        supplier: { id: userId },
+        request: { id: requestId },
       },
       relations: ['request', 'request.user', 'request.quotes'],
     });
@@ -91,16 +86,5 @@ export class SupplierQuotesService {
       ...notification.request,
       supplierNotification: notification,
     };
-  }
-
-  private async findSupplier(userId: string) {
-    const supplier = await this.suppliers.findOne({
-      where: { user: { id: userId } as any },
-      relations: ['user'],
-    });
-    if (!supplier) {
-      throw new NotFoundException('Supplier profile not found');
-    }
-    return supplier;
   }
 }
