@@ -3,7 +3,7 @@ import { In, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
 import { Response } from 'express';
-import { User } from '../../entities/user.entity';
+import { User, UserStatus } from '../../entities/user.entity';
 import { Supplier } from '../../entities/supplier.entity';
 import { SupplierDocument } from '../../entities/supplier-document.entity';
 import { SupplierDocumentType } from '../../entities/supplier-document-type.entity';
@@ -58,6 +58,10 @@ export class AuthService {
       postCode,
       latitude: coordinates?.latitude,
       longitude: coordinates?.longitude,
+      status:
+        (dto.role ?? 'user') === 'supplier'
+          ? UserStatus.INACTIVE
+          : UserStatus.ACTIVE,
     });
     await this.users.save(user);
 

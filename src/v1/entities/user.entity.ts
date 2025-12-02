@@ -20,6 +20,13 @@ export type AppRole =
   | 'mechanic'
   | 'dealer';
 
+export enum UserStatus {
+  ACTIVE = 'active',
+  INACTIVE = 'inactive',
+  SUSPENDED = 'suspended',
+  DELETED = 'deleted',
+}
+
 @Entity('users')
 export class User {
   @PrimaryGeneratedColumn('uuid')
@@ -42,8 +49,12 @@ export class User {
   })
   role!: AppRole;
 
-  @Column({ default: true })
-  isActive!: boolean;
+  @Column({
+    type: 'enum',
+    enum: UserStatus,
+    default: UserStatus.ACTIVE,
+  })
+  status!: UserStatus;
 
   @Column({ type: 'text', nullable: true })
   suspensionReason?: string | null;

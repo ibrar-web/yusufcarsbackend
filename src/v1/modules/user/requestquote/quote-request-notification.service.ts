@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { SupplierApprovalStatus } from '../../../entities/supplier.entity';
-import { User } from '../../../entities/user.entity';
+import { User, UserStatus } from '../../../entities/user.entity';
 import {
   SupplierQuoteNotification,
   SupplierNotificationStatus,
@@ -64,7 +64,7 @@ export class QuoteRequestNotificationService {
       .createQueryBuilder('user')
       .innerJoinAndSelect('user.supplier', 'supplier')
       .where('user.role = :role', { role: 'supplier' })
-      .andWhere('user.isActive = :active', { active: true })
+      .andWhere('user.status = :status', { status: UserStatus.ACTIVE })
       .andWhere('supplier.approvalStatus = :approved', {
         approved: SupplierApprovalStatus.APPROVED,
       });

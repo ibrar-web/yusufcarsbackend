@@ -16,6 +16,7 @@ import { Roles } from '../decorators/roles.decorator';
 import { CurrentUser } from '../decorators/current-user.decorator';
 import { UpdateAdminUserDto } from './dto/update-admin-user.dto';
 import { StatusReasonDto } from '../dto/status-reason.dto';
+import { UserStatus } from '../../../entities/user.entity';
 
 @Controller('admin/users')
 @UseGuards(JwtCookieGuard, RolesGuard)
@@ -28,17 +29,16 @@ export class AdminUsersController {
     @Query('page') page?: string,
     @Query('limit') limit?: string,
     @Query('query') query?: string,
-    @Query('isActive') isActive?: string,
+    @Query('status') status?: UserStatus,
     @Query('sortBy') sortBy?: string,
     @Query('sortDir') sortDir?: 'ASC' | 'DESC',
     @CurrentUser() _admin?: any,
   ) {
-    console.log('query :', query);
     return this.users.list({
       page: page ? parseInt(page, 10) : undefined,
       limit: limit ? parseInt(limit, 10) : undefined,
       query,
-      isActive: isActive === undefined ? undefined : isActive === 'true',
+      status,
       sortDir: sortDir || 'DESC',
     });
   }

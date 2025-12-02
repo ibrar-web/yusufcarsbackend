@@ -1,14 +1,14 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsWhere, ILike, Repository } from 'typeorm';
-import { User } from '../../../entities/user.entity';
+import { User, UserStatus } from '../../../entities/user.entity';
 import { UpdateAdminUserDto } from './dto/update-admin-user.dto';
 
 type ListUsersParams = {
   page?: number;
   limit?: number;
   query?: string;
-  isActive?: boolean;
+  status?: UserStatus;
   sortBy?: keyof User;
   sortDir?: 'ASC' | 'DESC';
 };
@@ -27,7 +27,7 @@ export class AdminUsersService {
 
     const base: FindOptionsWhere<User> = {
       role: 'user',
-      ...(params.isActive !== undefined && { isActive: params.isActive }),
+      ...(params.status ? { status: params.status } : {}),
     };
 
     let where: FindOptionsWhere<User>[] = [];
@@ -51,7 +51,7 @@ export class AdminUsersService {
         id: true,
         fullName: true,
         email: true,
-        isActive: true,
+        status: true,
         postCode: true,
         createdAt: true,
         role: true,
@@ -78,14 +78,14 @@ export class AdminUsersService {
 
   async enable(id: string) {
     const user = await this.findOne(id);
-    user.isActive = true;
+    user.status = UserStatus.ACTIVE;
     user.suspensionReason = null;
     return this.users.save(user);
   }
 
   async disable(id: string, reason: string) {
     const user = await this.findOne(id);
-    user.isActive = false;
+    user.status = UserStatus.SUSPENDED;
     user.suspensionReason = reason;
     return this.users.save(user);
   }

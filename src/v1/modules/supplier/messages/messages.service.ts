@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import { Message } from '../../../entities/messages.entity';
 import { SendMessageDto } from './dto/send-message.dto';
 import { Supplier } from '../../../entities/supplier.entity';
-import { AppRole, User } from '../../../entities/user.entity';
+import { AppRole, User, UserStatus } from '../../../entities/user.entity';
 import { Chats } from '../../../entities/chats.entity';
 import { ChatSocketService } from '../../sockets/chat/chat-socket.service';
 
@@ -23,6 +23,10 @@ type PublicUserProfile = {
   fullName: string;
   role: AppRole;
   createdAt: Date;
+  status: UserStatus;
+  isActive: boolean;
+  suspensionReason: string | null;
+  postCode: string | null;
 };
 
 type MessageResponse = {
@@ -83,7 +87,8 @@ export class SupplierMessagesService {
           email: chat.user.email,
           fullName: chat.user.fullName,
           role: chat.user.role,
-          isActive: chat.user.isActive,
+          status: chat.user.status,
+          isActive: chat.user.status === UserStatus.ACTIVE,
           suspensionReason: chat.user.suspensionReason ?? null,
           createdAt: chat.user.createdAt,
           postCode: chat.user.postCode ?? null,
@@ -122,16 +127,17 @@ export class SupplierMessagesService {
           createdAt: message.createdAt,
           deletedAt: message.deletedAt ?? null,
           chatId: message.chat.id,
-          sender: {
-            id: message.sender.id,
-            email: message.sender.email,
-            fullName: message.sender.fullName,
-            role: message.sender.role,
-            isActive: message.sender.isActive,
-            suspensionReason: message.sender.suspensionReason ?? null,
-            createdAt: message.sender.createdAt,
-            postCode: message.sender.postCode ?? null,
-          },
+            sender: {
+              id: message.sender.id,
+              email: message.sender.email,
+              fullName: message.sender.fullName,
+              role: message.sender.role,
+              status: message.sender.status,
+              isActive: message.sender.status === UserStatus.ACTIVE,
+              suspensionReason: message.sender.suspensionReason ?? null,
+              createdAt: message.sender.createdAt,
+              postCode: message.sender.postCode ?? null,
+            },
         };
       });
     }
@@ -195,7 +201,11 @@ export class SupplierMessagesService {
               email: message.sender.email,
               fullName: message.sender.fullName,
               role: message.sender.role,
+              status: message.sender.status,
+              isActive: message.sender.status === UserStatus.ACTIVE,
+              suspensionReason: message.sender.suspensionReason ?? null,
               createdAt: message.sender.createdAt,
+              postCode: message.sender.postCode ?? null,
             },
           });
         }
@@ -210,7 +220,8 @@ export class SupplierMessagesService {
             email: chat.user.email,
             fullName: chat.user.fullName,
             role: chat.user.role,
-            isActive: chat.user.isActive,
+            status: chat.user.status,
+            isActive: chat.user.status === UserStatus.ACTIVE,
             suspensionReason: chat.user.suspensionReason ?? null,
             createdAt: chat.user.createdAt,
             postCode: chat.user.postCode ?? null,
@@ -270,7 +281,8 @@ export class SupplierMessagesService {
           email: chat.user.email,
           fullName: chat.user.fullName,
           role: chat.user.role,
-          isActive: chat.user.isActive,
+          status: chat.user.status,
+          isActive: chat.user.status === UserStatus.ACTIVE,
           suspensionReason: chat.user.suspensionReason ?? null,
           createdAt: chat.user.createdAt,
           postCode: chat.user.postCode ?? null,
@@ -295,7 +307,11 @@ export class SupplierMessagesService {
         email: message.sender.email,
         fullName: message.sender.fullName,
         role: 'supplier',
+        status: supplierUser.status,
+        isActive: supplierUser.status === UserStatus.ACTIVE,
+        suspensionReason: supplierUser.suspensionReason ?? null,
         createdAt: message.sender.createdAt,
+        postCode: supplierUser.postCode ?? null,
       },
     };
     this.attachSocketMeta(messageResponse, {

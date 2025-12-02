@@ -13,6 +13,7 @@ import { RolesGuard } from '../guards/roles.guard';
 import { Roles } from '../decorators/roles.decorator';
 import { StatusReasonDto } from '../dto/status-reason.dto';
 import { SupplierApprovalStatus } from '../../../entities/supplier.entity';
+import { UserStatus } from '../../../entities/user.entity';
 @Controller('admin/suppliers')
 @UseGuards(JwtCookieGuard, RolesGuard)
 @Roles('admin')
@@ -24,14 +25,14 @@ export class AdminSuppliersController {
     @Query('page') page?: string,
     @Query('limit') limit?: string,
     @Query('approvalStatus') approvalStatus?: SupplierApprovalStatus,
-    @Query('isActive') isActive?: string,
+    @Query('status') status?: UserStatus,
     @Query('query') query?: string,
   ) {
     return this.suppliers.list({
       page: page ? parseInt(page, 10) : undefined,
       limit: limit ? parseInt(limit, 10) : undefined,
       approvalStatus,
-      isActive: isActive === undefined ? undefined : isActive === 'true',
+      status,
       query,
     });
   }

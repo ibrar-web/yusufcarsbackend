@@ -1,11 +1,11 @@
 import {
   IsArray,
-  IsBoolean,
   IsEnum,
   IsOptional,
   IsString,
 } from 'class-validator';
 import { SupplierApprovalStatus } from '../../../../entities/supplier.entity';
+import { UserStatus } from '../../../../entities/user.entity';
 
 export class UpdateAdminSupplierDto {
   @IsOptional()
@@ -25,8 +25,8 @@ export class UpdateAdminSupplierDto {
   approvalStatus?: SupplierApprovalStatus;
 
   @IsOptional()
-  @IsBoolean()
-  isActive?: boolean;
+  @IsEnum(UserStatus)
+  status?: UserStatus;
 
   @IsOptional()
   @IsArray()

@@ -7,6 +7,7 @@ import {
   MinLength,
 } from 'class-validator';
 import type { AppRole } from '../../../../entities/user.entity';
+import { UserStatus } from '../../../../entities/user.entity';
 
 export class UpdateAdminUserDto {
   @IsOptional()
@@ -27,6 +28,6 @@ export class UpdateAdminUserDto {
   role?: AppRole;
 
   @IsOptional()
-  @IsBoolean()
-  isActive?: boolean;
+  @IsEnum(UserStatus)
+  status?: UserStatus;
 }

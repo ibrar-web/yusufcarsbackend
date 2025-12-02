@@ -6,7 +6,7 @@ import {
   SupplierApprovalStatus,
 } from '../../../entities/supplier.entity';
 
-import { User } from 'src/v1/entities/user.entity';
+import { User, UserStatus } from 'src/v1/entities/user.entity';
 import { SupplierDocument } from '../../../entities/supplier-document.entity';
 import { KycDocsService } from '../../../common/aws/kyc-docs.service';
 
@@ -14,7 +14,7 @@ type ListSuppliersParams = {
   page?: number;
   limit?: number;
   approvalStatus?: SupplierApprovalStatus;
-  isActive?: boolean;
+  status?: UserStatus;
   query?: string;
 };
 
@@ -44,8 +44,8 @@ export class AdminSuppliersService {
       .take(limit)
       .orderBy('supplier.createdAt', 'DESC');
 
-    if (params.isActive !== undefined) {
-      qb.andWhere('user.isActive = :isActive', { isActive: params.isActive });
+    if (params.status) {
+      qb.andWhere('user.status = :status', { status: params.status });
     }
 
     if (params.approvalStatus) {
@@ -87,7 +87,7 @@ export class AdminSuppliersService {
         approvedAt: new Date(),
       },
       {
-        isActive: true,
+        status: UserStatus.ACTIVE,
         suspensionReason: null,
       },
     );
@@ -102,7 +102,7 @@ export class AdminSuppliersService {
         approvedAt: null,
       },
       {
-        isActive: false,
+        status: UserStatus.INACTIVE,
         suspensionReason: reason,
       },
     );
@@ -113,7 +113,7 @@ export class AdminSuppliersService {
       id,
       {},
       {
-        isActive: true,
+        status: UserStatus.ACTIVE,
         suspensionReason: null,
       },
     );
@@ -124,7 +124,7 @@ export class AdminSuppliersService {
       id,
       {},
       {
-        isActive: false,
+        status: UserStatus.SUSPENDED,
         suspensionReason: reason,
       },
     );
