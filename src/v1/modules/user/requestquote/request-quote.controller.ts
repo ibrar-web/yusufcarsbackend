@@ -35,6 +35,7 @@ export class UserRequestQuoteController {
 
   @Post()
   create(@CurrentUser() user: any, @Body() dto: CreateRequestQuoteDto) {
+    console.log('dto', dto);
     return this.requestQuotes.create(user.sub, dto);
   }
 }

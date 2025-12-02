@@ -75,7 +75,20 @@ export class QuoteRequestNotificationService {
       })
       .andWhere('user.isActive = :active', { active: true });
     if (isLocal) {
-      qb.andWhere('user.latitude IS NOT NULL AND user.longitude IS NOT NULL');
+      const { minLat, maxLat, minLon, maxLon } = this.createBoundingBox(
+        request.latitude!,
+        request.longitude!,
+        LOCAL_RADIUS_MILES,
+      );
+      qb.andWhere('user.latitude BETWEEN :minLat AND :maxLat', {
+        minLat,
+        maxLat,
+      })
+        .andWhere('user.longitude BETWEEN :minLon AND :maxLon', {
+          minLon,
+          maxLon,
+        })
+        .andWhere('user.latitude IS NOT NULL AND user.longitude IS NOT NULL');
     }
     const candidates = await qb.getMany();
     if (!isLocal) {
@@ -97,6 +110,20 @@ export class QuoteRequestNotificationService {
       }
     }
     return matches;
+  }
+
+  private createBoundingBox(lat: number, lon: number, radiusMiles: number) {
+    const milesPerDegreeLat = 69.0;
+    const latDelta = radiusMiles / milesPerDegreeLat;
+    const latRadians = (lat * Math.PI) / 180;
+    const milesPerDegreeLon = Math.max(Math.cos(latRadians) * milesPerDegreeLat, 0.0001);
+    const lonDelta = radiusMiles / milesPerDegreeLon;
+    return {
+      minLat: lat - latDelta,
+      maxLat: lat + latDelta,
+      minLon: lon - lonDelta,
+      maxLon: lon + lonDelta,
+    };
   }
 
   private haversineMiles(
