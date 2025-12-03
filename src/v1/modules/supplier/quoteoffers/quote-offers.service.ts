@@ -15,6 +15,7 @@ import {
   SupplierNotificationStatus,
   SupplierQuoteNotification,
 } from '../../../entities/quotes/supplier-quote-notification.entity';
+import { QuoteOfferSocketService } from '../../sockets/quote-offers/quote-offer-socket.service';
 
 @Injectable()
 export class SupplierQuoteOffersService {
@@ -25,6 +26,7 @@ export class SupplierQuoteOffersService {
     private readonly quoteRequests: Repository<QuoteRequest>,
     @InjectRepository(SupplierQuoteNotification)
     private readonly supplierNotifications: Repository<SupplierQuoteNotification>,
+    private readonly quoteSockets: QuoteOfferSocketService,
   ) {}
 
   async listAvailableRequests(userId: string) {
@@ -114,6 +116,21 @@ export class SupplierQuoteOffersService {
       notification.status = SupplierNotificationStatus.QUOTED;
       notification.quotedAt = new Date();
       await this.supplierNotifications.save(notification);
+      if (quoteRequest.user) {
+        this.quoteSockets.emitOffer({
+          type: 'received',
+          offerId: saved.id,
+          quoteRequestId: quoteRequest.id,
+          userId: quoteRequest.user.id,
+          price: saved.price,
+          supplierName:
+            notification.supplier.fullName ||
+            notification.supplier.email ||
+            'Supplier',
+          notes: saved.notes ?? undefined,
+          createdAt: saved.createdAt ?? new Date(),
+        });
+      }
       return saved;
     } catch (error) {
       console.error('Failed to create supplier quote offer', {

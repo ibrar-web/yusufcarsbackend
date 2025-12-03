@@ -21,7 +21,9 @@ export class QuoteOfferSocketService {
       this.logger.warn('Quote offer socket not initialized');
       return;
     }
+
     const dto = this.normalizePayload(payload);
+    console.log('offer dto :', dto, payload);
     this.server
       .to(QuoteOfferSocketService.roomForUser(payload.userId))
       .emit('quote:offer', dto);
