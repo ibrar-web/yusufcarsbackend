@@ -17,6 +17,7 @@ import {
   SupplierQuoteNotification,
 } from '../../../entities/quotes/supplier-quote-notification.entity';
 import { QuoteRequestSocketService } from '../../sockets/quote-requests/quote-request-socket.service';
+import { QuoteOfferSocketService } from '../../sockets/quote-offers/quote-offer-socket.service';
 
 type ListQupotesParams = {
   page?: number;
@@ -38,6 +39,7 @@ export class UserQuotesService {
     @InjectRepository(Order)
     private readonly orders: Repository<Order>,
     private readonly sockets: QuoteRequestSocketService,
+    private readonly quoteOfferSockets: QuoteOfferSocketService,
   ) {}
 
   async availableQuotes(userId: string, params: ListQupotesParams) {
@@ -172,6 +174,14 @@ export class UserQuotesService {
       where: { id: result.orderId },
       relations: ['request', 'supplier', 'acceptedQuote', 'buyer'],
     });
+    if (order?.supplier && order.acceptedQuote) {
+      this.quoteOfferSockets.emitOfferAccepted({
+        offerId: order.acceptedQuote.id,
+        userId: order.supplier.id,
+        status: order.acceptedQuote.status,
+        updatedAt: new Date(),
+      });
+    }
     if (result.requestSnapshot && result.supplierIds?.length) {
       this.sockets.emit(
         {
