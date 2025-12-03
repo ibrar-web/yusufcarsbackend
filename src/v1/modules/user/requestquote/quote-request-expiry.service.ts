@@ -1,7 +1,7 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, LessThanOrEqual, Repository } from 'typeorm';
+import { LessThanOrEqual, Repository } from 'typeorm';
 import {
   QuoteRequest,
   QuoteRequestStatus,
@@ -54,10 +54,7 @@ export class QuoteRequestExpiryService implements OnModuleInit {
   private async expireDueQuoteRequests(cutoff: Date) {
     const pending = await this.quoteRequests.find({
       where: {
-        status: In([
-          QuoteRequestStatus.PENDING,
-          QuoteRequestStatus.QUOTED,
-        ]),
+        status: QuoteRequestStatus.PENDING,
         expiresAt: LessThanOrEqual(cutoff),
       },
     });

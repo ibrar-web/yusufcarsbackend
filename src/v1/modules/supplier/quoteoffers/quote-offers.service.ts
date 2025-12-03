@@ -20,7 +20,7 @@ import {
 export class SupplierQuoteOffersService {
   constructor(
     @InjectRepository(QuoteOffer)
-    private readonly quotes: Repository<QuoteOffer>,
+    private readonly quotesOffer: Repository<QuoteOffer>,
     @InjectRepository(QuoteRequest)
     private readonly quoteRequests: Repository<QuoteRequest>,
     @InjectRepository(SupplierQuoteNotification)
@@ -28,7 +28,7 @@ export class SupplierQuoteOffersService {
   ) {}
 
   async listAvailableRequests(userId: string) {
-    return this.quotes.find({
+    return this.quotesOffer.find({
       where: { supplier: { id: userId } },
       relations: ['quoteRequest'],
       order: { createdAt: 'DESC' },
@@ -83,10 +83,10 @@ export class SupplierQuoteOffersService {
         );
       }
 
-      const existing = await this.quotes.findOne({
+      const existing = await this.quotesOffer.findOne({
         where: {
-          supplier: { id: userId } as any,
-          quoteRequest: { id: dto.quoteRequestId } as any,
+          supplier: { id: userId },
+          quoteRequest: { id: dto.quoteRequestId },
         },
       });
       if (existing) {
@@ -99,7 +99,7 @@ export class SupplierQuoteOffersService {
         ? this.parseDate(dto.expiresAt)
         : this.defaultExpiry();
 
-      const quote = this.quotes.create({
+      const quote = this.quotesOffer.create({
         quoteRequest,
         supplier: notification.supplier,
         partName: dto.partName,
@@ -110,14 +110,10 @@ export class SupplierQuoteOffersService {
         notes: dto.notes,
         expiresAt,
       });
-      const saved = await this.quotes.save(quote);
+      const saved = await this.quotesOffer.save(quote);
       notification.status = SupplierNotificationStatus.QUOTED;
       notification.quotedAt = new Date();
       await this.supplierNotifications.save(notification);
-      if (quoteRequest.status === QuoteRequestStatus.PENDING) {
-        quoteRequest.status = QuoteRequestStatus.QUOTED;
-        await this.quoteRequests.save(quoteRequest);
-      }
       return saved;
     } catch (error) {
       console.error('Failed to create supplier quote offer', {

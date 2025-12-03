@@ -14,9 +14,7 @@ import { QuoteOffer } from './quote-offers.entity';
 export enum QuoteRequestStatus {
   PENDING = 'pending',
   EXPIRED = 'expired',
-  QUOTED = 'quoted',
   ACCEPTED = 'accepted',
-  CONVERTED = 'converted',
 }
 
 @Entity('quote_requests')

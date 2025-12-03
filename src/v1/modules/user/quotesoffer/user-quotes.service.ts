@@ -45,11 +45,12 @@ export class UserQuotesService {
     const limit =
       params.limit && params.limit > 0 ? Math.min(params.limit, 100) : 20;
     const skip = (page - 1) * limit;
+    const statusFilter = params.status ?? QuoteStatus.PENDING;
 
     const [data, total] = await this.offers.findAndCount({
       where: {
         quoteRequest: { user: { id: userId } },
-        ...(params.status ? { status: params.status } : {}),
+        status: statusFilter,
       },
       order: { createdAt: 'DESC' },
       skip,
@@ -101,17 +102,14 @@ export class UserQuotesService {
         }
 
         const request = quote.quoteRequest;
-        if (
-          request.status === QuoteRequestStatus.EXPIRED ||
-          request.status === QuoteRequestStatus.CONVERTED
-        ) {
+        if (request.status === QuoteRequestStatus.ACCEPTED) {
           throw new BadRequestException(
             'Quote request is no longer accepting offers',
           );
         }
 
         quote.status = QuoteStatus.ACCEPTED;
-        request.status = QuoteRequestStatus.CONVERTED;
+        request.status = QuoteRequestStatus.ACCEPTED;
 
         const order = orderRepo.create({
           request,
