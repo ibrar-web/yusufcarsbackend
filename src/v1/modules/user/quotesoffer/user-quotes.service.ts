@@ -154,9 +154,16 @@ export class UserQuotesService {
           .execute();
 
         const savedOrder = await orderRepo.save(order);
+        const relatedNotifications = await notificationRepo.find({
+          where: { request: { id: request.id } },
+          select: ['supplierId'],
+        });
         return {
           orderId: savedOrder.id,
           requestSnapshot: request,
+          supplierIds: relatedNotifications
+            .map((notification) => notification.supplierId)
+            .filter((id): id is string => Boolean(id)),
         };
       },
     );
@@ -165,14 +172,18 @@ export class UserQuotesService {
       where: { id: result.orderId },
       relations: ['request', 'supplier', 'acceptedQuote', 'buyer'],
     });
-    if (result.requestSnapshot) {
-      this.sockets.emitUpdated({
-        requestId: result.requestSnapshot.id,
-        status: result.requestSnapshot.status,
-        postCode: result.requestSnapshot.postcode,
-        serviceCategories: result.requestSnapshot.services || [],
-        updatedAt: new Date(),
-      });
+    if (result.requestSnapshot && result.supplierIds?.length) {
+      this.sockets.emit(
+        {
+          type: 'updated',
+          requestId: result.requestSnapshot.id,
+          status: result.requestSnapshot.status,
+          postCode: result.requestSnapshot.postcode,
+          serviceCategories: result.requestSnapshot.services || [],
+          updatedAt: new Date(),
+        },
+        result.supplierIds,
+      );
     }
     return order;
   }

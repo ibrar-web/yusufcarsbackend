@@ -48,7 +48,13 @@ export class QuoteRequestNotificationService {
     const supplierIds = saved.map((notification) => notification.supplierId);
     const payload = this.buildSocketPayload(request);
     if (payload && supplierIds.length) {
-      this.sockets.emitCreatedForSuppliers(payload, supplierIds);
+      this.sockets.emit(
+        {
+          type: 'created',
+          ...payload,
+        },
+        supplierIds,
+      );
     }
   }
 

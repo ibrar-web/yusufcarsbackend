@@ -22,11 +22,12 @@ export class ChatSocketService {
       return;
     }
     console.log('recipientId:"', recipientId, payload);
-    this.server.to(ChatSocketService.roomForUser(recipientId)).emit('chat:message', payload);
+    this.server
+      .to(ChatSocketService.roomForUser(recipientId))
+      .emit('chat:message', payload);
   }
 
   static roomForUser(userId: string) {
     return `chat:user:${userId}`;
   }
-
 }

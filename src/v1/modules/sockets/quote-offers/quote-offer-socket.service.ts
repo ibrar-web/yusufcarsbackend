@@ -3,6 +3,10 @@ import { Server } from 'socket.io';
 import { QuoteOfferReceivedPayload } from './dto/quote-offer-received.payload';
 import { QuoteOfferUpdatedPayload } from './dto/quote-offer-updated.payload';
 
+type QuoteOfferSocketPayload =
+  | ({ type: 'received' } & QuoteOfferReceivedPayload)
+  | ({ type: 'updated' } & QuoteOfferUpdatedPayload);
+
 @Injectable()
 export class QuoteOfferSocketService {
   private readonly logger = new Logger(QuoteOfferSocketService.name);
@@ -12,43 +16,45 @@ export class QuoteOfferSocketService {
     this.server = server;
   }
 
-  emitOfferReceived(payload: QuoteOfferReceivedPayload) {
+  emitOffer(payload: QuoteOfferSocketPayload) {
     if (!this.server) {
       this.logger.warn('Quote offer socket not initialized');
       return;
     }
-    const dto = this.normalizeReceived(payload);
+    const dto = this.normalizePayload(payload);
     this.server
       .to(QuoteOfferSocketService.roomForUser(payload.userId))
-      .emit('quote:offer:received', dto);
+      .emit('quote:offer', dto);
   }
 
-  emitOfferUpdated(payload: QuoteOfferUpdatedPayload) {
+  emitOfferAccepted(payload: QuoteOfferUpdatedPayload) {
     if (!this.server) {
       this.logger.warn('Quote offer socket not initialized');
       return;
     }
-    const dto = this.normalizeUpdated(payload);
+    const dto = this.normalizePayload({
+      type: 'updated',
+      ...payload,
+    });
     this.server
       .to(QuoteOfferSocketService.roomForUser(payload.userId))
-      .emit('quote:offer:updated', dto);
+      .emit('quote:offer:accepted', dto);
   }
 
   static roomForUser(userId: string) {
     return `quote-offer:user:${userId}`;
   }
 
-  private normalizeReceived(payload: QuoteOfferReceivedPayload) {
-    return {
-      ...payload,
-      createdAt:
-        payload.createdAt instanceof Date
-          ? payload.createdAt.toISOString()
-          : payload.createdAt,
-    };
-  }
-
-  private normalizeUpdated(payload: QuoteOfferUpdatedPayload) {
+  private normalizePayload(payload: QuoteOfferSocketPayload) {
+    if (payload.type === 'received') {
+      return {
+        ...payload,
+        createdAt:
+          payload.createdAt instanceof Date
+            ? payload.createdAt.toISOString()
+            : payload.createdAt,
+      };
+    }
     return {
       ...payload,
       updatedAt:

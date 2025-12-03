@@ -70,13 +70,20 @@ export class QuoteRequestExpiryService implements OnModuleInit {
           pending: SupplierNotificationStatus.PENDING,
         })
         .execute();
-      this.sockets.emitUpdated({
-        requestId: request.id,
-        status: request.status,
-        postCode: request.postcode,
-        serviceCategories: request.services || [],
-        updatedAt: new Date(),
-      });
+      const supplierIds = await this.findSupplierIdsForRequest(request.id);
+      if (supplierIds.length) {
+        this.sockets.emit(
+          {
+            type: 'updated',
+            requestId: request.id,
+            status: request.status,
+            postCode: request.postcode,
+            serviceCategories: request.services || [],
+            updatedAt: new Date(),
+          },
+          supplierIds,
+        );
+      }
     }
   }
 
@@ -90,5 +97,15 @@ export class QuoteRequestExpiryService implements OnModuleInit {
       })
       .andWhere('"expiresAt" <= :cutoff', { cutoff })
       .execute();
+  }
+
+  private async findSupplierIdsForRequest(requestId: string) {
+    const notifications = await this.notifications.find({
+      where: { request: { id: requestId } },
+      select: ['supplierId'],
+    });
+    return notifications
+      .map((notification) => notification.supplierId)
+      .filter((id): id is string => Boolean(id));
   }
 }

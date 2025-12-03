@@ -19,26 +19,21 @@ export class SocketClientRegistry {
 
   handleConnection(client: Socket) {
     const userId = this.extractId(client, 'userId');
-    const supplierId = this.extractId(client, 'supplierId');
-
-    if (!userId && !supplierId) {
-      this.logger.warn('Socket connection rejected due to missing identifiers');
-      return { success: false as const, reason: 'missingIdentifiers' as const };
+    if (!userId) {
+      this.logger.warn('Socket connection rejected due to missing userId');
+      return { success: false as const, reason: 'missingUserId' as const };
     }
 
-    const rooms = new Set<string>();
-    if (userId) {
-      rooms.add(ChatSocketService.roomForUser(userId));
-      rooms.add(QuoteOfferSocketService.roomForUser(userId));
-    }
-    if (supplierId) {
-      rooms.add(QuoteRequestSocketService.roomForSupplier(supplierId));
-    }
+    const rooms = new Set<string>([
+      ChatSocketService.roomForUser(userId),
+      QuoteOfferSocketService.roomForUser(userId),
+      QuoteRequestSocketService.roomForSupplier(userId),
+    ]);
 
-    const identity = userId ?? supplierId!;
+    const identity = userId;
     this.register(client, identity, Array.from(rooms), {
       userId,
-      supplierId,
+      supplierId: userId,
     });
 
     return { success: true as const };
@@ -60,9 +55,9 @@ export class SocketClientRegistry {
       rooms: new Set<string>(),
     };
     existing.identity = identity;
-    existing.userId = metadata.userId ?? existing.userId;
-    existing.supplierId = metadata.supplierId ?? existing.supplierId;
-
+    existing.userId = metadata.userId ?? existing.userId ?? metadata.supplierId;
+    existing.supplierId =
+      metadata.supplierId ?? existing.supplierId ?? existing.userId;
     for (const room of roomList) {
       if (!room) {
         this.logger.warn('Attempted to register a client without a room name');
@@ -105,4 +100,5 @@ export class SocketClientRegistry {
     }
     return undefined;
   }
+
 }
