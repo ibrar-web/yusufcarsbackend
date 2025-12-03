@@ -13,7 +13,7 @@ import { SupplierProfileModule } from './modules/supplier/profile/profile.module
 import { UserMessagesModule } from './modules/user/messages/user-messages.module';
 import { UserOrdersModule } from './modules/user/orders/user-orders.module';
 import { UserSettingsModule } from './modules/user/settings/user-settings.module';
-import { UserQuotesModule } from './modules/user/quotes/user-quotes.module';
+import { UserQuotesModule } from './modules/user/quotesoffer/user-quotes.module';
 import { UserRequestQuoteModule } from './modules/user/requestquote/request-quote.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { SocketsModule } from './modules/sockets/sockets.module';

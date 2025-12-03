@@ -17,7 +17,7 @@ import { QuoteRequest } from '../../../entities/quotes/quote-request.entity';
 
 type QuoteRequestStatus = QuoteRequest['status'];
 
-@Controller('user/quotes')
+@Controller('user/quote/request')
 @UseGuards(AuthGuard, RolesGuard)
 @Roles('user')
 export class UserRequestQuoteController {

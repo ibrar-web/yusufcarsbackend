@@ -78,18 +78,18 @@ export class UserQuotesService {
     return { data: sanitizedData, meta: { total, page, limit } };
   }
 
-  async acceptQuote(userId: string, quoteId: string) {
+  async acceptQuoteOffer(userId: string, offerId: string) {
     const result = await this.offers.manager.transaction(
       async (entityManager) => {
-        const quoteRepo = entityManager.getRepository(QuoteOffer);
+        const quoteOfferRepo = entityManager.getRepository(QuoteOffer);
         const requestRepo = entityManager.getRepository(QuoteRequest);
         const orderRepo = entityManager.getRepository(Order);
         const notificationRepo = entityManager.getRepository(
           SupplierQuoteNotification,
         );
 
-        const quote = await quoteRepo.findOne({
-          where: { id: quoteId },
+        const quote = await quoteOfferRepo.findOne({
+          where: { id: offerId },
           relations: ['quoteRequest', 'quoteRequest.user', 'supplier'],
         });
         if (!quote) throw new NotFoundException('Quote not found');
@@ -121,10 +121,10 @@ export class UserQuotesService {
           status: OrderStatus.PENDING_DELIVERY,
         });
 
-        await quoteRepo.save(quote);
+        await quoteOfferRepo.save(quote);
         await requestRepo.save(request);
 
-        await quoteRepo
+        await quoteOfferRepo
           .createQueryBuilder()
           .update(QuoteOffer)
           .set({ status: QuoteStatus.EXPIRED })

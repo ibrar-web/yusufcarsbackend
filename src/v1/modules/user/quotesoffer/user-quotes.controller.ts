@@ -6,7 +6,7 @@ import { RolesGuard } from '../../../common/guards/roles.guard';
 import { Roles } from '../../../common/decorators/roles.decorator';
 import { CurrentUser } from '../../admin/decorators/current-user.decorator';
 
-@Controller('user/quotes')
+@Controller('user/quote/offer')
 @UseGuards(AuthGuard, RolesGuard)
 @Roles('user')
 export class UserQuotesController {
@@ -26,8 +26,8 @@ export class UserQuotesController {
     });
   }
 
-  @Post(':quoteId/accept')
-  acceptQuote(@CurrentUser() user: any, @Param('quoteId') quoteId: string) {
-    return this.notifications.acceptQuote(user.sub, quoteId);
+  @Post(':offerId/accept')
+  acceptQuote(@CurrentUser() user: any, @Param('offerId') offerId: string) {
+    return this.notifications.acceptQuoteOffer(user.sub, offerId);
   }
 }
