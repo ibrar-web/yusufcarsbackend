@@ -1,11 +1,19 @@
 import { Global, Module } from '@nestjs/common';
-import { ChatSocketModule } from './chat/chat.module';
-import { QuoteRequestSocketModule } from './quote-requests/quote-request.module';
-import { QuoteOfferSocketModule } from './quote-offers/quote-offer.module';
+import { ChatSocketService } from './chat/chat-socket.service';
+import { QuoteRequestSocketService } from './quote-requests/quote-request-socket.service';
+import { QuoteOfferSocketService } from './quote-offers/quote-offer-socket.service';
+import { SocketClientRegistry } from './socket-client-registry.service';
+import { SocketsGateway } from './sockets.gateway';
 
 @Global()
 @Module({
-  imports: [ChatSocketModule, QuoteRequestSocketModule, QuoteOfferSocketModule],
-  exports: [ChatSocketModule, QuoteRequestSocketModule, QuoteOfferSocketModule],
+  providers: [
+    SocketClientRegistry,
+    ChatSocketService,
+    QuoteRequestSocketService,
+    QuoteOfferSocketService,
+    SocketsGateway,
+  ],
+  exports: [ChatSocketService, QuoteRequestSocketService, QuoteOfferSocketService],
 })
 export class SocketsModule {}
