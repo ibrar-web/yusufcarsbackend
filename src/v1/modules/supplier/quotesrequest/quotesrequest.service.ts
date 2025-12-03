@@ -38,6 +38,7 @@ export class SupplierQuotesService {
         'request.model',
         'request.engineSize',
         'request.services',
+        'request.postcode',
       ])
       .leftJoin('request.user', 'user')
       .addSelect(['user.id', 'user.fullName'])
