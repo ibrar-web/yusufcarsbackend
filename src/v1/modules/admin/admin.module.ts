@@ -3,7 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from '../../entities/user.entity';
 import { Supplier } from '../../entities/supplier.entity';
 import { QuoteRequest } from '../../entities/quotes/quote-request.entity';
-import { Quote } from '../../entities/quote-offers.entity';
+import { QuoteOffer } from '../../entities/quote-offers.entity';
 import { JoseService } from '../auth/jose.service';
 import { JwtCookieStrategy } from './strategies/jwt-cookie.strategy';
 import { JwtCookieGuard } from './guards/jwt-cookie.guard';
@@ -16,7 +16,7 @@ import { AdminStatsModule } from './stats/stats.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User, Supplier, QuoteRequest, Quote]),
+    TypeOrmModule.forFeature([User, Supplier, QuoteRequest, QuoteOffer]),
     AdminUsersModule,
     AdminSuppliersModule,
     AdminEnquiriesModule,

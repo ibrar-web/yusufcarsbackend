@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Quote } from '../../../entities/quote-offers.entity';
+import { QuoteOffer } from '../../../entities/quote-offers.entity';
 import { QuoteRequest } from '../../../entities/quotes/quote-request.entity';
 import { SupplierAnalyticsController } from './analytics.controller';
 import { SupplierAnalyticsService } from './analytics.service';
@@ -9,7 +9,7 @@ import { RolesGuard } from '../../../common/guards/roles.guard';
 import { JoseService } from '../../auth/jose.service';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Quote, QuoteRequest])],
+  imports: [TypeOrmModule.forFeature([QuoteOffer, QuoteRequest])],
   controllers: [SupplierAnalyticsController],
   providers: [SupplierAnalyticsService, AuthGuard, RolesGuard, JoseService],
 })

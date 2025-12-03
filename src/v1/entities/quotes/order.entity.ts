@@ -11,7 +11,7 @@ import {
   Index,
 } from 'typeorm';
 import { QuoteRequest } from './quote-request.entity';
-import { Quote } from './quote-offers.entity';
+import { QuoteOffer } from './quote-offers.entity';
 import { User } from '../user.entity';
 
 export enum OrderStatus {
@@ -44,9 +44,9 @@ export class Order {
   @RelationId((o: Order) => o.supplier)
   supplierId!: string;
 
-  @OneToOne(() => Quote, { nullable: false, onDelete: 'CASCADE' })
+  @OneToOne(() => QuoteOffer, { nullable: false, onDelete: 'CASCADE' })
   @JoinColumn({ name: 'accepted_quote_id' })
-  acceptedQuote!: Quote;
+  acceptedQuote!: QuoteOffer;
 
   @RelationId((o: Order) => o.acceptedQuote)
   acceptedQuoteId!: string;

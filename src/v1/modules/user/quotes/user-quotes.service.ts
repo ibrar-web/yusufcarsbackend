@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Quote, QuoteStatus } from '../../../entities/quote-offers.entity';
+import { QuoteOffer, QuoteStatus } from '../../../entities/quote-offers.entity';
 import {
   QuoteRequest,
   QuoteRequestStatus,
@@ -21,7 +21,7 @@ import { QuoteRequestSocketService } from '../../sockets/quote-requests/quote-re
 type ListQupotesParams = {
   page?: number;
   limit?: number;
-  status?: Quote['status'];
+  status?: QuoteOffer['status'];
 };
 
 type LimitedSupplier = {
@@ -33,8 +33,8 @@ type LimitedSupplier = {
 @Injectable()
 export class UserQuotesService {
   constructor(
-    @InjectRepository(Quote)
-    private readonly offers: Repository<Quote>,
+    @InjectRepository(QuoteOffer)
+    private readonly offers: Repository<QuoteOffer>,
     @InjectRepository(Order)
     private readonly orders: Repository<Order>,
     private readonly sockets: QuoteRequestSocketService,
@@ -48,7 +48,7 @@ export class UserQuotesService {
 
     const [data, total] = await this.offers.findAndCount({
       where: {
-        quoteRequest: { user: { id: userId } as any } as any,
+        quoteRequest: { user: { id: userId } },
         ...(params.status ? { status: params.status } : {}),
       },
       order: { createdAt: 'DESC' },
@@ -64,7 +64,7 @@ export class UserQuotesService {
       }
       return {
         ...rest,
-        quoteRequest: sanitizedQuoteRequest,
+        quoteRequestId: quoteRequest?.id ?? null,
         supplier: supplier
           ? ({
               id: supplier.id,
@@ -81,7 +81,7 @@ export class UserQuotesService {
   async acceptQuote(userId: string, quoteId: string) {
     const result = await this.offers.manager.transaction(
       async (entityManager) => {
-        const quoteRepo = entityManager.getRepository(Quote);
+        const quoteRepo = entityManager.getRepository(QuoteOffer);
         const requestRepo = entityManager.getRepository(QuoteRequest);
         const orderRepo = entityManager.getRepository(Order);
         const notificationRepo = entityManager.getRepository(
@@ -126,7 +126,7 @@ export class UserQuotesService {
 
         await quoteRepo
           .createQueryBuilder()
-          .update(Quote)
+          .update(QuoteOffer)
           .set({ status: QuoteStatus.EXPIRED })
           .where('"quoteRequestId" = :requestId', { requestId: request.id })
           .andWhere('"id" != :quoteId', { quoteId: quote.id })

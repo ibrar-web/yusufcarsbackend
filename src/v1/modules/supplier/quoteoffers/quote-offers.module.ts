@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Quote } from '../../../entities/quote-offers.entity';
+import { QuoteOffer } from '../../../entities/quote-offers.entity';
 import { QuoteRequest } from '../../../entities/quotes/quote-request.entity';
 import { Supplier } from '../../../entities/supplier.entity';
 import { SupplierQuoteNotification } from '../../../entities/quotes/supplier-quote-notification.entity';
@@ -12,7 +12,12 @@ import { JoseService } from '../../auth/jose.service';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Quote, QuoteRequest, Supplier, SupplierQuoteNotification]),
+    TypeOrmModule.forFeature([
+      QuoteOffer,
+      QuoteRequest,
+      Supplier,
+      SupplierQuoteNotification,
+    ]),
   ],
   controllers: [SupplierQuoteOffersController],
   providers: [SupplierQuoteOffersService, AuthGuard, RolesGuard, JoseService],

@@ -9,7 +9,7 @@ import {
   Index,
 } from 'typeorm';
 import { User } from '../user.entity';
-import { Quote } from './quote-offers.entity';
+import { QuoteOffer } from './quote-offers.entity';
 
 export enum QuoteRequestStatus {
   PENDING = 'pending',
@@ -119,8 +119,8 @@ export class QuoteRequest {
   @Column({ type: 'timestamp', nullable: true })
   expiresAt?: Date;
 
-  @OneToMany(() => Quote, (q) => q.quoteRequest, { cascade: true })
-  quotes!: Quote[];
+  @OneToMany(() => QuoteOffer, (q) => q.quoteRequest, { cascade: true })
+  quotes!: QuoteOffer[];
 
   @CreateDateColumn()
   createdAt!: Date;

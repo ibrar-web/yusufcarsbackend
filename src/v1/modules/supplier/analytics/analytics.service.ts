@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Between, Repository } from 'typeorm';
-import { Quote } from '../../../entities/quote-offers.entity';
+import { QuoteOffer } from '../../../entities/quote-offers.entity';
 import { QuoteRequest } from '../../../entities/quotes/quote-request.entity';
 
 type Range = { from?: string; to?: string };
@@ -9,7 +9,8 @@ type Range = { from?: string; to?: string };
 @Injectable()
 export class SupplierAnalyticsService {
   constructor(
-    @InjectRepository(Quote) private readonly quotes: Repository<Quote>,
+    @InjectRepository(QuoteOffer)
+    private readonly quotes: Repository<QuoteOffer>,
     @InjectRepository(QuoteRequest)
     private readonly requests: Repository<QuoteRequest>,
   ) {}

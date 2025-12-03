@@ -4,7 +4,7 @@ import { Between, Repository } from 'typeorm';
 import { User } from '../../../entities/user.entity';
 import { Supplier } from '../../../entities/supplier.entity';
 import { QuoteRequest } from '../../../entities/quotes/quote-request.entity';
-import { Quote } from '../../../entities/quote-offers.entity';
+import { QuoteOffer } from '../../../entities/quote-offers.entity';
 
 @Injectable()
 export class AdminStatsService {
@@ -14,7 +14,8 @@ export class AdminStatsService {
     private readonly suppliers: Repository<Supplier>,
     @InjectRepository(QuoteRequest)
     private readonly enquiries: Repository<QuoteRequest>,
-    @InjectRepository(Quote) private readonly quotes: Repository<Quote>,
+    @InjectRepository(QuoteOffer)
+    private readonly quotes: Repository<QuoteOffer>,
   ) {}
 
   async dashboard() {

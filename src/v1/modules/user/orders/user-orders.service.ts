@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Quote } from '../../../entities/quote-offers.entity';
+import { QuoteOffer } from '../../../entities/quote-offers.entity';
 
 type ListOrdersParams = {
   page?: number;
@@ -12,7 +12,8 @@ type ListOrdersParams = {
 @Injectable()
 export class UserOrdersService {
   constructor(
-    @InjectRepository(Quote) private readonly quotes: Repository<Quote>,
+    @InjectRepository(QuoteOffer)
+    private readonly quotes: Repository<QuoteOffer>,
   ) {}
 
   async list(userId: string, params: ListOrdersParams) {

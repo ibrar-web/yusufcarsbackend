@@ -19,7 +19,7 @@ export enum QuoteStatus {
 @Entity('quotes_offers')
 @Index(['quoteRequest', 'supplier'])
 @Index(['status'])
-export class Quote {
+export class QuoteOffer {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 

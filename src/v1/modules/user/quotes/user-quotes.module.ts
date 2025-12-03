@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { QuoteRequest } from '../../../entities/quotes/quote-request.entity';
-import { Quote } from '../../../entities/quote-offers.entity';
+import { QuoteOffer } from '../../../entities/quote-offers.entity';
 import { Order } from '../../../entities/quotes/order.entity';
 import { SupplierQuoteNotification } from '../../../entities/quotes/supplier-quote-notification.entity';
 import { UserQuotesController } from './user-quotes.controller';
@@ -14,7 +14,7 @@ import { JoseService } from '../../auth/jose.service';
   imports: [
     TypeOrmModule.forFeature([
       QuoteRequest,
-      Quote,
+      QuoteOffer,
       Order,
       SupplierQuoteNotification,
     ]),
