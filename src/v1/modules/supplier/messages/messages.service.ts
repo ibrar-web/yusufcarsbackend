@@ -127,17 +127,17 @@ export class SupplierMessagesService {
           createdAt: message.createdAt,
           deletedAt: message.deletedAt ?? null,
           chatId: message.chat.id,
-            sender: {
-              id: message.sender.id,
-              email: message.sender.email,
-              fullName: message.sender.fullName,
-              role: message.sender.role,
-              status: message.sender.status,
-              isActive: message.sender.status === UserStatus.ACTIVE,
-              suspensionReason: message.sender.suspensionReason ?? null,
-              createdAt: message.sender.createdAt,
-              postCode: message.sender.postCode ?? null,
-            },
+          sender: {
+            id: message.sender.id,
+            email: message.sender.email,
+            fullName: message.sender.fullName,
+            role: message.sender.role,
+            status: message.sender.status,
+            isActive: message.sender.status === UserStatus.ACTIVE,
+            suspensionReason: message.sender.suspensionReason ?? null,
+            createdAt: message.sender.createdAt,
+            postCode: message.sender.postCode ?? null,
+          },
         };
       });
     }

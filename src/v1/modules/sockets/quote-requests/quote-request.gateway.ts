@@ -8,6 +8,7 @@ import {
 import { Server, Socket } from 'socket.io';
 import { Logger } from '@nestjs/common';
 import { QuoteRequestSocketService } from './quote-request-socket.service';
+import { SocketClientRegistry } from '../socket-client-registry.service';
 
 @WebSocketGateway({ cors: { origin: '*' } })
 export class QuoteRequestGateway
@@ -18,7 +19,10 @@ export class QuoteRequestGateway
   @WebSocketServer()
   server!: Server;
 
-  constructor(private readonly sockets: QuoteRequestSocketService) {}
+  constructor(
+    private readonly sockets: QuoteRequestSocketService,
+    private readonly registry: SocketClientRegistry,
+  ) {}
 
   afterInit() {
     this.sockets.attachServer(this.server);
@@ -33,11 +37,15 @@ export class QuoteRequestGateway
       client.disconnect(true);
       return;
     }
-    this.sockets.registerSupplier(client, supplierId);
+    this.registry.register(
+      client,
+      supplierId,
+      QuoteRequestSocketService.roomForSupplier(supplierId),
+    );
   }
 
   handleDisconnect(client: Socket) {
-    this.sockets.unregisterClient(client.id);
+    this.registry.unregister(client.id);
   }
 
   private extractSupplierId(client: Socket) {

@@ -8,6 +8,7 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { ChatSocketService } from './chat-socket.service';
+import { SocketClientRegistry } from '../socket-client-registry.service';
 
 @WebSocketGateway({ cors: { origin: '*' } })
 export class ChatGateway
@@ -18,7 +19,10 @@ export class ChatGateway
   @WebSocketServer()
   server!: Server;
 
-  constructor(private readonly chatService: ChatSocketService) {}
+  constructor(
+    private readonly chatService: ChatSocketService,
+    private readonly registry: SocketClientRegistry,
+  ) {}
 
   afterInit() {
     this.chatService.attachServer(this.server);
@@ -31,11 +35,11 @@ export class ChatGateway
       client.disconnect(true);
       return;
     }
-    this.chatService.registerClient(client, userId);
+    this.registry.register(client, userId, ChatSocketService.roomForUser(userId));
   }
 
   handleDisconnect(client: Socket) {
-    this.chatService.unregisterClient(client.id);
+    this.registry.unregister(client.id);
   }
 
   private extractUserId(client: Socket) {

@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { Server, Socket } from 'socket.io';
+import { Server } from 'socket.io';
 import { QuoteOfferReceivedPayload } from './dto/quote-offer-received.payload';
 import { QuoteOfferUpdatedPayload } from './dto/quote-offer-updated.payload';
 
@@ -7,19 +7,9 @@ import { QuoteOfferUpdatedPayload } from './dto/quote-offer-updated.payload';
 export class QuoteOfferSocketService {
   private readonly logger = new Logger(QuoteOfferSocketService.name);
   private server?: Server;
-  private readonly connections = new Map<string, string>();
 
   attachServer(server: Server) {
     this.server = server;
-  }
-
-  registerClient(client: Socket, userId: string) {
-    this.connections.set(client.id, userId);
-    client.join(this.roomForUser(userId));
-  }
-
-  unregisterClient(socketId: string) {
-    this.connections.delete(socketId);
   }
 
   emitOfferReceived(payload: QuoteOfferReceivedPayload) {
@@ -28,7 +18,9 @@ export class QuoteOfferSocketService {
       return;
     }
     const dto = this.normalizeReceived(payload);
-    this.server.to(this.roomForUser(payload.userId)).emit('quote:offer:received', dto);
+    this.server
+      .to(QuoteOfferSocketService.roomForUser(payload.userId))
+      .emit('quote:offer:received', dto);
   }
 
   emitOfferUpdated(payload: QuoteOfferUpdatedPayload) {
@@ -37,10 +29,12 @@ export class QuoteOfferSocketService {
       return;
     }
     const dto = this.normalizeUpdated(payload);
-    this.server.to(this.roomForUser(payload.userId)).emit('quote:offer:updated', dto);
+    this.server
+      .to(QuoteOfferSocketService.roomForUser(payload.userId))
+      .emit('quote:offer:updated', dto);
   }
 
-  private roomForUser(userId: string) {
+  static roomForUser(userId: string) {
     return `quote-offer:user:${userId}`;
   }
 

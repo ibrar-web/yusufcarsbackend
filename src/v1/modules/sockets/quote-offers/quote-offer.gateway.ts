@@ -8,6 +8,7 @@ import {
 import { Logger } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
 import { QuoteOfferSocketService } from './quote-offer-socket.service';
+import { SocketClientRegistry } from '../socket-client-registry.service';
 
 @WebSocketGateway({ cors: { origin: '*' } })
 export class QuoteOfferGateway
@@ -18,7 +19,10 @@ export class QuoteOfferGateway
   @WebSocketServer()
   server!: Server;
 
-  constructor(private readonly sockets: QuoteOfferSocketService) {}
+  constructor(
+    private readonly sockets: QuoteOfferSocketService,
+    private readonly registry: SocketClientRegistry,
+  ) {}
 
   afterInit() {
     this.sockets.attachServer(this.server);
@@ -31,11 +35,11 @@ export class QuoteOfferGateway
       client.disconnect(true);
       return;
     }
-    this.sockets.registerClient(client, userId);
+    this.registry.register(client, userId, QuoteOfferSocketService.roomForUser(userId));
   }
 
   handleDisconnect(client: Socket) {
-    this.sockets.unregisterClient(client.id);
+    this.registry.unregister(client.id);
   }
 
   private extractUserId(client: Socket) {
