@@ -28,8 +28,8 @@ export class SupplierOrdersService {
 
     const [records, total] = await this.orders.findAndCount({
       where: { supplier: { id: userId } },
-      // relations: ['buyer', 'request', 'acceptedQuote'],
-      // order: { createdAt: params.sortDir || 'DESC' },
+      relations: ['buyer'],
+      order: { createdAt: params.sortDir || 'DESC' },
       skip,
       take: limit,
     });
@@ -46,16 +46,15 @@ export class SupplierOrdersService {
       where: { id: orderId },
       relations: ['buyer', 'supplier', 'request', 'acceptedQuote'],
     });
+    console.log('order', order);
     if (!order || order.supplier.id !== userId) {
       throw new NotFoundException('Order not found');
     }
-    const review = await this.reviews.findOne({
-      where: { order: { id: order.id } } as any,
-    });
-    return buildOrderResponse(order, review, {
-      includeBuyer: true,
-      includeQuote: true,
-    });
+
+    // const review = await this.reviews.findOne({
+    //   where: { order: { id: order.id } },
+    // });
+    return { data: { order } };
   }
 
   private async loadReviews(orders: Order[]) {
