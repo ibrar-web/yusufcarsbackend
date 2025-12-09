@@ -10,6 +10,7 @@ import { SupplierQuoteOffersModule } from './modules/supplier/quoteoffers/quote-
 import { SupplierAnalyticsModule } from './modules/supplier/analytics/analytics.module';
 import { SupplierMessagesModule } from './modules/supplier/messages/messages.module';
 import { SupplierProfileModule } from './modules/supplier/profile/profile.module';
+import { SupplierOrdersModule } from './modules/supplier/orders/orders.module';
 import { UserMessagesModule } from './modules/user/messages/user-messages.module';
 import { UserOrdersModule } from './modules/user/orders/user-orders.module';
 import { UserSettingsModule } from './modules/user/settings/user-settings.module';
@@ -31,6 +32,7 @@ import { SocketsModule } from './modules/sockets/sockets.module';
     SupplierAnalyticsModule,
     SupplierMessagesModule,
     SupplierProfileModule,
+    SupplierOrdersModule,
     UserMessagesModule,
     UserOrdersModule,
     UserSettingsModule,
