@@ -13,6 +13,7 @@ import { Order } from './quotes/order.entity';
 
 @Entity('reviews_ratings')
 @Index(['rating'])
+@Index(['order', 'user'], { unique: true })
 export class ReviewRating {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
@@ -20,13 +21,13 @@ export class ReviewRating {
   @ManyToOne(() => User, { nullable: false, onDelete: 'CASCADE' })
   user!: User;
 
-  @RelationId((review: ReviewRating) => review.reviewer)
+  @RelationId((review: ReviewRating) => review.user)
   userId!: string;
 
   @ManyToOne(() => User, { nullable: false, onDelete: 'CASCADE' })
   supplier!: User;
 
-  @RelationId((review: ReviewRating) => review.reviewer)
+  @RelationId((review: ReviewRating) => review.supplier)
   supplierId!: string;
 
   @ManyToOne(() => Order, { nullable: true, onDelete: 'SET NULL' })

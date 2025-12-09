@@ -1,24 +1,15 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Param,
-  Post,
-  Query,
-  UseGuards,
-} from '@nestjs/common';
-import { UserOrdersService } from './user-orders.service';
+import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
+import { SupplierOrdersService } from './orders.service';
 import { AuthGuard } from '../../../common/guards/auth.guard';
 import { RolesGuard } from '../../../common/guards/roles.guard';
 import { Roles } from '../../../common/decorators/roles.decorator';
 import { CurrentUser } from '../../admin/decorators/current-user.decorator';
-import { CompleteOrderDto } from './dto/complete-order.dto';
 
-@Controller('user/orders')
+@Controller('supplier/orders')
 @UseGuards(AuthGuard, RolesGuard)
-@Roles('user')
-export class UserOrdersController {
-  constructor(private readonly orders: UserOrdersService) {}
+@Roles('supplier')
+export class SupplierOrdersController {
+  constructor(private readonly orders: SupplierOrdersService) {}
 
   @Get()
   list(
@@ -36,14 +27,5 @@ export class UserOrdersController {
   @Get(':id')
   detail(@CurrentUser() user: any, @Param('id') id: string) {
     return this.orders.detail(user.sub, id);
-  }
-
-  @Post(':id/complete')
-  complete(
-    @CurrentUser() user: any,
-    @Param('id') id: string,
-    @Body() dto: CompleteOrderDto,
-  ) {
-    return this.orders.complete(user.sub, id, dto);
   }
 }
