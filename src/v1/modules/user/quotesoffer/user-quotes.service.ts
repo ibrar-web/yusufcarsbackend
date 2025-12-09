@@ -119,7 +119,7 @@ export class UserQuotesService {
           supplier: quote.supplier,
           acceptedQuote: quote,
           buyer: request.user,
-          status: OrderStatus.PENDING_DELIVERY,
+          status: OrderStatus.IN_TRANSIT,
         });
 
         await quoteOfferRepo.save(quote);
