@@ -5,10 +5,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
-import {
-  Order,
-  OrderStatus,
-} from '../../../entities/quotes/order.entity';
+import { Order, OrderStatus } from '../../../entities/quotes/order.entity';
 import { ReviewRating } from '../../../entities/reviews_rating.entity';
 import { buildOrderResponse } from '../../../common/utils/order-response.util';
 import { CompleteOrderDto } from './dto/complete-order.dto';
@@ -36,21 +33,14 @@ export class UserOrdersService {
 
     const [records, total] = await this.orders.findAndCount({
       where: { buyer: { id: userId } as any },
-      relations: ['supplier', 'request', 'acceptedQuote'],
+      relations: ['supplier', 'acceptedQuote'],
       order: { createdAt: params.sortDir || 'DESC' },
       skip,
       take: limit,
     });
 
-    const reviewMap = await this.loadReviews(records);
-
     return {
-      data: records.map((order) =>
-        buildOrderResponse(order, reviewMap.get(order.id), {
-          includeSupplier: true,
-          includeQuote: true,
-        }),
-      ),
+      data: records,
       meta: { total, page, limit },
     };
   }
@@ -63,13 +53,7 @@ export class UserOrdersService {
     if (!order || order.buyer.id !== userId) {
       throw new NotFoundException('Order not found');
     }
-    const review = await this.reviews.findOne({
-      where: { order: { id: order.id }, user: { id: userId } } as any,
-    });
-    return buildOrderResponse(order, review, {
-      includeSupplier: true,
-      includeQuote: true,
-    });
+    return { data: { order } };
   }
 
   async complete(userId: string, orderId: string, dto: CompleteOrderDto) {
