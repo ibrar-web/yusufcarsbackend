@@ -43,6 +43,7 @@ export type OrderResponse = {
   buyer?: PublicProfile | null;
   acceptedQuote?: OrderQuoteSummary | null;
   review?: OrderReviewSummary | null;
+  reviewSubmitted: boolean;
 };
 
 export type OrderResponseOptions = {
@@ -71,6 +72,7 @@ export function buildOrderResponse(
           services: order.request.services || [],
         }
       : null,
+    reviewSubmitted: false,
   };
 
   if (options.includeSupplier && order.supplier) {
@@ -88,6 +90,10 @@ export function buildOrderResponse(
       brand: order.acceptedQuote.brand,
     };
   }
+  response.reviewSubmitted =
+    typeof order.reviewSubmitted === 'boolean'
+      ? order.reviewSubmitted
+      : Boolean(review);
   if (review) {
     response.review = {
       id: review.id,

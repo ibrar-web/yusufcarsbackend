@@ -13,6 +13,7 @@ import { RolesGuard } from '../../../common/guards/roles.guard';
 import { Roles } from '../../../common/decorators/roles.decorator';
 import { CurrentUser } from '../../admin/decorators/current-user.decorator';
 import { CompleteOrderDto } from './dto/complete-order.dto';
+import { CancelOrderDto } from './dto/cancel-order.dto';
 
 @Controller('user/orders')
 @UseGuards(AuthGuard, RolesGuard)
@@ -45,5 +46,14 @@ export class UserOrdersController {
     @Body() dto: CompleteOrderDto,
   ) {
     return this.orders.complete(user.sub, id, dto);
+  }
+
+  @Post(':id/cancel')
+  cancel(
+    @CurrentUser() user: any,
+    @Param('id') id: string,
+    @Body() dto: CancelOrderDto,
+  ) {
+    return this.orders.cancel(user.sub, id, dto);
   }
 }

@@ -9,11 +9,12 @@ import {
 } from 'class-validator';
 
 export class CompleteOrderDto {
+  @IsOptional()
   @Type(() => Number)
   @IsInt()
   @Min(1)
   @Max(5)
-  rating!: number;
+  rating?: number;
 
   @IsOptional()
   @IsString()

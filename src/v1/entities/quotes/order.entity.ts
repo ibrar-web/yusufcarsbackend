@@ -73,6 +73,9 @@ export class Order {
   @Column({ type: 'text', nullable: true })
   cancellationReason?: string | null;
 
+  @Column({ type: 'boolean', default: false })
+  reviewSubmitted!: boolean;
+
   @CreateDateColumn()
   createdAt!: Date;
 

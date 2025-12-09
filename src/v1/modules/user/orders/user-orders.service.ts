@@ -9,6 +9,7 @@ import { Order, OrderStatus } from '../../../entities/quotes/order.entity';
 import { ReviewRating } from '../../../entities/reviews_rating.entity';
 import { buildOrderResponse } from '../../../common/utils/order-response.util';
 import { CompleteOrderDto } from './dto/complete-order.dto';
+import { CancelOrderDto } from './dto/cancel-order.dto';
 
 type ListOrdersParams = {
   page?: number;
@@ -57,41 +58,78 @@ export class UserOrdersService {
   }
 
   async complete(userId: string, orderId: string, dto: CompleteOrderDto) {
+    try {
+      const order = await this.orders.findOne({
+        where: { id: orderId },
+        relations: ['supplier', 'buyer', 'request', 'acceptedQuote'],
+      });
+      if (!order || order.buyer.id !== userId) {
+        throw new NotFoundException('Order not found');
+      }
+      if (order.status === OrderStatus.CANCELLED) {
+        throw new BadRequestException('Cannot complete a cancelled order');
+      }
+      if (order.status !== OrderStatus.COMPLETED) {
+        order.status = OrderStatus.COMPLETED;
+        await this.orders.save(order);
+      }
+
+      let review = await this.reviews.findOne({
+        where: { order: { id: order.id }, user: { id: userId } } as any,
+      });
+      if (review) {
+        if (dto.rating !== undefined) {
+          review.rating = dto.rating;
+        }
+        if (dto.comment !== undefined) {
+          review.comment = dto.comment;
+        }
+      } else {
+        if (dto.rating === undefined) {
+          throw new BadRequestException(
+            'Rating is required when submitting a review for the first time',
+          );
+        }
+        review = this.reviews.create({
+          user: order.buyer,
+          supplier: order.supplier,
+          order,
+          rating: dto.rating,
+          comment: dto.comment,
+        });
+      }
+      review = await this.reviews.save(review);
+      order.reviewSubmitted = true;
+      await this.orders.save(order);
+
+      return buildOrderResponse(order, review, {
+        includeSupplier: true,
+        includeQuote: true,
+      });
+    } catch (error) {
+      console.log('error', error);
+    }
+  }
+
+  async cancel(userId: string, orderId: string, dto: CancelOrderDto) {
     const order = await this.orders.findOne({
       where: { id: orderId },
-      relations: ['supplier', 'buyer', 'request', 'acceptedQuote'],
+      relations: ['buyer', 'supplier', 'request', 'acceptedQuote'],
     });
     if (!order || order.buyer.id !== userId) {
       throw new NotFoundException('Order not found');
     }
     if (order.status === OrderStatus.CANCELLED) {
-      throw new BadRequestException('Cannot complete a cancelled order');
+      throw new BadRequestException('Order already cancelled');
     }
     if (order.status === OrderStatus.COMPLETED) {
-      throw new BadRequestException('Order already completed');
+      throw new BadRequestException('Completed orders cannot be cancelled');
     }
-
-    order.status = OrderStatus.COMPLETED;
+    order.status = OrderStatus.CANCELLED;
+    order.cancellationReason = dto.reason ?? 'Cancelled by user';
     await this.orders.save(order);
 
-    let review = await this.reviews.findOne({
-      where: { order: { id: order.id }, user: { id: userId } } as any,
-    });
-    if (review) {
-      review.rating = dto.rating;
-      review.comment = dto.comment;
-    } else {
-      review = this.reviews.create({
-        user: order.buyer,
-        supplier: order.supplier,
-        order,
-        rating: dto.rating,
-        comment: dto.comment,
-      });
-    }
-    review = await this.reviews.save(review);
-
-    return buildOrderResponse(order, review, {
+    return buildOrderResponse(order, null, {
       includeSupplier: true,
       includeQuote: true,
     });
