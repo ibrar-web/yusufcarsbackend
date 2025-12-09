@@ -31,7 +31,7 @@ export class SupplierOrdersService {
       .createQueryBuilder('ord')
       .leftJoinAndSelect('ord.buyer', 'buyer')
       .leftJoinAndSelect('ord.request', 'request')
-      .leftJoinAndSelect('ord.acceptedQuote', 'acceptedQuote')
+      .leftJoinAndSelect('ord.acceptedQuote', 'accepted_quote')
       .where('ord."supplierId" = :userId', { userId });
 
     if (params.search?.trim()) {
@@ -40,8 +40,8 @@ export class SupplierOrdersService {
         `(
           buyer."fullName" ILIKE :term
           OR request."registrationNumber" ILIKE :term
-          OR acceptedQuote."partName" ILIKE :term
-          OR acceptedQuote."brand" ILIKE :term
+          OR accepted_quote."partName" ILIKE :term
+          OR accepted_quote."brand" ILIKE :term
         )`,
         { term },
       );

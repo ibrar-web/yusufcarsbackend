@@ -36,7 +36,7 @@ export class UserOrdersService {
     const qb = this.orders
       .createQueryBuilder('ord')
       .leftJoinAndSelect('ord.supplier', 'supplier')
-      .leftJoinAndSelect('ord.acceptedQuote', 'acceptedQuote')
+      .leftJoinAndSelect('ord.acceptedQuote', 'accepted_quote')
       .leftJoinAndSelect('ord.request', 'request')
       .where('ord."buyerId" = :userId', { userId });
 
@@ -46,8 +46,8 @@ export class UserOrdersService {
         `(
           request."registrationNumber" ILIKE :term
           OR supplier."fullName" ILIKE :term
-          OR acceptedQuote."partName" ILIKE :term
-          OR acceptedQuote."brand" ILIKE :term
+          OR accepted_quote."partName" ILIKE :term
+          OR accepted_quote."brand" ILIKE :term
         )`,
         { term },
       );
