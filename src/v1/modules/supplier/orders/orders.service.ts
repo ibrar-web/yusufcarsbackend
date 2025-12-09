@@ -9,6 +9,7 @@ type ListOrdersParams = {
   page?: number;
   limit?: number;
   sortDir?: 'ASC' | 'DESC';
+  search?: string;
 };
 
 @Injectable()
@@ -26,17 +27,36 @@ export class SupplierOrdersService {
       params.limit && params.limit > 0 ? Math.min(params.limit, 100) : 20;
     const skip = (page - 1) * limit;
 
-    const [records, total] = await this.orders.findAndCount({
-      where: { supplier: { id: userId } },
-      relations: ['buyer'],
-      order: { createdAt: params.sortDir || 'DESC' },
-      skip,
-      take: limit,
-    });
-    console.log(records, total);
+    const qb = this.orders
+      .createQueryBuilder('ord')
+      .leftJoinAndSelect('ord.buyer', 'buyer')
+      .leftJoinAndSelect('ord.request', 'request')
+      .leftJoinAndSelect('ord.acceptedQuote', 'acceptedQuote')
+      .where('ord."supplierId" = :userId', { userId });
+
+    if (params.search?.trim()) {
+      const term = `%${params.search.trim()}%`;
+      qb.andWhere(
+        '(buyer."fullName" ILIKE :term OR request."registrationNumber" ILIKE :term)',
+        { term },
+      );
+    }
+
+    const [records, total] = await qb
+      .orderBy('ord.createdAt', params.sortDir || 'DESC')
+      .skip(skip)
+      .take(limit)
+      .getManyAndCount();
+
+    const reviewMap = await this.loadReviews(records);
 
     return {
-      data: records,
+      data: records.map((order) =>
+        buildOrderResponse(order, reviewMap.get(order.id), {
+          includeBuyer: true,
+          includeQuote: true,
+        }),
+      ),
       meta: { total, page, limit },
     };
   }
