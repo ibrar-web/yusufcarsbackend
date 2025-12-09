@@ -9,6 +9,7 @@ type ListOrdersParams = {
   page?: number;
   limit?: number;
   sortDir?: 'ASC' | 'DESC';
+  search?: string;
 };
 
 @Injectable()
@@ -26,14 +27,26 @@ export class SupplierOrdersService {
       params.limit && params.limit > 0 ? Math.min(params.limit, 100) : 20;
     const skip = (page - 1) * limit;
 
-    const [records, total] = await this.orders.findAndCount({
-      where: { supplier: { id: userId } },
-      relations: ['buyer'],
-      order: { createdAt: params.sortDir || 'DESC' },
-      skip,
-      take: limit,
-    });
-    console.log(records, total);
+    const qb = this.orders
+      .createQueryBuilder('order')
+      .leftJoinAndSelect('order.buyer', 'buyer')
+      .leftJoinAndSelect('order.request', 'request')
+      .leftJoinAndSelect('order.acceptedQuote', 'acceptedQuote')
+      .where('order."supplierId" = :userId', { userId });
+
+    if (params.search?.trim()) {
+      const term = `%${params.search.trim()}%`;
+      qb.andWhere(
+        '(buyer."fullName" ILIKE :term OR request."registrationNumber" ILIKE :term)',
+        { term },
+      );
+    }
+
+    const [records, total] = await qb
+      .orderBy('order."createdAt"', params.sortDir || 'DESC')
+      .skip(skip)
+      .take(limit)
+      .getManyAndCount();
 
     return {
       data: records,

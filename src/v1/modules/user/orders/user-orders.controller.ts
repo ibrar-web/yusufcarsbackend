@@ -26,11 +26,13 @@ export class UserOrdersController {
     @CurrentUser() user: any,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
+    @Query('search') search?: string,
   ) {
     return this.orders.list(user.sub, {
       page: page ? parseInt(page, 10) : undefined,
       limit: limit ? parseInt(limit, 10) : undefined,
       sortDir: 'DESC',
+      search,
     });
   }
 
