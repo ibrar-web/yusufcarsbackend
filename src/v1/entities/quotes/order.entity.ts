@@ -15,9 +15,7 @@ import { QuoteOffer } from './quote-offers.entity';
 import { User } from '../user.entity';
 
 export enum OrderStatus {
-  PENDING_DELIVERY = 'pending_delivery',
   IN_TRANSIT = 'in_transit',
-  DELIVERED = 'delivered',
   COMPLETED = 'completed',
   CANCELLED = 'cancelled',
 }
@@ -60,7 +58,7 @@ export class Order {
   @Column({
     type: 'enum',
     enum: OrderStatus,
-    default: OrderStatus.PENDING_DELIVERY,
+    default: OrderStatus.IN_TRANSIT,
   })
   status!: OrderStatus;
 
