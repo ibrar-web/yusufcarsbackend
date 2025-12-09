@@ -54,7 +54,15 @@ export class UserOrdersService {
     if (!order || order.buyer.id !== userId) {
       throw new NotFoundException('Order not found');
     }
-    return { data: { order } };
+    const review = await this.reviews.findOne({
+      where: { order: { id: order.id }, user: { id: userId } } as any,
+    });
+    return {
+      data: buildOrderResponse(order, review, {
+        includeSupplier: true,
+        includeQuote: true,
+      }),
+    };
   }
 
   async complete(userId: string, orderId: string, dto: CompleteOrderDto) {
