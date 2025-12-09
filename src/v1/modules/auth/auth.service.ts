@@ -109,14 +109,20 @@ export class AuthService {
   }
 
   private async lookupCoordinates(postCode: string) {
+    const invalidMessage = 'Invalid postcode provided';
     try {
-      return await this.geocoding.lookupPostcode(postCode);
+      const coordinates = await this.geocoding.lookupPostcode(postCode);
+      if (!coordinates) {
+        throw new BadRequestException(invalidMessage);
+      }
+      return coordinates;
     } catch (error) {
+      if (error instanceof BadRequestException) throw error;
       this.logger.error(
         `Failed to lookup coordinates for ${postCode}`,
         error instanceof Error ? error.stack : undefined,
       );
-      return null;
+      throw new BadRequestException(invalidMessage);
     }
   }
 
