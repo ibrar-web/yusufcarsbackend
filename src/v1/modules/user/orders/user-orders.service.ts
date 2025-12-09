@@ -34,11 +34,11 @@ export class UserOrdersService {
     const skip = (page - 1) * limit;
 
     const qb = this.orders
-      .createQueryBuilder('order')
-      .leftJoinAndSelect('order.supplier', 'supplier')
-      .leftJoinAndSelect('order.acceptedQuote', 'acceptedQuote')
-      .leftJoinAndSelect('order.request', 'request')
-      .where('order."buyerId" = :userId', { userId });
+      .createQueryBuilder('ord')
+      .leftJoinAndSelect('ord.supplier', 'supplier')
+      .leftJoinAndSelect('ord.acceptedQuote', 'acceptedQuote')
+      .leftJoinAndSelect('ord.request', 'request')
+      .where('ord."buyerId" = :userId', { userId });
 
     if (params.search?.trim()) {
       const term = `%${params.search.trim()}%`;
@@ -49,13 +49,20 @@ export class UserOrdersService {
     }
 
     const [records, total] = await qb
-      .orderBy('order."createdAt"', params.sortDir || 'DESC')
+      .orderBy('ord.createdAt', params.sortDir || 'DESC')
       .skip(skip)
       .take(limit)
       .getManyAndCount();
 
+    const reviewMap = await this.loadReviews(records);
+
     return {
-      data: records,
+      data: records.map((order) =>
+        buildOrderResponse(order, reviewMap.get(order.id), {
+          includeSupplier: true,
+          includeQuote: true,
+        }),
+      ),
       meta: { total, page, limit },
     };
   }
