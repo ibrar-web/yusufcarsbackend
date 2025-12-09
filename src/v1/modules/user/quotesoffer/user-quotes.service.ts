@@ -2,6 +2,7 @@ import {
   BadRequestException,
   ForbiddenException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -33,6 +34,7 @@ type LimitedSupplier = {
 
 @Injectable()
 export class UserQuotesService {
+  private readonly logger = new Logger(UserQuotesService.name);
   constructor(
     @InjectRepository(QuoteOffer)
     private readonly offers: Repository<QuoteOffer>,
@@ -102,7 +104,6 @@ export class UserQuotesService {
         if (quote.status !== QuoteStatus.PENDING) {
           throw new BadRequestException('Quote is no longer available');
         }
-
         const request = quote.quoteRequest;
         if (request.status === QuoteRequestStatus.ACCEPTED) {
           throw new BadRequestException(
@@ -112,7 +113,7 @@ export class UserQuotesService {
 
         quote.status = QuoteStatus.ACCEPTED;
         request.status = QuoteRequestStatus.ACCEPTED;
-
+        console.log('quote offer', quote);
         const order = orderRepo.create({
           request,
           supplier: quote.supplier,
@@ -142,29 +143,19 @@ export class UserQuotesService {
           })
           .execute();
 
-        await notificationRepo
-          .createQueryBuilder()
-          .update(SupplierQuoteNotification)
-          .set({
-            status: SupplierNotificationStatus.ACCEPTED,
-            quotedAt: () => 'COALESCE("quotedAt", NOW())',
-          })
-          .where('"requestId" = :requestId', { requestId: request.id })
-          .andWhere('"supplierId" = :supplierId', {
-            supplierId: quote.supplier.id,
-          })
-          .execute();
-
         const savedOrder = await orderRepo.save(order);
         const relatedNotifications = await notificationRepo.find({
           where: { request: { id: request.id } },
-          select: ['supplierId'],
+          relations: ['supplier'],
         });
         return {
           orderId: savedOrder.id,
           requestSnapshot: request,
           supplierIds: relatedNotifications
-            .map((notification) => notification.supplierId)
+            .map(
+              (notification) =>
+                notification.supplierId ?? notification.supplier?.id,
+            )
             .filter((id): id is string => Boolean(id)),
         };
       },

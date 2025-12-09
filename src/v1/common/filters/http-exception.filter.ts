@@ -1,9 +1,11 @@
 import type { ArgumentsHost, ExceptionFilter } from '@nestjs/common';
-import { Catch, HttpException, HttpStatus } from '@nestjs/common';
+import { Catch, HttpException, HttpStatus, Logger } from '@nestjs/common';
 import type { AbstractHttpAdapter } from '@nestjs/core';
 
 @Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
+  private readonly logger = new Logger(HttpExceptionFilter.name);
+
   constructor(private readonly httpAdapter: AbstractHttpAdapter) {}
 
   catch(exception: unknown, host: ArgumentsHost) {
@@ -24,6 +26,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
     };
 
     if (errors) body.errors = errors;
+    this.logError(request, status, message, exception);
     this.httpAdapter.reply(ctx.getResponse(), body, status);
   }
 
@@ -44,5 +47,26 @@ export class HttpExceptionFilter implements ExceptionFilter {
     }
 
     return { message: 'Internal server error' };
+  }
+
+  private logError(
+    request: Request,
+    status: number,
+    message: string,
+    exception: unknown,
+  ) {
+    const context = `${(request as any)?.method || 'UNKNOWN'} ${
+      (request as any)?.url || ''
+    } [${status}]`;
+    const payload = JSON.stringify({
+      status,
+      message,
+      method: (request as any)?.method,
+      url: (request as any)?.url,
+    });
+    this.logger.error(
+      `${context} - ${payload}`,
+      exception instanceof Error ? exception.stack : undefined,
+    );
   }
 }
