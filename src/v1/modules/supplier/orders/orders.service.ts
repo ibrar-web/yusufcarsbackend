@@ -37,7 +37,12 @@ export class SupplierOrdersService {
     if (params.search?.trim()) {
       const term = `%${params.search.trim()}%`;
       qb.andWhere(
-        '(buyer."fullName" ILIKE :term OR request."registrationNumber" ILIKE :term)',
+        `(
+          buyer."fullName" ILIKE :term
+          OR request."registrationNumber" ILIKE :term
+          OR acceptedQuote."partName" ILIKE :term
+          OR acceptedQuote."brand" ILIKE :term
+        )`,
         { term },
       );
     }
