@@ -5,6 +5,7 @@ import { RolesGuard } from '../../../common/guards/roles.guard';
 import { Roles } from '../../../common/decorators/roles.decorator';
 import { CurrentUser } from '../../admin/decorators/current-user.decorator';
 import { UpdateUserSettingsDto } from './dto/update-user-settings.dto';
+import { UpdateUserPasswordDto } from './dto/update-user-password.dto';
 
 @Controller('user/settings')
 @UseGuards(AuthGuard, RolesGuard)
@@ -20,5 +21,13 @@ export class UserSettingsController {
   @Put()
   update(@CurrentUser() user: any, @Body() dto: UpdateUserSettingsDto) {
     return this.settings.update(user.sub, dto);
+  }
+
+  @Put('password')
+  updatePassword(
+    @CurrentUser() user: any,
+    @Body() dto: UpdateUserPasswordDto,
+  ) {
+    return this.settings.updatePassword(user.sub, dto);
   }
 }

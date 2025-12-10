@@ -1,9 +1,16 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../../../entities/user.entity';
 import { UpdateUserSettingsDto } from './dto/update-user-settings.dto';
 import { GoogleGeocodingService } from '../../../common/geocoding/google-geocoding.service';
+import { UpdateUserPasswordDto } from './dto/update-user-password.dto';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UserSettingsService {
@@ -33,6 +40,18 @@ export class UserSettingsService {
       }
     }
     return this.users.save(user);
+  }
+
+  async updatePassword(userId: string, dto: UpdateUserPasswordDto) {
+    const user = await this.users.findOne({ where: { id: userId } });
+    if (!user) throw new NotFoundException('User not found');
+    const matches = await bcrypt.compare(dto.currentPassword, user.password);
+    if (!matches) {
+      throw new BadRequestException('Current password is incorrect');
+    }
+    user.password = dto.newPassword;
+    const saved = await this.users.save(user);
+    return saved.toPublic();
   }
 
   private async lookupCoordinates(postCode: string) {

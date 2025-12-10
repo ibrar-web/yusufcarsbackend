@@ -3,7 +3,10 @@ import { SupplierProfileService } from './profile.service';
 import { AuthGuard } from '../../../common/guards/auth.guard';
 import { RolesGuard } from '../../../common/guards/roles.guard';
 import { Roles } from '../../../common/decorators/roles.decorator';
-import { UpdateSupplierProfileDto } from './profile.dto';
+import {
+  UpdateSupplierPasswordDto,
+  UpdateSupplierProfileDto,
+} from './profile.dto';
 import { CurrentUser } from '../../admin/decorators/current-user.decorator';
 
 @Controller('supplier/profile')
@@ -20,5 +23,13 @@ export class SupplierProfileController {
   @Put()
   update(@CurrentUser() user: any, @Body() dto: UpdateSupplierProfileDto) {
     return this.profile.updateProfile(user.sub, dto);
+  }
+
+  @Put('password')
+  updatePassword(
+    @CurrentUser() user: any,
+    @Body() dto: UpdateSupplierPasswordDto,
+  ) {
+    return this.profile.updatePassword(user.sub, dto);
   }
 }

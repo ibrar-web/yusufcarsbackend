@@ -1,4 +1,10 @@
-import { IsArray, IsBoolean, IsOptional, IsString } from 'class-validator';
+import {
+  IsArray,
+  IsBoolean,
+  IsOptional,
+  IsString,
+  MinLength,
+} from 'class-validator';
 
 export class UpdateSupplierProfileDto {
   @IsOptional()
@@ -41,4 +47,14 @@ export class UpdateSupplierProfileDto {
   @IsOptional()
   @IsBoolean()
   marketingOptIn?: boolean;
+}
+
+export class UpdateSupplierPasswordDto {
+  @IsString()
+  @MinLength(6)
+  currentPassword!: string;
+
+  @IsString()
+  @MinLength(6)
+  newPassword!: string;
 }
