@@ -23,8 +23,9 @@ export class SupplierProfileService {
   ) {}
 
   async getProfile(userId: string) {
-    const supplier = await this.suppliers.findOne({
-      where: { user: { id: userId } as any },
+    const supplier = await this.users.findOne({
+      where: { id: userId },
+      relations: ['supplier'],
     });
     if (!supplier) throw new NotFoundException('Supplier not found');
     return supplier;

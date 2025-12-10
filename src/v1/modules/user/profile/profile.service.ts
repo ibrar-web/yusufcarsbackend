@@ -7,28 +7,27 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../../../entities/user.entity';
-import { UpdateUserSettingsDto } from './dto/update-user-settings.dto';
+import { UpdateUserPasswordDto, UpdateUserProfileDto } from './profile.dto';
 import { GoogleGeocodingService } from '../../../common/geocoding/google-geocoding.service';
-import { UpdateUserPasswordDto } from './dto/update-user-password.dto';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
-export class UserSettingsService {
-  private readonly logger = new Logger(UserSettingsService.name);
+export class UserProfileService {
+  private readonly logger = new Logger(UserProfileService.name);
 
   constructor(
     @InjectRepository(User) private readonly users: Repository<User>,
     private readonly geocoding: GoogleGeocodingService,
   ) {}
 
-  async get(userId: string) {
+  async getProfile(userId: string) {
     const user = await this.users.findOne({ where: { id: userId } });
     if (!user) throw new NotFoundException('User not found');
     return user;
   }
 
-  async update(userId: string, dto: UpdateUserSettingsDto) {
-    const user = await this.get(userId);
+  async updateProfile(userId: string, dto: UpdateUserProfileDto) {
+    const user = await this.getProfile(userId);
     Object.assign(user, dto);
     if (dto.postCode?.trim()) {
       const normalized = dto.postCode.trim();

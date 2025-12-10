@@ -6,7 +6,7 @@ import {
   MinLength,
 } from 'class-validator';
 
-export class UpdateUserSettingsDto {
+export class UpdateUserProfileDto {
   @IsOptional()
   @IsString()
   fullName?: string;
@@ -22,4 +22,14 @@ export class UpdateUserSettingsDto {
   @IsOptional()
   @IsString()
   postCode?: string;
+}
+
+export class UpdateUserPasswordDto {
+  @IsString()
+  @MinLength(6)
+  currentPassword!: string;
+
+  @IsString()
+  @MinLength(6)
+  newPassword!: string;
 }

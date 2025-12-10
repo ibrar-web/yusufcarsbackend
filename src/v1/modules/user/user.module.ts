@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { UserMessagesModule } from './messages/user-messages.module';
 import { UserOrdersModule } from './orders/user-orders.module';
-import { UserSettingsModule } from './settings/user-settings.module';
+import { UserProfileModule } from './profile/profile.module';
 import { UserQuotesModule } from './quotesoffer/user-quotes.module';
 import { UserRequestQuoteModule } from './requestquote/request-quote.module';
 
@@ -9,10 +9,9 @@ import { UserRequestQuoteModule } from './requestquote/request-quote.module';
   imports: [
     UserMessagesModule,
     UserOrdersModule,
-    UserSettingsModule,
+    UserProfileModule,
     UserQuotesModule,
     UserRequestQuoteModule,
   ],
 })
 export class UserModule {}
-
