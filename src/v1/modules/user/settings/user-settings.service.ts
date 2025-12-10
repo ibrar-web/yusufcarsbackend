@@ -39,7 +39,8 @@ export class UserSettingsService {
         user.longitude = coordinates.longitude;
       }
     }
-    return this.users.save(user);
+    const saved = await this.users.save(user);
+    return saved.toPublic();
   }
 
   async updatePassword(userId: string, dto: UpdateUserPasswordDto) {

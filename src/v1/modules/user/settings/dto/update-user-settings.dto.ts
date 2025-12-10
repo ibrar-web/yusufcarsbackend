@@ -16,11 +16,6 @@ export class UpdateUserSettingsDto {
   email?: string;
 
   @IsOptional()
-  @IsString()
-  @MinLength(6)
-  password?: string;
-
-  @IsOptional()
   @IsBoolean()
   marketingOptIn?: boolean;
 
