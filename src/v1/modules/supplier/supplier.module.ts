@@ -15,5 +15,6 @@ import { SupplierOrdersModule } from './orders/orders.module';
     SupplierQuoteOffersModule,
     SupplierOrdersModule,
   ],
+  controllers: [],
 })
 export class SupplierModule {}

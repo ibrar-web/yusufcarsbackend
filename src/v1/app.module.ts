@@ -5,17 +5,8 @@ import { dataSourceOptions } from './config/ormconfig';
 import { S3Service } from './common/aws/s3.service';
 import { KycDocsService } from './common/aws/kyc-docs.service';
 import { AdminModule } from './modules/admin/admin.module';
-import { SupplierQuotesModule } from './modules/supplier/quotesrequest/quotesrequest.module';
-import { SupplierQuoteOffersModule } from './modules/supplier/quoteoffers/quote-offers.module';
-import { SupplierAnalyticsModule } from './modules/supplier/analytics/analytics.module';
-import { SupplierMessagesModule } from './modules/supplier/messages/messages.module';
-import { SupplierProfileModule } from './modules/supplier/profile/profile.module';
-import { SupplierOrdersModule } from './modules/supplier/orders/orders.module';
-import { UserMessagesModule } from './modules/user/messages/user-messages.module';
-import { UserOrdersModule } from './modules/user/orders/user-orders.module';
-import { UserSettingsModule } from './modules/user/settings/user-settings.module';
-import { UserQuotesModule } from './modules/user/quotesoffer/user-quotes.module';
-import { UserRequestQuoteModule } from './modules/user/requestquote/request-quote.module';
+import { SupplierModule } from './modules/supplier/supplier.module';
+import { UserModule } from './modules/user/user.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { SocketsModule } from './modules/sockets/sockets.module';
 
@@ -27,17 +18,8 @@ import { SocketsModule } from './modules/sockets/sockets.module';
     }),
     ScheduleModule.forRoot(),
     AdminModule,
-    SupplierQuotesModule,
-    SupplierQuoteOffersModule,
-    SupplierAnalyticsModule,
-    SupplierMessagesModule,
-    SupplierProfileModule,
-    SupplierOrdersModule,
-    UserMessagesModule,
-    UserOrdersModule,
-    UserSettingsModule,
-    UserQuotesModule,
-    UserRequestQuoteModule,
+    SupplierModule,
+    UserModule,
     AuthModule,
     SocketsModule,
   ],

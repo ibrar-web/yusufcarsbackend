@@ -34,6 +34,7 @@ export class User {
 
   @Column({ unique: true })
   email!: string;
+  
   @Exclude()
   @Column()
   password!: string;
