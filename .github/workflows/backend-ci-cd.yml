@@ -72,7 +72,7 @@ jobs:
           username: ${{ secrets.LIGHTSAIL_USER }}
           key: ${{ secrets.LIGHTSAIL_SSH_KEY }}
           source: ${{ env.BUILD_ARTIFACT }}
-          target: /tmp/${{ env.BUILD_ARTIFACT }}
+          target: /tmp/backend-deploy
 
       - name: Deploy on Lightsail instance
         uses: appleboy/ssh-action@v0.1.7
@@ -84,8 +84,15 @@ jobs:
             set -euo pipefail
             APP_DIR=${{ secrets.LIGHTSAIL_APP_DIR }}
             PM2_PROCESS=${{ secrets.LIGHTSAIL_PM2_PROCESS }}
+            BUNDLE_DIR=/tmp/backend-deploy
+            BUNDLE_PATH="$BUNDLE_DIR/${{ env.BUILD_ARTIFACT }}"
             mkdir -p "$APP_DIR"
-            tar -xzf /tmp/${{ env.BUILD_ARTIFACT }} -C "$APP_DIR"
+            mkdir -p "$BUNDLE_DIR"
+            if [ ! -f "$BUNDLE_PATH" ]; then
+              echo "Bundle not found at $BUNDLE_PATH" >&2
+              exit 1
+            fi
+            tar -xzf "$BUNDLE_PATH" -C "$APP_DIR"
             cd "$APP_DIR"
             npm ci --omit=dev
             if pm2 list | grep -q "$PM2_PROCESS"; then
