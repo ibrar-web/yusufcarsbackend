@@ -59,7 +59,12 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: backend-build
+          path: ./artifact
 
+      - name: Prepare artifact file
+        run: |
+          mv ./artifact/${{ env.BUILD_ARTIFACT }} ./
+          rm -rf ./artifact
       - name: Copy bundle to Lightsail
         uses: appleboy/scp-action@v0.1.7
         with:
