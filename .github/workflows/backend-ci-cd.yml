@@ -98,5 +98,5 @@ jobs:
             if pm2 list | grep -q "$PM2_PROCESS"; then
               pm2 reload "$PM2_PROCESS"
             else
-              pm2 start dist/main.js --name "$PM2_PROCESS"
+              pm2 start dist/src/main.js --name "$PM2_PROCESS"
             fi
