@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {
   CallHandler,
   ExecutionContext,
@@ -13,23 +12,27 @@ export class ResponseInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler) {
     return next.handle().pipe(
       map((data) => {
-        const http = context.switchToHttp();
-        const statusCode = this.getStatusCode(context);
+        const response = this.getResponse(context);
+        const statusCode = this.getStatusCode(response);
 
         // Preserve explicit status codes set in controllers (e.g. @HttpCode).
-        http.getResponse<Response>().status(statusCode);
+        response.status(statusCode);
 
         return {
           statusCode,
           message: this.resolveMessage(data, statusCode),
-          data,
+          data: data as unknown,
         };
       }),
     );
   }
 
-  private getStatusCode(context: ExecutionContext): number {
-    const response = context.switchToHttp().getResponse<Response>();
+  private getResponse(context: ExecutionContext): Response {
+    const http = context.switchToHttp();
+    return http.getResponse<Response>();
+  }
+
+  private getStatusCode(response: Response): number {
     return response.statusCode ?? 200;
   }
 

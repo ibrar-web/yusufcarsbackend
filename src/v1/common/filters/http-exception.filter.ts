@@ -44,23 +44,38 @@ export class HttpExceptionFilter implements ExceptionFilter {
     if (exception instanceof HttpException) {
       const response = exception.getResponse();
       if (typeof response === 'string') return { message: response };
-      if (response && typeof response === 'object' && 'message' in response) {
-        const payload = response as {
-          message?: string | string[];
-          errors?: unknown;
-        };
-        const message =
-          Array.isArray(payload.message) && payload.message.length > 0
-            ? payload.message.join(', ')
-            : typeof payload.message === 'string'
-              ? payload.message
-              : exception.message;
-        return { message, errors: payload.errors ?? payload.message };
+      if (this.isStructuredResponse(response)) {
+        const message = this.normalizeMessage(
+          response.message,
+          exception.message,
+        );
+        return { message, errors: response.errors ?? response.message };
       }
       return { message: exception.message };
     }
 
     return { message: 'Internal server error' };
+  }
+
+  private isStructuredResponse(
+    response: unknown,
+  ): response is { message?: string | string[]; errors?: unknown } {
+    if (!response || typeof response !== 'object') return false;
+    const candidate = response as Record<string, unknown>;
+    return 'message' in candidate || 'errors' in candidate;
+  }
+
+  private normalizeMessage(
+    value: string | string[] | undefined,
+    fallback: string,
+  ): string {
+    if (Array.isArray(value) && value.length > 0) {
+      return value.join(', ');
+    }
+    if (typeof value === 'string' && value.length > 0) {
+      return value;
+    }
+    return fallback;
   }
 
   private logError(

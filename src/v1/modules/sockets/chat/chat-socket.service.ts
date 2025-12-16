@@ -21,7 +21,7 @@ export class ChatSocketService {
       return;
     }
     const recipientId = payload.__recipientId;
-    if (!recipientId) {
+    if (typeof recipientId !== 'string' || recipientId.length === 0) {
       this.logger.warn('Socket payload missing recipientId');
       return;
     }

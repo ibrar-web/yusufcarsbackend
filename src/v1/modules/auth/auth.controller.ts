@@ -117,9 +117,21 @@ export class AuthController {
 
   private formatValidationErrors(error: unknown): string {
     if (!Array.isArray(error)) return 'Invalid request payload';
-    const messages = (error as ValidationError[])
-      .flatMap((err) => (err.constraints ? Object.values(err.constraints) : []))
+    const validationErrors = (error as unknown[]).filter(
+      (candidate): candidate is ValidationError =>
+        this.isValidationError(candidate),
+    );
+    const messages = validationErrors
+      .flatMap((err) => Object.values(err.constraints ?? {}))
       .filter((value): value is string => typeof value === 'string');
     return messages.length ? messages.join(', ') : 'Invalid request payload';
+  }
+
+  private isValidationError(value: unknown): value is ValidationError {
+    return (
+      typeof value === 'object' &&
+      value !== null &&
+      Array.isArray((value as ValidationError).children)
+    );
   }
 }
