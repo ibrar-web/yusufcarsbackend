@@ -2,7 +2,9 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Server } from 'socket.io';
 import { ChatMessagePayload } from './dto/chat-message.payload';
 
-type ChatMessageEnvelope = ChatMessagePayload & { __recipientId: string };
+export type ChatMessageEnvelope = ChatMessagePayload & {
+  __recipientId: string;
+};
 
 @Injectable()
 export class ChatSocketService {

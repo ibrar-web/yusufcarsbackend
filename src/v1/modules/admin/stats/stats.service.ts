@@ -4,7 +4,7 @@ import { Between, Repository } from 'typeorm';
 import { User } from '../../../entities/user.entity';
 import { Supplier } from '../../../entities/supplier.entity';
 import { QuoteRequest } from '../../../entities/quotes/quote-request.entity';
-import { QuoteOffer } from '../../../entities/quote-offers.entity';
+import { QuoteOffer, QuoteStatus } from '../../../entities/quote-offers.entity';
 
 @Injectable()
 export class AdminStatsService {
@@ -44,7 +44,7 @@ export class AdminStatsService {
 
   private async revenueSummary() {
     const acceptedQuotes = await this.quotes.find({
-      where: { status: 'accepted' },
+      where: { status: QuoteStatus.ACCEPTED },
     });
     const totalRevenue = acceptedQuotes.reduce(
       (sum, q) => sum + Number(q.price),
