@@ -11,6 +11,8 @@ on:
 env:
   NODE_VERSION: '22'
   BUILD_ARTIFACT: backend-dist.tar.gz
+  DEPLOY_NODE_ENV: staging
+  ENTRY_POINT: dist/src/main.js
 
 jobs:
   build:
@@ -84,6 +86,8 @@ jobs:
             set -euo pipefail
             APP_DIR=${{ secrets.LIGHTSAIL_APP_DIR }}
             PM2_PROCESS=${{ secrets.LIGHTSAIL_PM2_PROCESS }}
+            NODE_ENV_VALUE=${{ env.DEPLOY_NODE_ENV }}
+            ENTRY_POINT=${{ env.ENTRY_POINT }}
             BUNDLE_DIR=/tmp/backend-deploy
             BUNDLE_PATH="$BUNDLE_DIR/${{ env.BUILD_ARTIFACT }}"
             mkdir -p "$APP_DIR"
@@ -96,7 +100,7 @@ jobs:
             cd "$APP_DIR"
             npm ci --omit=dev
             if pm2 list | grep -q "$PM2_PROCESS"; then
-              pm2 reload "$PM2_PROCESS"
+              NODE_ENV="$NODE_ENV_VALUE" pm2 reload "$PM2_PROCESS" --update-env
             else
-              pm2 start dist/src/main.js --name "$PM2_PROCESS"
+              NODE_ENV="$NODE_ENV_VALUE" pm2 start "$ENTRY_POINT" --name "$PM2_PROCESS"
             fi
