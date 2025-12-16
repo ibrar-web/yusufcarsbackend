@@ -5,6 +5,7 @@ import { AuthGuard } from '../../../common/guards/auth.guard';
 import { RolesGuard } from '../../../common/guards/roles.guard';
 import { Roles } from '../../../common/decorators/roles.decorator';
 import { CurrentUser } from '../../admin/decorators/current-user.decorator';
+import type { AuthenticatedUser } from '../../../common/types/authenticated-user';
 
 @Controller('user/quote/offer')
 @UseGuards(AuthGuard, RolesGuard)
@@ -14,7 +15,7 @@ export class UserQuotesController {
 
   @Get()
   availableQuotes(
-    @CurrentUser() user: any,
+    @CurrentUser() user: AuthenticatedUser,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
     @Query('status') status?: QuoteStatus,
@@ -27,7 +28,10 @@ export class UserQuotesController {
   }
 
   @Post(':offerId/accept')
-  acceptQuote(@CurrentUser() user: any, @Param('offerId') offerId: string) {
+  acceptQuote(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('offerId') offerId: string,
+  ) {
     return this.notifications.acceptQuoteOffer(user.sub, offerId);
   }
 }

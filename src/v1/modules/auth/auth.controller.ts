@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return */
 import {
   Body,
   Controller,
@@ -12,7 +11,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
-import type { Response, Request } from 'express';
+import type { Response } from 'express';
 import { plainToInstance } from 'class-transformer';
 import { validateOrReject } from 'class-validator';
 import { AuthService } from './auth.service';
@@ -20,6 +19,11 @@ import { JoseService } from './jose.service';
 import { AdminRegisterDto, UserRegisterDto } from './authdtos/userregister.dto';
 import { SupplierRegisterDto } from './authdtos/supplierregister.dto';
 import type { UploadedFile } from '../../common/aws/s3.service';
+import type {
+  AuthenticatedUser,
+  RequestWithAuth,
+} from '../../common/types/authenticated-user';
+import type { ValidationError } from 'class-validator';
 
 @Controller('/auth')
 export class AuthController {
@@ -73,8 +77,6 @@ export class AuthController {
     @Body() body: { email: string; password: string },
     @Res({ passthrough: true }) res: Response,
   ) {
-    console.log('body:', body);
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const pub = await this.auth.validateUser(body.email, body.password);
     if (!pub) {
       // Standardized error for invalid credentials
@@ -91,12 +93,12 @@ export class AuthController {
   }
 
   @Get('session')
-  async session(@Req() req: Request) {
+  async session(@Req() req: RequestWithAuth) {
     const cookieName = process.env.COOKIE_NAME || 'access_token';
-    const token = (req as any).cookies?.[cookieName];
+    const token = req.cookies?.[cookieName];
     if (!token) return { authenticated: false };
     try {
-      const payload = await this.jose.verify(token);
+      const payload = await this.jose.verify<AuthenticatedUser>(token);
       return { authenticated: true, user: payload };
     } catch {
       return { authenticated: false };
@@ -113,21 +115,11 @@ export class AuthController {
     return await this.auth.register(body);
   }
 
-  private formatValidationErrors(error: unknown) {
+  private formatValidationErrors(error: unknown): string {
     if (!Array.isArray(error)) return 'Invalid request payload';
-    const messages: string[] = [];
-    for (const err of error) {
-      const constraints = err?.constraints;
-      if (constraints && typeof constraints === 'object') {
-        for (const value of Object.values(constraints)) {
-          if (typeof value === 'string') {
-            messages.push(value);
-          }
-        }
-      }
-    }
+    const messages = (error as ValidationError[])
+      .flatMap((err) => (err.constraints ? Object.values(err.constraints) : []))
+      .filter((value): value is string => typeof value === 'string');
     return messages.length ? messages.join(', ') : 'Invalid request payload';
   }
-
-  
 }

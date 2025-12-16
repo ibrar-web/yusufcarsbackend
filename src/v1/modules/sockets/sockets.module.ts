@@ -14,6 +14,10 @@ import { SocketsGateway } from './sockets.gateway';
     QuoteOfferSocketService,
     SocketsGateway,
   ],
-  exports: [ChatSocketService, QuoteRequestSocketService, QuoteOfferSocketService],
+  exports: [
+    ChatSocketService,
+    QuoteRequestSocketService,
+    QuoteOfferSocketService,
+  ],
 })
 export class SocketsModule {}

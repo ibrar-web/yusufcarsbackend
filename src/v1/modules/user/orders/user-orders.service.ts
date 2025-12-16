@@ -81,7 +81,7 @@ export class UserOrdersService {
       throw new NotFoundException('Order not found');
     }
     const review = await this.reviews.findOne({
-      where: { order: { id: order.id }, user: { id: userId } } as any,
+      where: { order: { id: order.id }, user: { id: userId } },
     });
     return {
       data: buildOrderResponse(order, review, {
@@ -92,57 +92,53 @@ export class UserOrdersService {
   }
 
   async complete(userId: string, orderId: string, dto: CompleteOrderDto) {
-    try {
-      const order = await this.orders.findOne({
-        where: { id: orderId },
-        relations: ['supplier', 'buyer', 'request', 'acceptedQuote'],
-      });
-      if (!order || order.buyer.id !== userId) {
-        throw new NotFoundException('Order not found');
-      }
-      if (order.status === OrderStatus.CANCELLED) {
-        throw new BadRequestException('Cannot complete a cancelled order');
-      }
-      if (order.status !== OrderStatus.COMPLETED) {
-        order.status = OrderStatus.COMPLETED;
-        await this.orders.save(order);
-      }
-
-      let review = await this.reviews.findOne({
-        where: { order: { id: order.id }, user: { id: userId } } as any,
-      });
-      if (review) {
-        if (dto.rating !== undefined) {
-          review.rating = dto.rating;
-        }
-        if (dto.comment !== undefined) {
-          review.comment = dto.comment;
-        }
-      } else {
-        if (dto.rating === undefined) {
-          throw new BadRequestException(
-            'Rating is required when submitting a review for the first time',
-          );
-        }
-        review = this.reviews.create({
-          user: order.buyer,
-          supplier: order.supplier,
-          order,
-          rating: dto.rating,
-          comment: dto.comment,
-        });
-      }
-      review = await this.reviews.save(review);
-      order.reviewSubmitted = true;
-      await this.orders.save(order);
-
-      return buildOrderResponse(order, review, {
-        includeSupplier: true,
-        includeQuote: true,
-      });
-    } catch (error) {
-      console.log('error', error);
+    const order = await this.orders.findOne({
+      where: { id: orderId },
+      relations: ['supplier', 'buyer', 'request', 'acceptedQuote'],
+    });
+    if (!order || order.buyer.id !== userId) {
+      throw new NotFoundException('Order not found');
     }
+    if (order.status === OrderStatus.CANCELLED) {
+      throw new BadRequestException('Cannot complete a cancelled order');
+    }
+    if (order.status !== OrderStatus.COMPLETED) {
+      order.status = OrderStatus.COMPLETED;
+      await this.orders.save(order);
+    }
+
+    let review = await this.reviews.findOne({
+      where: { order: { id: order.id }, user: { id: userId } },
+    });
+    if (review) {
+      if (dto.rating !== undefined) {
+        review.rating = dto.rating;
+      }
+      if (dto.comment !== undefined) {
+        review.comment = dto.comment;
+      }
+    } else {
+      if (dto.rating === undefined) {
+        throw new BadRequestException(
+          'Rating is required when submitting a review for the first time',
+        );
+      }
+      review = this.reviews.create({
+        user: order.buyer,
+        supplier: order.supplier,
+        order,
+        rating: dto.rating,
+        comment: dto.comment,
+      });
+    }
+    review = await this.reviews.save(review);
+    order.reviewSubmitted = true;
+    await this.orders.save(order);
+
+    return buildOrderResponse(order, review, {
+      includeSupplier: true,
+      includeQuote: true,
+    });
   }
 
   async cancel(userId: string, orderId: string, dto: CancelOrderDto) {
@@ -174,7 +170,7 @@ export class UserOrdersService {
     if (!orders.length) return reviewMap;
     const reviewIds = orders.map((order) => order.id);
     const reviews = await this.reviews.find({
-      where: { order: { id: In(reviewIds) } } as any,
+      where: { order: { id: In(reviewIds) } },
     });
     for (const review of reviews) {
       if (review.orderId) {

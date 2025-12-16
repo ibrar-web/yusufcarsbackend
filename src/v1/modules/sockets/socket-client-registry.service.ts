@@ -64,7 +64,7 @@ export class SocketClientRegistry {
         continue;
       }
       if (!existing.rooms.has(room)) {
-        client.join(room);
+        void client.join(room);
         existing.rooms.add(room);
       }
     }
@@ -100,5 +100,4 @@ export class SocketClientRegistry {
     }
     return undefined;
   }
-
 }

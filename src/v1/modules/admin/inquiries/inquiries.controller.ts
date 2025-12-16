@@ -40,7 +40,9 @@ export class AdminEnquiriesController {
       status,
       urgency,
       contact:
-        contact === undefined ? undefined : contact === 'true' || contact === '1',
+        contact === undefined
+          ? undefined
+          : contact === 'true' || contact === '1',
       from,
       to,
       sortDir: sortDir || 'DESC',

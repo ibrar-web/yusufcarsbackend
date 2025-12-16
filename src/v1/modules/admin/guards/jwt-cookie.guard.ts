@@ -5,13 +5,14 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtCookieStrategy } from '../strategies/jwt-cookie.strategy';
+import type { RequestWithAuth } from '../../../common/types/authenticated-user';
 
 @Injectable()
 export class JwtCookieGuard implements CanActivate {
   constructor(private readonly strategy: JwtCookieStrategy) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const req = context.switchToHttp().getRequest();
+    const req = context.switchToHttp().getRequest<RequestWithAuth>();
     const token = this.strategy.extractToken(req);
     if (!token) {
       throw new UnauthorizedException('Missing access token');

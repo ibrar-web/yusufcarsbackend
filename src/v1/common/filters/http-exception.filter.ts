@@ -1,6 +1,7 @@
 import type { ArgumentsHost, ExceptionFilter } from '@nestjs/common';
 import { Catch, HttpException, HttpStatus, Logger } from '@nestjs/common';
 import type { AbstractHttpAdapter } from '@nestjs/core';
+import type { Request, Response } from 'express';
 
 @Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
@@ -11,6 +12,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
   catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const request = ctx.getRequest<Request>();
+    const response = ctx.getResponse<Response>();
 
     const status =
       exception instanceof HttpException
@@ -19,7 +21,12 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
     const { message, errors } = this.extractMessage(exception);
 
-    const body: Record<string, any> = {
+    const body: {
+      statusCode: number;
+      message: string;
+      data: null;
+      errors?: unknown;
+    } = {
       statusCode: status,
       message,
       data: null,
@@ -27,23 +34,30 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
     if (errors) body.errors = errors;
     this.logError(request, status, message, exception);
-    this.httpAdapter.reply(ctx.getResponse(), body, status);
+    this.httpAdapter.reply(response, body, status);
   }
 
   private extractMessage(exception: unknown): {
     message: string;
-    errors?: any;
+    errors?: unknown;
   } {
     if (exception instanceof HttpException) {
-      const res = exception.getResponse();
-      if (typeof res === 'string') return { message: res };
-
-      const msg =
-        (Array.isArray((res as any).message)
-          ? (res as any).message.join(', ')
-          : (res as any).message) || exception.message;
-
-      return { message: msg, errors: (res as any).message };
+      const response = exception.getResponse();
+      if (typeof response === 'string') return { message: response };
+      if (response && typeof response === 'object' && 'message' in response) {
+        const payload = response as {
+          message?: string | string[];
+          errors?: unknown;
+        };
+        const message =
+          Array.isArray(payload.message) && payload.message.length > 0
+            ? payload.message.join(', ')
+            : typeof payload.message === 'string'
+              ? payload.message
+              : exception.message;
+        return { message, errors: payload.errors ?? payload.message };
+      }
+      return { message: exception.message };
     }
 
     return { message: 'Internal server error' };
@@ -54,15 +68,13 @@ export class HttpExceptionFilter implements ExceptionFilter {
     status: number,
     message: string,
     exception: unknown,
-  ) {
-    const context = `${(request as any)?.method || 'UNKNOWN'} ${
-      (request as any)?.url || ''
-    } [${status}]`;
+  ): void {
+    const context = `${request.method || 'UNKNOWN'} ${request.url || ''} [${status}]`;
     const payload = JSON.stringify({
       status,
       message,
-      method: (request as any)?.method,
-      url: (request as any)?.url,
+      method: request.method,
+      url: request.url,
     });
     this.logger.error(
       `${context} - ${payload}`,

@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { AdminRole, ROLES_KEY } from '../decorators/roles.decorator';
+import type { RequestWithAuth } from '../../../common/types/authenticated-user';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
@@ -18,8 +19,8 @@ export class RolesGuard implements CanActivate {
     ]);
     if (!roles || roles.length === 0) return true;
 
-    const request = context.switchToHttp().getRequest();
-    const user = request.user as { role?: string };
+    const request = context.switchToHttp().getRequest<RequestWithAuth>();
+    const user = request.user;
     if (!user?.role || user.role !== 'admin') {
       throw new ForbiddenException('Insufficient role');
     }

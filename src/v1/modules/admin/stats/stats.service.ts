@@ -28,7 +28,7 @@ export class AdminStatsService {
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const enquiriesThisMonth = await this.enquiries.count({
-      where: { createdAt: Between(startOfMonth, now) } as any,
+      where: { createdAt: Between(startOfMonth, now) },
     });
 
     const revenueMetrics = await this.revenueSummary();
@@ -44,7 +44,7 @@ export class AdminStatsService {
 
   private async revenueSummary() {
     const acceptedQuotes = await this.quotes.find({
-      where: { status: 'accepted' } as any,
+      where: { status: 'accepted' },
     });
     const totalRevenue = acceptedQuotes.reduce(
       (sum, q) => sum + Number(q.price),

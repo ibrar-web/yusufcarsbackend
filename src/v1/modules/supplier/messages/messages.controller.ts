@@ -5,6 +5,7 @@ import { RolesGuard } from '../../../common/guards/roles.guard';
 import { Roles } from '../../../common/decorators/roles.decorator';
 import { SendMessageDto } from './dto/send-message.dto';
 import { CurrentUser } from '../../admin/decorators/current-user.decorator';
+import type { AuthenticatedUser } from '../../../common/types/authenticated-user';
 
 @Controller('supplier/chat')
 @UseGuards(AuthGuard, RolesGuard)
@@ -14,7 +15,7 @@ export class SupplierMessagesController {
 
   @Get()
   list(
-    @CurrentUser() user: any,
+    @CurrentUser() user: AuthenticatedUser,
     @Query('userId') userId: string,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
@@ -27,7 +28,7 @@ export class SupplierMessagesController {
 
   @Get('list')
   listChats(
-    @CurrentUser() user: any,
+    @CurrentUser() user: AuthenticatedUser,
     @Query('userId') userId?: string,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
@@ -40,7 +41,7 @@ export class SupplierMessagesController {
   }
 
   @Post()
-  send(@CurrentUser() user: any, @Body() dto: SendMessageDto) {
+  send(@CurrentUser() user: AuthenticatedUser, @Body() dto: SendMessageDto) {
     return this.messages.send(user.sub, dto);
   }
 }

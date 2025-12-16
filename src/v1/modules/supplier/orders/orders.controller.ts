@@ -4,6 +4,7 @@ import { AuthGuard } from '../../../common/guards/auth.guard';
 import { RolesGuard } from '../../../common/guards/roles.guard';
 import { Roles } from '../../../common/decorators/roles.decorator';
 import { CurrentUser } from '../../admin/decorators/current-user.decorator';
+import type { AuthenticatedUser } from '../../../common/types/authenticated-user';
 
 @Controller('supplier/orders')
 @UseGuards(AuthGuard, RolesGuard)
@@ -13,7 +14,7 @@ export class SupplierOrdersController {
 
   @Get()
   list(
-    @CurrentUser() user: any,
+    @CurrentUser() user: AuthenticatedUser,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
     @Query('search') search?: string,
@@ -27,7 +28,7 @@ export class SupplierOrdersController {
   }
 
   @Get(':id')
-  detail(@CurrentUser() user: any, @Param('id') id: string) {
+  detail(@CurrentUser() user: AuthenticatedUser, @Param('id') id: string) {
     return this.orders.detail(user.sub, id);
   }
 }

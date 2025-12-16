@@ -9,6 +9,7 @@ import {
   IsString,
 } from 'class-validator';
 import { Transform } from 'class-transformer';
+import type { TransformFnParams } from 'class-transformer';
 
 export class CreateRequestQuoteDto {
   @IsOptional()
@@ -36,8 +37,8 @@ export class CreateRequestQuoteDto {
   motStatus?: string;
 
   @IsOptional()
-  @Transform(({ value }) =>
-    value !== undefined && value !== null ? String(value) : value,
+  @Transform(({ value }: TransformFnParams) =>
+    value !== undefined && value !== null ? String(value) : undefined,
   )
   @IsString()
   yearOfManufacture?: string;
@@ -51,7 +52,7 @@ export class CreateRequestQuoteDto {
   engineSize?: string;
 
   @IsOptional()
-  @Transform(({ value }) =>
+  @Transform(({ value }: TransformFnParams) =>
     value === undefined || value === null || value === ''
       ? undefined
       : Number(value),
@@ -60,7 +61,7 @@ export class CreateRequestQuoteDto {
   engineCapacity?: number;
 
   @IsOptional()
-  @Transform(({ value }) =>
+  @Transform(({ value }: TransformFnParams) =>
     value === undefined || value === null || value === ''
       ? undefined
       : Number(value),
@@ -69,8 +70,14 @@ export class CreateRequestQuoteDto {
   co2Emissions?: number;
 
   @IsOptional()
-  @Transform(({ value }) => {
-    if (Array.isArray(value)) return value;
+  @Transform(({ value }: TransformFnParams) => {
+    if (Array.isArray(value)) {
+      return value
+        .map((item) =>
+          typeof item === 'string' ? item.trim() : String(item ?? '').trim(),
+        )
+        .filter((item) => item.length > 0);
+    }
     if (typeof value === 'string' && value.length > 0) {
       return value.split(',').map((item) => item.trim());
     }
@@ -85,7 +92,9 @@ export class CreateRequestQuoteDto {
   postcode?: string;
 
   @IsOptional()
-  @Transform(({ value }) => value === 'true' || value === true)
+  @Transform(
+    ({ value }: TransformFnParams) => value === 'true' || value === true,
+  )
   @IsBoolean()
   markedForExport?: boolean;
 
@@ -98,7 +107,7 @@ export class CreateRequestQuoteDto {
   typeApproval?: string;
 
   @IsOptional()
-  @Transform(({ value }) =>
+  @Transform(({ value }: TransformFnParams) =>
     value === undefined || value === null || value === ''
       ? undefined
       : Number(value),

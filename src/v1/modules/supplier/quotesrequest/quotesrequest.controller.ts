@@ -4,6 +4,7 @@ import { AuthGuard } from '../../../common/guards/auth.guard';
 import { RolesGuard } from '../../../common/guards/roles.guard';
 import { Roles } from '../../../common/decorators/roles.decorator';
 import { CurrentUser } from '../../admin/decorators/current-user.decorator';
+import type { AuthenticatedUser } from '../../../common/types/authenticated-user';
 @Controller('supplier/quotes/request')
 @UseGuards(AuthGuard, RolesGuard)
 @Roles('supplier')
@@ -12,7 +13,7 @@ export class SupplierQuotesController {
 
   @Get()
   list(
-    @CurrentUser() user: any,
+    @CurrentUser() user: AuthenticatedUser,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
     @Query('query') search?: string,
@@ -25,7 +26,7 @@ export class SupplierQuotesController {
   }
 
   @Get(':id')
-  detail(@CurrentUser() user: any, @Param('id') id: string) {
+  detail(@CurrentUser() user: AuthenticatedUser, @Param('id') id: string) {
     return this.quotes.detail(user.sub, id);
   }
 }

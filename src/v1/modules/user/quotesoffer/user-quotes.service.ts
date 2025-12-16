@@ -63,20 +63,17 @@ export class UserQuotesService {
 
     const sanitizedData = data.map((quote) => {
       const { supplier, quoteRequest, ...rest } = quote;
-      const sanitizedQuoteRequest = quoteRequest ? { ...quoteRequest } : null;
-      if (sanitizedQuoteRequest) {
-        delete (sanitizedQuoteRequest as any).user;
-      }
+      const sanitizedSupplier: LimitedSupplier | null = supplier
+        ? {
+            id: supplier.id,
+            email: supplier.email ?? null,
+            fullName: supplier.fullName ?? null,
+          }
+        : null;
       return {
         ...rest,
         quoteRequestId: quoteRequest?.id ?? null,
-        supplier: supplier
-          ? ({
-              id: supplier.id,
-              email: supplier.email ?? null,
-              fullName: supplier.fullName ?? null,
-            } as LimitedSupplier)
-          : null,
+        supplier: sanitizedSupplier,
       };
     });
 
@@ -113,7 +110,6 @@ export class UserQuotesService {
 
         quote.status = QuoteStatus.ACCEPTED;
         request.status = QuoteRequestStatus.ACCEPTED;
-        console.log('quote offer', quote);
         const order = orderRepo.create({
           request,
           supplier: quote.supplier,
