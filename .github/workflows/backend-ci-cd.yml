@@ -99,6 +99,7 @@ jobs:
             tar -xzf "$BUNDLE_PATH" -C "$APP_DIR"
             cd "$APP_DIR"
             npm ci --omit=dev
+            npm install pg
             if pm2 list | grep -q "$PM2_PROCESS"; then
               NODE_ENV="$NODE_ENV_VALUE" pm2 reload "$PM2_PROCESS" --update-env
             else

@@ -9,6 +9,7 @@ import { SupplierModule } from './modules/supplier/supplier.module';
 import { UserModule } from './modules/user/user.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { SocketsModule } from './modules/sockets/sockets.module';
+import { HealthController } from './health/health.controller';
 
 @Module({
   imports: [
@@ -23,7 +24,7 @@ import { SocketsModule } from './modules/sockets/sockets.module';
     AuthModule,
     SocketsModule,
   ],
-  controllers: [],
+  controllers: [HealthController],
   providers: [S3Service, KycDocsService],
 })
 export class AppModule {}
