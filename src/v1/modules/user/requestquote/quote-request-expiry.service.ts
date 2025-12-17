@@ -57,6 +57,7 @@ export class QuoteRequestExpiryService implements OnModuleInit {
         status: QuoteRequestStatus.PENDING,
         expiresAt: LessThanOrEqual(cutoff),
       },
+      relations: ['serviceItems'],
     });
     for (const request of pending) {
       request.status = QuoteRequestStatus.EXPIRED;
@@ -78,7 +79,14 @@ export class QuoteRequestExpiryService implements OnModuleInit {
             requestId: request.id,
             status: request.status,
             postCode: request.postcode,
-            serviceCategories: request.services || [],
+            serviceCategories:
+              request.services ||
+              (request.serviceItems || []).map((item) => item.id),
+            serviceItems: (request.serviceItems || []).map((item) => ({
+              id: item.id,
+              name: item.name,
+              slug: item.slug,
+            })),
             updatedAt: new Date(),
           },
           supplierIds,

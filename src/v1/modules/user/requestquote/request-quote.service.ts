@@ -5,13 +5,14 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FindOptionsWhere, Repository } from 'typeorm';
+import { FindOptionsWhere, In, Repository } from 'typeorm';
 import { QuoteRequest } from '../../../entities/quotes/quote-request.entity';
 import { User } from '../../../entities/user.entity';
 import { CreateRequestQuoteDto } from './dto/create-request-quote.dto';
 import { QUOTE_REQUEST_LIFETIME_MS } from './request-quote.constants';
 import { QuoteRequestNotificationService } from './quote-request-notification.service';
 import { GoogleGeocodingService } from '../../../common/geocoding/google-geocoding.service';
+import { ServiceItem } from '../../../entities/services/service-item.entity';
 
 type QuoteRequestStatus = QuoteRequest['status'];
 
@@ -24,6 +25,8 @@ export class UserRequestQuoteService {
     private readonly quoteRequests: Repository<QuoteRequest>,
     @InjectRepository(User)
     private readonly users: Repository<User>,
+    @InjectRepository(ServiceItem)
+    private readonly serviceItems: Repository<ServiceItem>,
     private readonly notifications: QuoteRequestNotificationService,
     private readonly geocoding: GoogleGeocodingService,
   ) {}
@@ -36,13 +39,14 @@ export class UserRequestQuoteService {
     return this.quoteRequests.find({
       where,
       order: { createdAt: 'DESC' },
+      relations: ['serviceItems'],
     });
   }
 
   async detail(userId: string, id: string) {
     const request = await this.quoteRequests.findOne({
       where: { id, user: { id: userId } },
-      relations: ['quotes'],
+      relations: ['quotes', 'serviceItems'],
     });
     if (!request) throw new NotFoundException('Quote request not found');
     return request;
@@ -70,6 +74,18 @@ export class UserRequestQuoteService {
     }
     const expiresAt = this.calculateExpiry(dto.expiresAt);
 
+    let serviceItemEntities: ServiceItem[] = [];
+    if (dto.services?.length) {
+      serviceItemEntities = await this.serviceItems.find({
+        where: { id: In(dto.services) },
+      });
+      if (serviceItemEntities.length !== dto.services.length) {
+        throw new BadRequestException(
+          'One or more service items were not found',
+        );
+      }
+    }
+
     const request = this.quoteRequests.create({
       user,
       model: dto.model,
@@ -84,6 +100,7 @@ export class UserRequestQuoteService {
       engineCapacity: dto.engineCapacity,
       co2Emissions: dto.co2Emissions,
       services: dto.services,
+      serviceItems: serviceItemEntities,
       postcode: targetPostcode,
       markedForExport: dto.markedForExport ?? false,
       colour: dto.colour,
@@ -99,6 +116,7 @@ export class UserRequestQuoteService {
       longitude: coordinates?.longitude,
     });
     const saved = await this.quoteRequests.save(request);
+    saved.serviceItems = serviceItemEntities;
     saved.user = user;
     await this.notifications.distribute(saved);
     return saved;

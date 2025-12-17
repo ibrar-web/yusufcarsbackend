@@ -9,12 +9,19 @@ type PublicProfile = {
   role: string;
 };
 
+type ServiceItemSummary = {
+  id: string;
+  name: string;
+  slug: string;
+};
+
 type OrderRequestSummary = {
   id: string;
   registrationNumber: string;
   make: string;
   model?: string | null;
   services: string[];
+  serviceItems: ServiceItemSummary[];
 };
 
 type OrderQuoteSummary = {
@@ -69,7 +76,14 @@ export function buildOrderResponse(
           registrationNumber: order.request.registrationNumber,
           make: order.request.make,
           model: order.request.model ?? null,
-          services: order.request.services || [],
+          services:
+            order.request.services ||
+            (order.request.serviceItems || []).map((item) => item.id),
+          serviceItems: (order.request.serviceItems || []).map((item) => ({
+            id: item.id,
+            name: item.name,
+            slug: item.slug,
+          })),
         }
       : null,
     reviewSubmitted: false,

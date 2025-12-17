@@ -7,9 +7,12 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   Index,
+  ManyToMany,
+  JoinTable,
 } from 'typeorm';
 import { User } from '../user.entity';
 import { QuoteOffer } from './quote-offers.entity';
+import { ServiceItem } from '../services/service-item.entity';
 
 export enum QuoteRequestStatus {
   PENDING = 'pending',
@@ -95,6 +98,14 @@ export class QuoteRequest {
 
   @Column({ type: 'simple-array', nullable: true })
   services?: string[];
+
+  @ManyToMany(() => ServiceItem, { eager: false })
+  @JoinTable({
+    name: 'quote_request_service_items',
+    joinColumn: { name: 'quote_request_id', referencedColumnName: 'id' },
+    inverseJoinColumn: { name: 'service_item_id', referencedColumnName: 'id' },
+  })
+  serviceItems?: ServiceItem[];
 
   @Column({ type: 'enum', enum: ['local', 'national'], default: 'local' })
   requestType!: 'local' | 'national';

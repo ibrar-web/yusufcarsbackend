@@ -92,7 +92,12 @@ export class UserQuotesService {
 
         const quote = await quoteOfferRepo.findOne({
           where: { id: offerId },
-          relations: ['quoteRequest', 'quoteRequest.user', 'supplier'],
+          relations: [
+            'quoteRequest',
+            'quoteRequest.user',
+            'quoteRequest.serviceItems',
+            'supplier',
+          ],
         });
         if (!quote) throw new NotFoundException('Quote not found');
         if (quote.quoteRequest.user.id !== userId) {
@@ -176,7 +181,16 @@ export class UserQuotesService {
           requestId: result.requestSnapshot.id,
           status: result.requestSnapshot.status,
           postCode: result.requestSnapshot.postcode,
-          serviceCategories: result.requestSnapshot.services || [],
+          serviceCategories:
+            result.requestSnapshot.services ||
+            (result.requestSnapshot.serviceItems || []).map((item) => item.id),
+          serviceItems: (result.requestSnapshot.serviceItems || []).map(
+            (item) => ({
+              id: item.id,
+              name: item.name,
+              slug: item.slug,
+            }),
+          ),
           updatedAt: new Date(),
         },
         result.supplierIds,

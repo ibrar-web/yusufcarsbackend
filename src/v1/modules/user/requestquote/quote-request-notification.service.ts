@@ -123,11 +123,18 @@ export class QuoteRequestNotificationService {
     request: QuoteRequest,
   ): QuoteRequestCreatedPayload | null {
     if (!request.user) return null;
+    const serviceItems = request.serviceItems || [];
     return {
       requestId: request.id,
       userId: request.user.id,
       postCode: request.postcode,
-      serviceCategories: request.services || [],
+      serviceCategories:
+        request.services || serviceItems.map((item) => item.id),
+      serviceItems: serviceItems.map((item) => ({
+        id: item.id,
+        name: item.name,
+        slug: item.slug,
+      })),
       createdAt: request.createdAt,
     };
   }

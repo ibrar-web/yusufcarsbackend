@@ -30,6 +30,7 @@ export class SupplierQuotesService {
     const qb = this.supplierNotifications
       .createQueryBuilder('notification')
       .leftJoinAndSelect('notification.request', 'request')
+      .leftJoinAndSelect('request.serviceItems', 'serviceItem')
       .select([
         'notification',
         'request.id',
@@ -39,6 +40,9 @@ export class SupplierQuotesService {
         'request.engineSize',
         'request.services',
         'request.postcode',
+        'serviceItem.id',
+        'serviceItem.name',
+        'serviceItem.slug',
       ])
       .leftJoin('request.user', 'user')
       .addSelect(['user.id', 'user.fullName'])
@@ -61,6 +65,7 @@ export class SupplierQuotesService {
     }
 
     const [notifications, total] = await qb
+      .distinct(true)
       .orderBy('notification.createdAt', 'DESC')
       .skip(skip)
       .take(limit)
@@ -75,7 +80,12 @@ export class SupplierQuotesService {
         supplier: { id: userId },
         request: { id: requestId },
       },
-      relations: ['request', 'request.user', 'request.quotes'],
+      relations: [
+        'request',
+        'request.user',
+        'request.quotes',
+        'request.serviceItems',
+      ],
     });
     if (!notification) {
       throw new NotFoundException('Quote request not found');
