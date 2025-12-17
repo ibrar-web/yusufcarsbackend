@@ -1,0 +1,93 @@
+name: Backend CI/CD
+
+on:
+  push:
+    branches:
+      - staging
+  pull_request:
+    branches:
+      - staging
+
+env:
+  NODE_VERSION: '22'
+  BUILD_ARTIFACT: backend-dist.tar.gz
+  ENV_FILE: .env.staging
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint --if-present
+
+      - name: Test
+        run: npm run test -- --runInBand
+
+      - name: Build
+        run: npm run build
+
+      - name: Package build artifacts
+        run: |
+          tar -czf ${{ env.BUILD_ARTIFACT }} \
+            dist \
+            ${{ env.ENV_FILE }} \
+            package.json \
+            package-lock.json
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-build
+          path: ${{ env.BUILD_ARTIFACT }}
+
+  deploy:
+    needs: build
+    if: github.ref == 'refs/heads/staging' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: backend-build
+
+      - name: Copy bundle to Lightsail
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.LIGHTSAIL_HOST }}
+          username: ${{ secrets.LIGHTSAIL_USER }}
+          key: ${{ secrets.LIGHTSAIL_SSH_KEY }}
+          source: ${{ env.BUILD_ARTIFACT }}
+          target: /tmp/${{ env.BUILD_ARTIFACT }}
+
+      - name: Deploy on Lightsail instance
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ secrets.LIGHTSAIL_HOST }}
+          username: ${{ secrets.LIGHTSAIL_USER }}
+          key: ${{ secrets.LIGHTSAIL_SSH_KEY }}
+          script: |
+            set -euo pipefail
+            APP_DIR=${{ secrets.LIGHTSAIL_APP_DIR }}
+            PM2_PROCESS=${{ secrets.LIGHTSAIL_PM2_PROCESS }}
+            mkdir -p "$APP_DIR"
+            tar -xzf /tmp/${{ env.BUILD_ARTIFACT }} -C "$APP_DIR"
+            cd "$APP_DIR"
+            cp "${{ env.ENV_FILE }}" .env
+            npm ci --omit=dev
+            if pm2 list | grep -q "$PM2_PROCESS"; then
+              pm2 reload "$PM2_PROCESS"
+            else
+              pm2 start dist/main.js --name "$PM2_PROCESS"
+            fi
