@@ -14,6 +14,7 @@ import { AdminEnquiriesModule } from './inquiries/inquiries.module';
 import { AdminReportsModule } from './reports/reports.module';
 import { AdminStatsModule } from './stats/stats.module';
 import { AdminOrdersModule } from './orders/orders.module';
+import { AdminServicesModule } from './services/services.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { AdminOrdersModule } from './orders/orders.module';
     AdminReportsModule,
     AdminOrdersModule,
     AdminStatsModule,
+    AdminServicesModule,
   ],
   providers: [JoseService, JwtCookieStrategy, JwtCookieGuard, RolesGuard],
   exports: [JwtCookieGuard, RolesGuard],
