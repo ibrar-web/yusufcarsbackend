@@ -118,16 +118,28 @@ export class SupplierQuoteOffersService {
       if (quoteRequest.user) {
         this.quoteSockets.emitOffer({
           type: 'received',
-          offerId: saved.id,
-          quoteRequestId: quoteRequest.id,
-          userId: quoteRequest.user.id,
+          id: saved.id,
+          partName: saved.partName,
+          brand: saved.brand,
+          offers: saved.offers ?? null,
           price: saved.price,
-          supplierName:
-            notification.supplier.fullName ||
-            notification.supplier.email ||
-            'Supplier',
-          notes: saved.notes ?? undefined,
+          estimatedTime: saved.estimatedTime,
+          partCondition: saved.partCondition ?? '',
+          notes: saved.notes ?? null,
+          expiresAt: saved.expiresAt,
+          status: saved.status,
           createdAt: saved.createdAt ?? new Date(),
+          updatedAt: saved.updatedAt ?? new Date(),
+          quoteRequestId: quoteRequest.id,
+          supplier: {
+            id: notification.supplier.id,
+            email: notification.supplier.email,
+            fullName:
+              notification.supplier.fullName ||
+              notification.supplier.email ||
+              'Supplier',
+          },
+          userId: quoteRequest.user.id,
         });
       }
       return saved;
