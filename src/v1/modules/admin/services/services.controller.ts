@@ -20,7 +20,7 @@ import { UpdateServiceItemDto } from './dto/update-service-item.dto';
 import { CreateServiceCategoryDto } from './dto/create-service-category.dto';
 import { UpdateServiceCategoryDto } from './dto/update-service-category.dto';
 
-@Controller('admin/services')
+@Controller('admin/service')
 @UseGuards(JwtCookieGuard, RolesGuard)
 @Roles('admin')
 export class AdminServicesController {
