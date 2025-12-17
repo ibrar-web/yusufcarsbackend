@@ -90,7 +90,7 @@ export class AuthService {
         contactPostcode: supplierDto.contactPostcode,
         termsAccepted: supplierDto.termsAccepted,
         gdprConsent: supplierDto.gdprConsent,
-        categories: supplierDto.categories,
+        categories: supplierDto.categories ?? [],
         submittedAt: new Date(),
       });
       await this.suppliers.save(supplier);
@@ -130,7 +130,8 @@ export class AuthService {
   private ensureSupplierDocuments(
     docs?: Record<string, UploadedFile | undefined>,
   ) {
-    const required = ['company_registration', 'insurance_certificate'];
+    // const required = ['company_registration', 'insurance_certificate'];
+    const required = ['company_registration'];
     const missing = required.filter((key) => !docs?.[key]);
     if (missing.length) {
       throw new BadRequestException(

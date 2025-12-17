@@ -7,7 +7,6 @@ import {
   IsEnum,
   IsArray,
   IsNotEmpty,
-  ArrayNotEmpty,
 } from 'class-validator';
 import { Transform } from 'class-transformer';
 import * as userEntity from '../../../entities/user.entity';
@@ -61,7 +60,7 @@ export class SupplierRegisterDto {
   postCode!: string;
 
   @IsString()
-  @IsNotEmpty()
+  // @IsNotEmpty()
   contactPostcode!: string;
 
   @Transform(({ value }) => value === 'true' || value === true)
@@ -72,14 +71,16 @@ export class SupplierRegisterDto {
   @IsBoolean()
   gdprConsent!: boolean;
 
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-  @Transform(({ value }) =>
-    Array.isArray(value) ? value : value ? [value] : [],
-  )
+  @Transform(({ value }) => {
+    if (value === undefined || value === null || value === '') {
+      return undefined;
+    }
+    return Array.isArray(value) ? value : [value];
+  })
+  @IsOptional()
   @IsArray()
-  @ArrayNotEmpty()
   @IsString({ each: true })
-  categories!: string[];
+  categories?: string[];
 
   // USER DATA ALSO REQUIRED
   @IsString()
