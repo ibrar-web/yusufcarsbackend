@@ -1,4 +1,10 @@
-import { MigrationInterface, QueryRunner, Table, TableForeignKey, TableIndex } from 'typeorm';
+import {
+  MigrationInterface,
+  QueryRunner,
+  Table,
+  TableForeignKey,
+  TableIndex,
+} from 'typeorm';
 
 export class AddServiceTaxonomy1766000000000 implements MigrationInterface {
   private readonly subcategoryFk = new TableForeignKey({
@@ -71,7 +77,10 @@ export class AddServiceTaxonomy1766000000000 implements MigrationInterface {
         columnNames: ['slug'],
       }),
     );
-    await queryRunner.createForeignKey('service_subcategories', this.subcategoryFk);
+    await queryRunner.createForeignKey(
+      'service_subcategories',
+      this.subcategoryFk,
+    );
 
     await queryRunner.createTable(
       new Table({
@@ -106,9 +115,18 @@ export class AddServiceTaxonomy1766000000000 implements MigrationInterface {
     await queryRunner.dropForeignKey('service_items', this.itemFk);
     await queryRunner.dropTable('service_items');
 
-    await queryRunner.dropForeignKey('service_subcategories', this.subcategoryFk);
-    await queryRunner.dropIndex('service_subcategories', 'IDX_service_subcategories_name');
-    await queryRunner.dropIndex('service_subcategories', 'IDX_service_subcategories_slug');
+    await queryRunner.dropForeignKey(
+      'service_subcategories',
+      this.subcategoryFk,
+    );
+    await queryRunner.dropIndex(
+      'service_subcategories',
+      'IDX_service_subcategories_name',
+    );
+    await queryRunner.dropIndex(
+      'service_subcategories',
+      'IDX_service_subcategories_slug',
+    );
     await queryRunner.dropTable('service_subcategories');
 
     await queryRunner.dropTable('service_categories');

@@ -49,16 +49,24 @@ export class QuoteOfferSocketService {
 
   private normalizePayload(payload: QuoteOfferSocketPayload) {
     if (payload.type === 'received') {
+      const { userId: _userId, ...rest } = payload;
+      void _userId;
       return {
-        ...payload,
+        ...rest,
         createdAt:
           payload.createdAt instanceof Date
             ? payload.createdAt.toISOString()
             : payload.createdAt,
+        updatedAt:
+          payload.updatedAt instanceof Date
+            ? payload.updatedAt.toISOString()
+            : payload.updatedAt,
       };
     }
+    const { userId: _userId, ...rest } = payload;
+    void _userId;
     return {
-      ...payload,
+      ...rest,
       updatedAt:
         payload.updatedAt instanceof Date
           ? payload.updatedAt.toISOString()
