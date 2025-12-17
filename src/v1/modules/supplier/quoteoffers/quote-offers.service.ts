@@ -47,7 +47,6 @@ export class SupplierQuoteOffersService {
         relations: ['request', 'request.user', 'supplier'],
       });
 
-      console.log('notification :', notification);
       if (!notification || !notification.request) {
         throw new NotFoundException(
           'You are not authorized to quote on this request',
@@ -132,7 +131,7 @@ export class SupplierQuoteOffersService {
         });
       }
       return saved;
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Failed to create supplier quote offer', {
         userId,
         quoteRequestId: dto?.quoteRequestId,

@@ -8,6 +8,7 @@ import {
   UpdateSupplierProfileDto,
 } from './profile.dto';
 import { CurrentUser } from '../../admin/decorators/current-user.decorator';
+import type { AuthenticatedUser } from '../../../common/types/authenticated-user';
 
 @Controller('supplier/profile')
 @UseGuards(AuthGuard, RolesGuard)
@@ -16,18 +17,21 @@ export class SupplierProfileController {
   constructor(private readonly profile: SupplierProfileService) {}
 
   @Get()
-  me(@CurrentUser() user: any) {
+  me(@CurrentUser() user: AuthenticatedUser) {
     return this.profile.getProfile(user.sub);
   }
 
   @Put()
-  update(@CurrentUser() user: any, @Body() dto: UpdateSupplierProfileDto) {
+  update(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() dto: UpdateSupplierProfileDto,
+  ) {
     return this.profile.updateProfile(user.sub, dto);
   }
 
   @Put('password')
   updatePassword(
-    @CurrentUser() user: any,
+    @CurrentUser() user: AuthenticatedUser,
     @Body() dto: UpdateSupplierPasswordDto,
   ) {
     return this.profile.updatePassword(user.sub, dto);

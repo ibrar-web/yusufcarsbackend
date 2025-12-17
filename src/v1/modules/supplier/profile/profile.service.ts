@@ -22,22 +22,31 @@ export class SupplierProfileService {
     private readonly users: Repository<User>,
   ) {}
 
-  async getProfile(userId: string) {
-    const supplier = await this.users.findOne({
+  async getProfile(userId: string): Promise<User> {
+    const supplierUser = await this.users.findOne({
       where: { id: userId },
       relations: ['supplier'],
     });
-    if (!supplier) throw new NotFoundException('Supplier not found');
-    return supplier;
+    if (!supplierUser) throw new NotFoundException('Supplier not found');
+    return supplierUser;
   }
 
-  async updateProfile(userId: string, dto: UpdateSupplierProfileDto) {
-    const supplier = await this.getProfile(userId);
-    Object.assign(supplier, dto);
-    return this.suppliers.save(supplier);
+  async updateProfile(
+    userId: string,
+    dto: UpdateSupplierProfileDto,
+  ): Promise<Supplier> {
+    const supplierUser = await this.getProfile(userId);
+    if (!supplierUser.supplier) {
+      throw new NotFoundException('Supplier profile not found');
+    }
+    Object.assign(supplierUser.supplier, dto);
+    return this.suppliers.save(supplierUser.supplier);
   }
 
-  async updatePassword(userId: string, dto: UpdateSupplierPasswordDto) {
+  async updatePassword(
+    userId: string,
+    dto: UpdateSupplierPasswordDto,
+  ): Promise<Omit<User, 'password'>> {
     const user = await this.users.findOne({ where: { id: userId } });
     if (!user) throw new NotFoundException('User not found');
     const matches = await bcrypt.compare(dto.currentPassword, user.password);

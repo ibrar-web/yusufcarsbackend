@@ -6,7 +6,10 @@ import { Message } from '../../../entities/messages.entity';
 import { SendUserMessageDto } from './dto/send-user-message.dto';
 import { Supplier } from '../../../entities/supplier.entity';
 import { Chats } from '../../../entities/chats.entity';
-import { ChatSocketService } from '../../sockets/chat/chat-socket.service';
+import {
+  ChatSocketService,
+  type ChatMessageEnvelope,
+} from '../../sockets/chat/chat-socket.service';
 import { AppRole, User } from 'src/v1/entities/user.entity';
 
 type PaginationOptions = {
@@ -314,15 +317,15 @@ export class UserMessagesService {
       supplierId: chat.supplier.id,
     };
 
-    this.attachSocketMeta(messageResponse, {
+    const socketPayload = this.attachSocketMeta(messageResponse, {
       chatId: chat.id,
       recipientId: chat.supplier.id,
       senderId: user.id,
       senderRole: 'user',
     });
-    this.chatSocket.emitMessage(messageResponse);
+    this.chatSocket.emitMessage(socketPayload);
 
-    return { chat: chatInfo, supplier: supplierInfo, message: messageResponse };
+    return { chat: chatInfo, supplier: supplierInfo, message: socketPayload };
   }
 
   private async ensureChat(userId: string, supplierUserId: string) {
@@ -365,12 +368,13 @@ export class UserMessagesService {
       senderId: string;
       senderRole: 'user' | 'supplier';
     },
-  ) {
+  ): MessageResponse & ChatMessageEnvelope {
     Object.defineProperties(message, {
       __recipientId: { value: meta.recipientId, enumerable: false },
       __chatId: { value: meta.chatId, enumerable: false },
       __senderId: { value: meta.senderId, enumerable: false },
       __senderRole: { value: meta.senderRole, enumerable: false },
     });
+    return message as MessageResponse & ChatMessageEnvelope;
   }
 }

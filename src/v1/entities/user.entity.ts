@@ -34,7 +34,7 @@ export class User {
 
   @Column({ unique: true })
   email!: string;
-  
+
   @Exclude()
   @Column()
   password!: string;
@@ -80,9 +80,10 @@ export class User {
   })
   supplier?: Supplier;
 
-  toPublic() {
-    const { password, ...rest } = this as any;
-    return rest;
+  toPublic(): Omit<User, 'password'> {
+    const publicFields = { ...this } as User;
+    delete (publicFields as Partial<User>).password;
+    return publicFields as Omit<User, 'password'>;
   }
 
   @BeforeInsert()

@@ -11,7 +11,8 @@ on:
 env:
   NODE_VERSION: '22'
   BUILD_ARTIFACT: backend-dist.tar.gz
-  ENV_FILE: .env.staging
+  DEPLOY_NODE_ENV: staging
+  ENTRY_POINT: dist/src/main.js
 
 jobs:
   build:
@@ -42,7 +43,6 @@ jobs:
         run: |
           tar -czf ${{ env.BUILD_ARTIFACT }} \
             dist \
-            ${{ env.ENV_FILE }} \
             package.json \
             package-lock.json
 
@@ -61,7 +61,12 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: backend-build
+          path: ./artifact
 
+      - name: Prepare artifact file
+        run: |
+          mv ./artifact/${{ env.BUILD_ARTIFACT }} ./
+          rm -rf ./artifact
       - name: Copy bundle to Lightsail
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -69,7 +74,7 @@ jobs:
           username: ${{ secrets.LIGHTSAIL_USER }}
           key: ${{ secrets.LIGHTSAIL_SSH_KEY }}
           source: ${{ env.BUILD_ARTIFACT }}
-          target: /tmp/${{ env.BUILD_ARTIFACT }}
+          target: /tmp/backend-deploy
 
       - name: Deploy on Lightsail instance
         uses: appleboy/ssh-action@v0.1.7
@@ -81,13 +86,22 @@ jobs:
             set -euo pipefail
             APP_DIR=${{ secrets.LIGHTSAIL_APP_DIR }}
             PM2_PROCESS=${{ secrets.LIGHTSAIL_PM2_PROCESS }}
+            NODE_ENV_VALUE=${{ env.DEPLOY_NODE_ENV }}
+            ENTRY_POINT=${{ env.ENTRY_POINT }}
+            BUNDLE_DIR=/tmp/backend-deploy
+            BUNDLE_PATH="$BUNDLE_DIR/${{ env.BUILD_ARTIFACT }}"
             mkdir -p "$APP_DIR"
-            tar -xzf /tmp/${{ env.BUILD_ARTIFACT }} -C "$APP_DIR"
+            mkdir -p "$BUNDLE_DIR"
+            if [ ! -f "$BUNDLE_PATH" ]; then
+              echo "Bundle not found at $BUNDLE_PATH" >&2
+              exit 1
+            fi
+            tar -xzf "$BUNDLE_PATH" -C "$APP_DIR"
             cd "$APP_DIR"
-            cp "${{ env.ENV_FILE }}" .env
             npm ci --omit=dev
+            npm install pg
             if pm2 list | grep -q "$PM2_PROCESS"; then
-              pm2 reload "$PM2_PROCESS"
+              NODE_ENV="$NODE_ENV_VALUE" pm2 reload "$PM2_PROCESS" --update-env
             else
-              pm2 start dist/main.js --name "$PM2_PROCESS"
+              NODE_ENV="$NODE_ENV_VALUE" pm2 start "$ENTRY_POINT" --name "$PM2_PROCESS"
             fi

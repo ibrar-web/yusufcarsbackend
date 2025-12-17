@@ -14,6 +14,7 @@ import { Roles } from '../../../common/decorators/roles.decorator';
 import { CurrentUser } from '../../admin/decorators/current-user.decorator';
 import { CompleteOrderDto } from './dto/complete-order.dto';
 import { CancelOrderDto } from './dto/cancel-order.dto';
+import type { AuthenticatedUser } from '../../../common/types/authenticated-user';
 
 @Controller('user/orders')
 @UseGuards(AuthGuard, RolesGuard)
@@ -23,7 +24,7 @@ export class UserOrdersController {
 
   @Get()
   list(
-    @CurrentUser() user: any,
+    @CurrentUser() user: AuthenticatedUser,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
     @Query('search') search?: string,
@@ -37,13 +38,13 @@ export class UserOrdersController {
   }
 
   @Get(':id')
-  detail(@CurrentUser() user: any, @Param('id') id: string) {
+  detail(@CurrentUser() user: AuthenticatedUser, @Param('id') id: string) {
     return this.orders.detail(user.sub, id);
   }
 
   @Post(':id/complete')
   complete(
-    @CurrentUser() user: any,
+    @CurrentUser() user: AuthenticatedUser,
     @Param('id') id: string,
     @Body() dto: CompleteOrderDto,
   ) {
@@ -52,7 +53,7 @@ export class UserOrdersController {
 
   @Post(':id/cancel')
   cancel(
-    @CurrentUser() user: any,
+    @CurrentUser() user: AuthenticatedUser,
     @Param('id') id: string,
     @Body() dto: CancelOrderDto,
   ) {

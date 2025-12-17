@@ -1,10 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository, FindOptionsWhere } from 'typeorm';
-import {
-  Order,
-  OrderStatus,
-} from '../../../entities/quotes/order.entity';
+import { Order, OrderStatus } from '../../../entities/quotes/order.entity';
 import { ReviewRating } from '../../../entities/reviews_rating.entity';
 import {
   buildOrderResponse,
@@ -69,7 +66,7 @@ export class AdminOrdersService {
       throw new NotFoundException('Order not found');
     }
     const review = await this.reviews.findOne({
-      where: { order: { id: order.id } } as any,
+      where: { order: { id: order.id } },
     });
     return buildOrderResponse(order, review, {
       includeBuyer: true,
@@ -83,7 +80,7 @@ export class AdminOrdersService {
     if (!orders.length) return reviewMap;
     const orderIds = orders.map((order) => order.id);
     const reviews = await this.reviews.find({
-      where: { order: { id: In(orderIds) } } as any,
+      where: { order: { id: In(orderIds) } },
     });
     for (const review of reviews) {
       if (review.orderId) {
@@ -97,7 +94,7 @@ export class AdminOrdersService {
     if (!status) return undefined;
     const normalized = status.toLowerCase() as OrderStatus;
     if ((Object.values(OrderStatus) as string[]).includes(normalized)) {
-      return normalized as OrderStatus;
+      return normalized;
     }
     return undefined;
   }

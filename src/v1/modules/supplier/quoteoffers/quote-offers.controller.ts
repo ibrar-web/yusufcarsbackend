@@ -4,6 +4,7 @@ import { AuthGuard } from '../../../common/guards/auth.guard';
 import { RolesGuard } from '../../../common/guards/roles.guard';
 import { Roles } from '../../../common/decorators/roles.decorator';
 import { CurrentUser } from '../../admin/decorators/current-user.decorator';
+import type { AuthenticatedUser } from '../../../common/types/authenticated-user';
 import { CreateQuoteOfferDto } from './dto/create-quote-offer.dto';
 
 @Controller('supplier/quote/offer')
@@ -13,12 +14,15 @@ export class SupplierQuoteOffersController {
   constructor(private readonly quoteOffers: SupplierQuoteOffersService) {}
 
   @Get('')
-  listAvailable(@CurrentUser() user: any) {
+  listAvailable(@CurrentUser() user: AuthenticatedUser) {
     return this.quoteOffers.listAvailableRequests(user.sub);
   }
 
   @Post()
-  create(@CurrentUser() user: any, @Body() dto: CreateQuoteOfferDto) {
+  create(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() dto: CreateQuoteOfferDto,
+  ) {
     return this.quoteOffers.createOffer(user.sub, dto);
   }
 }

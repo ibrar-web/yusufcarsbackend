@@ -14,6 +14,7 @@ import { CurrentUser } from '../../admin/decorators/current-user.decorator';
 import { UserRequestQuoteService } from './request-quote.service';
 import { CreateRequestQuoteDto } from './dto/create-request-quote.dto';
 import { QuoteRequest } from '../../../entities/quotes/quote-request.entity';
+import type { AuthenticatedUser } from '../../../common/types/authenticated-user';
 
 type QuoteRequestStatus = QuoteRequest['status'];
 
@@ -24,18 +25,23 @@ export class UserRequestQuoteController {
   constructor(private readonly requestQuotes: UserRequestQuoteService) {}
 
   @Get()
-  list(@CurrentUser() user: any, @Query('status') status?: QuoteRequestStatus) {
+  list(
+    @CurrentUser() user: AuthenticatedUser,
+    @Query('status') status?: QuoteRequestStatus,
+  ) {
     return this.requestQuotes.list(user.sub, status);
   }
 
   @Get(':id')
-  detail(@CurrentUser() user: any, @Param('id') id: string) {
+  detail(@CurrentUser() user: AuthenticatedUser, @Param('id') id: string) {
     return this.requestQuotes.detail(user.sub, id);
   }
 
   @Post()
-  create(@CurrentUser() user: any, @Body() dto: CreateRequestQuoteDto) {
-    console.log('dto', dto);
+  create(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() dto: CreateRequestQuoteDto,
+  ) {
     return this.requestQuotes.create(user.sub, dto);
   }
 }

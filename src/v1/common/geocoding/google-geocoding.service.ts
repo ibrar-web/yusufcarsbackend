@@ -46,7 +46,9 @@ export class GoogleGeocodingService {
       return null;
     }
 
-    const fetchImpl: FetchLike | undefined = (globalThis as any).fetch;
+    const fetchImpl: FetchLike | undefined = (
+      globalThis as { fetch?: FetchLike }
+    ).fetch;
     if (!fetchImpl) {
       this.logger.error('Fetch API not available in current runtime');
       return null;

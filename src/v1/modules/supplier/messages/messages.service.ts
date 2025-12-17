@@ -6,7 +6,10 @@ import { SendMessageDto } from './dto/send-message.dto';
 import { Supplier } from '../../../entities/supplier.entity';
 import { AppRole, User, UserStatus } from '../../../entities/user.entity';
 import { Chats } from '../../../entities/chats.entity';
-import { ChatSocketService } from '../../sockets/chat/chat-socket.service';
+import {
+  ChatSocketService,
+  type ChatMessageEnvelope,
+} from '../../sockets/chat/chat-socket.service';
 
 type PaginationOptions = {
   page?: number;
@@ -314,13 +317,13 @@ export class SupplierMessagesService {
         postCode: supplierUser.postCode ?? null,
       },
     };
-    this.attachSocketMeta(messageResponse, {
+    const socketPayload = this.attachSocketMeta(messageResponse, {
       chatId: chat.id,
       recipientId: chat.user.id,
       senderId: supplierUser.id,
       senderRole: 'supplier',
     });
-    this.chatSocket.emitMessage(messageResponse);
+    this.chatSocket.emitMessage(socketPayload);
 
     const chatInfo = {
       id: chat.id,
@@ -329,7 +332,7 @@ export class SupplierMessagesService {
       supplierId: supplierUserId,
     };
 
-    return { chat: chatInfo, user: userInfo, message: messageResponse };
+    return { chat: chatInfo, user: userInfo, message: socketPayload };
   }
 
   private async ensureChat(userId: string, supplierUserId: string) {
@@ -363,12 +366,13 @@ export class SupplierMessagesService {
       senderId: string;
       senderRole: 'user' | 'supplier';
     },
-  ) {
+  ): MessageResponse & ChatMessageEnvelope {
     Object.defineProperties(message, {
       __recipientId: { value: meta.recipientId, enumerable: false },
       __chatId: { value: meta.chatId, enumerable: false },
       __senderId: { value: meta.senderId, enumerable: false },
       __senderRole: { value: meta.senderRole, enumerable: false },
     });
+    return message as MessageResponse & ChatMessageEnvelope;
   }
 }

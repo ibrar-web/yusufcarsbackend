@@ -1,9 +1,4 @@
-import {
-  IsArray,
-  IsEnum,
-  IsOptional,
-  IsString,
-} from 'class-validator';
+import { IsArray, IsEnum, IsOptional, IsString } from 'class-validator';
 import { SupplierApprovalStatus } from '../../../../entities/supplier.entity';
 import { UserStatus } from '../../../../entities/user.entity';
 

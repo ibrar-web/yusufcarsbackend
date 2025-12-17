@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class AddReviewsAndReports1765266254571
-  implements MigrationInterface
-{
+export class AddReviewsAndReports1765266254571 implements MigrationInterface {
   name = 'AddReviewsAndReports1765266254571';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
@@ -115,4 +113,3 @@ export class AddReviewsAndReports1765266254571
     await queryRunner.query(`DROP TABLE "reviews_ratings"`);
   }
 }
-

@@ -75,7 +75,7 @@ export class SupplierOrdersService {
       throw new NotFoundException('Order not found');
     }
     const review = await this.reviews.findOne({
-      where: { order: { id: order.id } } as any,
+      where: { order: { id: order.id } },
     });
     return {
       data: buildOrderResponse(order, review, {
@@ -90,7 +90,7 @@ export class SupplierOrdersService {
     if (!orders.length) return reviewMap;
     const orderIds = orders.map((order) => order.id);
     const reviews = await this.reviews.find({
-      where: { order: { id: In(orderIds) } } as any,
+      where: { order: { id: In(orderIds) } },
     });
     for (const review of reviews) {
       if (review.orderId) {

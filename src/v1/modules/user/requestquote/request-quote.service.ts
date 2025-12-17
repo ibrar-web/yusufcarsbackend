@@ -30,7 +30,7 @@ export class UserRequestQuoteService {
 
   async list(userId: string, status?: QuoteRequestStatus) {
     const where: FindOptionsWhere<QuoteRequest> = {
-      user: { id: userId } as any,
+      user: { id: userId },
       ...(status ? { status } : {}),
     };
     return this.quoteRequests.find({
@@ -41,7 +41,7 @@ export class UserRequestQuoteService {
 
   async detail(userId: string, id: string) {
     const request = await this.quoteRequests.findOne({
-      where: { id, user: { id: userId } as any },
+      where: { id, user: { id: userId } },
       relations: ['quotes'],
     });
     if (!request) throw new NotFoundException('Quote request not found');

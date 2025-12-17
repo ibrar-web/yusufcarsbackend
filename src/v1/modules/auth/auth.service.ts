@@ -17,6 +17,8 @@ import {
 } from '../../common/aws/kyc-docs.service';
 import { GoogleGeocodingService } from '../../common/geocoding/google-geocoding.service';
 
+type PublicUser = Omit<User, 'password'>;
+
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
@@ -37,7 +39,7 @@ export class AuthService {
   async register(
     dto: UserRegisterDto | SupplierRegisterDto,
     docs?: Record<string, UploadedFile | undefined>,
-  ) {
+  ): Promise<PublicUser> {
     const existing = await this.users.findOne({ where: { email: dto.email } });
     if (existing) throw new BadRequestException('Email already in use');
 
@@ -94,7 +96,6 @@ export class AuthService {
       await this.suppliers.save(supplier);
       await this.saveUploadedDocuments(supplier, uploadedDocs);
     }
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return user.toPublic();
   }
 
@@ -194,7 +195,10 @@ export class AuthService {
       .replace(/\b\w/g, (c) => c.toUpperCase());
   }
 
-  async validateUser(email: string, password: string) {
+  async validateUser(
+    email: string,
+    password: string,
+  ): Promise<PublicUser | null> {
     const user = await this.users.findOne({ where: { email } });
     if (!user) return null;
     const ok = await bcrypt.compare(password, user.password);
@@ -203,7 +207,7 @@ export class AuthService {
     return user.toPublic();
   }
 
-  async login(res: Response, userPublic: any) {
+  async login(res: Response, userPublic: PublicUser): Promise<PublicUser> {
     const token = await this.jose.sign({
       sub: userPublic.id,
       email: userPublic.email,
