@@ -4,6 +4,7 @@ import { QuoteRequest } from '../../../entities/quotes/quote-request.entity';
 import { User } from '../../../entities/user.entity';
 import { Supplier } from '../../../entities/supplier.entity';
 import { SupplierQuoteNotification } from '../../../entities/quotes/supplier-quote-notification.entity';
+import { ServiceItem } from '../../../entities/services/service-item.entity';
 import { UserRequestQuoteController } from './request-quote.controller';
 import { UserRequestQuoteService } from './request-quote.service';
 import { AuthGuard } from '../../../common/guards/auth.guard';
@@ -20,6 +21,7 @@ import { GoogleGeocodingService } from '../../../common/geocoding/google-geocodi
       User,
       Supplier,
       SupplierQuoteNotification,
+      ServiceItem,
     ]),
   ],
   controllers: [UserRequestQuoteController],
