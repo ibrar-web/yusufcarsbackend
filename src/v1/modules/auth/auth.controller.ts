@@ -85,11 +85,10 @@ export class AuthController {
     return await this.auth.login(res, pub);
   }
 
+  @Post('logout')
   @Get('logout')
   logout(@Res({ passthrough: true }) res: Response) {
-    const cookieName = process.env.COOKIE_NAME || 'access_token';
-    res.cookie(cookieName, '', { httpOnly: true, maxAge: 0, path: '/' });
-    return { ok: true };
+    return this.auth.logout(res);
   }
 
   @Get('session')

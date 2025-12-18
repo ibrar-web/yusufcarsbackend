@@ -236,4 +236,21 @@ export class AuthService {
     });
     return userPublic;
   }
+
+  logout(res: Response) {
+    const cookieName = process.env.COOKIE_NAME || 'access_token';
+    const domain = process.env.COOKIE_DOMAIN || undefined;
+    const secure = process.env.NODE_ENV === 'production';
+
+    res.cookie(cookieName, '', {
+      httpOnly: true,
+      sameSite: 'lax',
+      secure,
+      domain,
+      maxAge: 0,
+      expires: new Date(0),
+      path: '/',
+    });
+    return { ok: true };
+  }
 }
