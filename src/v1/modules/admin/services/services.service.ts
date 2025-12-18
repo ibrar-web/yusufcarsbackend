@@ -28,7 +28,6 @@ export class AdminServicesService {
 
   async listCategories() {
     return this.categories.find({
-      relations: ['subcategories', 'subcategories.items'],
       order: { sortOrder: 'ASC', name: 'ASC' },
     });
   }
@@ -91,7 +90,7 @@ export class AdminServicesService {
   async getSubcategory(id: string) {
     const subcategory = await this.subcategories.findOne({
       where: { id },
-      relations: ['category', 'items'],
+      relations: ['category'],
     });
     if (!subcategory) {
       throw new NotFoundException('Subcategory not found');
