@@ -87,6 +87,16 @@ export class AdminServicesService {
     });
   }
 
+  async getSubcategory(id: string) {
+    const subcategory = await this.subcategories.findOne({
+      where: { id },
+      relations: ['category', 'items'],
+    });
+    if (!subcategory) {
+      throw new NotFoundException('Subcategory not found');
+    }
+    return subcategory;
+  }
 
   async createSubcategory(
     categoryId: string,
@@ -158,6 +168,25 @@ export class AdminServicesService {
     return { success: true };
   }
 
+  async listItems(subcategoryId?: string) {
+    const where: FindOptionsWhere<ServiceItem> | undefined = subcategoryId
+      ? { subcategory: { id: subcategoryId } }
+      : undefined;
+    return this.items.find({
+      where,
+      relations: ['subcategory', 'subcategory.category'],
+      order: { name: 'ASC' },
+    });
+  }
+
+  async getItem(id: string) {
+    const item = await this.items.findOne({
+      where: { id },
+      relations: ['subcategory', 'subcategory.category'],
+    });
+    if (!item) throw new NotFoundException('Item not found');
+    return item;
+  }
 
   async createItem(subcategoryId: string, dto: CreateServiceItemDto) {
     const subcategory = await this.subcategories.findOne({

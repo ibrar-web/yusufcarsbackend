@@ -59,6 +59,11 @@ export class AdminServicesController {
     return this.servicesService.listSubcategories(categoryId);
   }
 
+  @Get('subcategories/:id')
+  getSubcategory(@Param('id') id: string) {
+    return this.servicesService.getSubcategory(id);
+  }
+
   @Post('categories/:categoryId/subcategories')
   createSubcategory(
     @Param('categoryId') categoryId: string,
@@ -78,6 +83,16 @@ export class AdminServicesController {
   @Delete('subcategories/:id')
   deleteSubcategory(@Param('id') id: string) {
     return this.servicesService.deleteSubcategory(id);
+  }
+
+  @Get('items')
+  listItems(@Query('subcategoryId') subcategoryId?: string) {
+    return this.servicesService.listItems(subcategoryId);
+  }
+
+  @Get('items/:id')
+  getItem(@Param('id') id: string) {
+    return this.servicesService.getItem(id);
   }
 
   @Post('subcategories/:subcategoryId/items')
