@@ -112,7 +112,13 @@ export class AdminServicesService {
   }
 
   async updateSubcategory(id: string, dto: UpdateServiceSubcategoryDto) {
-    const subcategory = await this.getSubcategory(id);
+    const subcategory = await this.subcategories.findOne({
+      where: { id },
+      relations: ['category'],
+    });
+    if (!subcategory) {
+      throw new NotFoundException('Subcategory not found');
+    }
     if (dto.categoryId && dto.categoryId !== subcategory.category.id) {
       const category = await this.categories.findOne({
         where: { id: dto.categoryId },
@@ -165,7 +171,10 @@ export class AdminServicesService {
   }
 
   async updateItem(id: string, dto: UpdateServiceItemDto) {
-    const item = await this.getItem(id);
+    const item = await this.items.findOne({ where: { id: id } });
+    if (!item) {
+      throw new NotFoundException("Item not found");
+    }
     if (dto.subcategoryId && dto.subcategoryId !== item.subcategory.id) {
       const subcategory = await this.subcategories.findOne({
         where: { id: dto.subcategoryId },
