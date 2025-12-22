@@ -14,6 +14,10 @@ export class UpdateAdminUserDto {
   firstName?: string;
 
   @IsOptional()
+  @IsString()
+  lastName?: string;
+
+  @IsOptional()
   @IsEmail()
   email?: string;
 

@@ -49,6 +49,7 @@ export class AdminUsersService {
     const [data, total] = await this.users.findAndCount({
       where,
       select: {
+        id: true,
         firstName: true,
         lastName: true,
         email: true,

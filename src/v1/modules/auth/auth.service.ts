@@ -47,15 +47,22 @@ export class AuthService {
     const postCode = this.resolvePostCode(dto);
     if (!postCode) throw new BadRequestException('Postcode is required');
     const coordinates = await this.lookupCoordinates(postCode);
-    const firstName =
-      dto.firstName ||
-      supplierDto.firstName ||
-      supplierDto.businessName ||
-      'Supplier User';
+    const firstNameFallback =
+      supplierDto.businessName ?? supplierDto.tradingAs ?? 'User';
+    const firstName = this.normalizeRequiredName(
+      (dto as { firstName?: string }).firstName ??
+        supplierDto.firstName ??
+        firstNameFallback,
+      firstNameFallback,
+    );
+    const lastName = this.normalizeOptionalName(
+      (dto as { lastName?: string }).lastName ?? supplierDto.lastName ?? '',
+    );
     const user = this.users.create({
       email: dto.email,
       password: dto.password,
       firstName,
+      lastName,
       role: dto.role ?? 'user',
       postCode,
       latitude: coordinates?.latitude,
@@ -73,7 +80,7 @@ export class AuthService {
       const businessName =
         supplierDto.businessName ||
         supplierDto.tradingAs ||
-        supplierDto.firstName ||
+        [firstName, lastName].filter(Boolean).join(' ') ||
         'Supplier';
       const supplier = this.suppliers.create({
         user,
@@ -125,6 +132,16 @@ export class AuthService {
       );
       throw new BadRequestException(invalidMessage);
     }
+  }
+
+  private normalizeRequiredName(value?: string | null, fallback = 'User') {
+    const normalized = (value ?? '').trim();
+    return normalized.length ? normalized : fallback;
+  }
+
+  private normalizeOptionalName(value?: string | null) {
+    const normalized = (value ?? '').trim();
+    return normalized.length ? normalized : null;
   }
 
   private ensureSupplierDocuments(

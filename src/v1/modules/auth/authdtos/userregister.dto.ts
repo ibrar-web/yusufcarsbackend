@@ -14,6 +14,9 @@ export class UserRegisterDto {
   @IsString()
   firstName: string;
 
+  @IsString()
+  lastName: string;
+
   @IsEmail()
   email: string;
 
@@ -36,6 +39,9 @@ export class AdminRegisterDto {
   role?: userEntity.AppRole;
   @IsString()
   firstName: string;
+
+  @IsString()
+  lastName: string;
 
   @IsEmail()
   email: string;
