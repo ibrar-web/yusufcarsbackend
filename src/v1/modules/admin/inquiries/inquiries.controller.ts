@@ -30,8 +30,7 @@ export class AdminEnquiriesController {
     @Query('status') status?: InquiryStatus,
     @Query('urgency') urgency?: UrgencyLevel,
     @Query('contact') contact?: string,
-    @Query('from') from?: string,
-    @Query('to') to?: string,
+    @Query('search') search?: string,
     @Query('sortDir') sortDir?: 'ASC' | 'DESC',
   ) {
     return this.enquiries.list({
@@ -43,8 +42,7 @@ export class AdminEnquiriesController {
         contact === undefined
           ? undefined
           : contact === 'true' || contact === '1',
-      from,
-      to,
+      search,
       sortDir: sortDir || 'DESC',
     });
   }

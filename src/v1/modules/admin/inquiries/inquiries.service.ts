@@ -14,10 +14,9 @@ type ListParams = {
   limit?: number;
   status?: InquiryStatus;
   urgency?: UrgencyLevel;
-  from?: string;
-  to?: string;
   contact?: boolean;
   sortDir?: 'ASC' | 'DESC';
+  search?: string;
 };
 
 @Injectable()
@@ -45,17 +44,12 @@ export class AdminEnquiriesService {
     if (typeof params.contact === 'boolean') {
       qb.andWhere('enquiry.contact = :contact', { contact: params.contact });
     }
-    if (params.from && params.to) {
-      qb.andWhere('enquiry.createdAt BETWEEN :from AND :to', {
-        from: new Date(params.from),
-        to: new Date(params.to),
-      });
-    } else if (params.from) {
-      qb.andWhere('enquiry.createdAt >= :from', {
-        from: new Date(params.from),
-      });
-    } else if (params.to) {
-      qb.andWhere('enquiry.createdAt <= :to', { to: new Date(params.to) });
+    if (params.search) {
+      const term = `%${params.search.trim().toLowerCase()}%`;
+      qb.andWhere(
+        `(LOWER(enquiry.fullName) LIKE :term OR LOWER(enquiry.email) LIKE :term OR LOWER(enquiry.subject) LIKE :term OR LOWER(enquiry.content) LIKE :term)`,
+        { term },
+      );
     }
 
     qb.orderBy('enquiry.createdAt', params.sortDir || 'DESC')
