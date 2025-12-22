@@ -12,7 +12,7 @@ import type { AuthenticatedUser } from '../../../common/types/authenticated-user
 export class SupplierStatsController {
   constructor(private readonly stats: SupplierStatsService) {}
 
-  @Get('overview')
+  @Get('/')
   overview(@CurrentUser() user: AuthenticatedUser) {
     return this.stats.overview(user.sub);
   }

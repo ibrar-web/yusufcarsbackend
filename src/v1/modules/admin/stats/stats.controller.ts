@@ -10,7 +10,7 @@ import { Roles } from '../decorators/roles.decorator';
 export class AdminStatsController {
   constructor(private readonly stats: AdminStatsService) {}
 
-  @Get('dashboard')
+  @Get('/')
   dashboard() {
     return this.stats.dashboard();
   }

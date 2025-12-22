@@ -17,13 +17,14 @@ export class SupplierStatsService {
   ) {}
 
   async overview(supplierId: string) {
+    const baseFilter = { supplier: { id: supplierId } };
     const [totalOrders, activeOrders, completedOrders] = await Promise.all([
-      this.orders.count({ where: { supplierId } }),
+      this.orders.count({ where: baseFilter }),
       this.orders.count({
-        where: { supplierId, status: OrderStatus.IN_TRANSIT },
+        where: { ...baseFilter, status: OrderStatus.IN_TRANSIT },
       }),
       this.orders.count({
-        where: { supplierId, status: OrderStatus.COMPLETED },
+        where: { ...baseFilter, status: OrderStatus.COMPLETED },
       }),
     ]);
 
