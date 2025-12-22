@@ -45,7 +45,7 @@ export class SupplierQuotesService {
         'serviceItem.slug',
       ])
       .leftJoin('request.user', 'user')
-      .addSelect(['user.id', 'user.fullName'])
+      .addSelect(['user.id', 'user.firstName'])
       .where('notification.supplierId = :supplierId', {
         supplierId: supplierUserId,
       })

@@ -30,7 +30,7 @@ export class PublicInquiriesService {
     file?: Express.Multer.File,
   ): Promise<InquirySubmissionResult> {
     const enquiry = this.enquiries.create({
-      fullName: dto.fullName.trim(),
+      firstName: dto.firstName.trim(),
       email: dto.email.toLowerCase().trim(),
       subject: dto.subject.trim(),
       content: dto.content.trim(),

@@ -35,7 +35,7 @@ export class CreateInquiryDto {
   @IsString()
   @IsNotEmpty()
   @MaxLength(150)
-  fullName!: string;
+  firstName!: string;
 
   @Transform(({ value }) => sanitizeText(value).trim())
   @IsEmail()

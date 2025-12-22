@@ -38,7 +38,7 @@ export class SupplierOrdersService {
       const term = `%${params.search.trim()}%`;
       qb.andWhere(
         `(
-          buyer."fullName" ILIKE :term
+          buyer."firstName" ILIKE :term
           OR request."registrationNumber" ILIKE :term
           OR accepted_quote."partName" ILIKE :term
           OR accepted_quote."brand" ILIKE :term

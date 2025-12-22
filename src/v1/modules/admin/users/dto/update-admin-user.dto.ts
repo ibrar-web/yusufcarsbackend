@@ -11,7 +11,7 @@ import { UserStatus } from '../../../../entities/user.entity';
 export class UpdateAdminUserDto {
   @IsOptional()
   @IsString()
-  fullName?: string;
+  firstName?: string;
 
   @IsOptional()
   @IsEmail()

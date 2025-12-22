@@ -31,7 +31,7 @@ type MessageResponse = {
   sender: {
     id: string;
     email: string;
-    fullName: string;
+    firstName: string;
     role: AppRole;
     createdAt: Date;
   };
@@ -94,8 +94,8 @@ export class UserMessagesService {
           businessName: supplierProfile?.businessName ?? null,
           userId: chat.supplier.id,
           firstName:
-            chat.supplier.fullName?.split(' ')?.[0] ??
-            chat.supplier.fullName ??
+            chat.supplier.firstName?.split(' ')?.[0] ??
+            chat.supplier.firstName ??
             null,
         }
       : null;
@@ -134,7 +134,7 @@ export class UserMessagesService {
           sender: {
             id: message.sender.id,
             email: message.sender.email,
-            fullName: message.sender.fullName,
+            firstName: message.sender.firstName,
             role: message.sender.role,
             createdAt: message.sender.createdAt,
           },
@@ -214,7 +214,7 @@ export class UserMessagesService {
             sender: {
               id: message.sender.id,
               email: message.sender.email,
-              fullName: message.sender.fullName,
+              firstName: message.sender.firstName,
               role: 'user',
               createdAt: message.sender.createdAt,
             },
@@ -234,8 +234,8 @@ export class UserMessagesService {
             businessName: supplierProfile?.businessName ?? null,
             userId: chat.supplier.id,
             firstName:
-              chat.supplier.fullName?.split(' ')?.[0] ??
-              chat.supplier.fullName ??
+              chat.supplier.firstName?.split(' ')?.[0] ??
+              chat.supplier.firstName ??
               null,
           }
         : null;
@@ -286,8 +286,8 @@ export class UserMessagesService {
           businessName: supplierProfile?.businessName ?? null,
           userId: chat.supplier.id,
           firstName:
-            chat.supplier.fullName?.split(' ')?.[0] ??
-            chat.supplier.fullName ??
+            chat.supplier.firstName?.split(' ')?.[0] ??
+            chat.supplier.firstName ??
             null,
         }
       : null;
@@ -304,7 +304,7 @@ export class UserMessagesService {
       sender: {
         id: message.sender.id,
         email: message.sender.email,
-        fullName: message.sender.fullName,
+        firstName: message.sender.firstName,
         role: 'user',
         createdAt: message.sender.createdAt,
       },

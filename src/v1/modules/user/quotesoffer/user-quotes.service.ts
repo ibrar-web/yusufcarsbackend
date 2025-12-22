@@ -29,7 +29,7 @@ type ListQupotesParams = {
 type LimitedSupplier = {
   id: string;
   email: string | null;
-  fullName: string | null;
+  firstName: string | null;
 };
 
 @Injectable()
@@ -67,7 +67,7 @@ export class UserQuotesService {
         ? {
             id: supplier.id,
             email: supplier.email ?? null,
-            fullName: supplier.fullName ?? null,
+            firstName: supplier.firstName ?? null,
           }
         : null;
       return {

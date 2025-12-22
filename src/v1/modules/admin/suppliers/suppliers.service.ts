@@ -60,7 +60,7 @@ export class AdminSuppliersService {
           const q = `%${params.query}%`;
           expr
             .where('user.email ILIKE :q', { q })
-            .orWhere('user.fullName ILIKE :q', { q })
+            .orWhere('user.firstName ILIKE :q', { q })
             .orWhere('supplier.businessName ILIKE :q', { q })
             .orWhere('supplier.tradingAs ILIKE :q', { q });
         }),

@@ -10,7 +10,7 @@ export type ChatMessagePayload = {
   sender: {
     id: string;
     email: string;
-    fullName: string;
+    firstName: string;
     role: AppRole;
     createdAt: Date | string;
   };

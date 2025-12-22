@@ -9,7 +9,7 @@ import {
 export class UpdateUserProfileDto {
   @IsOptional()
   @IsString()
-  fullName?: string;
+  firstName?: string;
 
   @IsOptional()
   @IsEmail()

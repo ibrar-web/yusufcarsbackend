@@ -36,7 +36,8 @@ export class AdminUsersService {
       const q = ILike(`%${params.query}%`);
       where = [
         { ...base, email: q },
-        { ...base, fullName: q },
+        { ...base, firstName: q },
+        { ...base, lastName: q },
       ];
     } else {
       where = [base];
@@ -48,8 +49,8 @@ export class AdminUsersService {
     const [data, total] = await this.users.findAndCount({
       where,
       select: {
-        id: true,
-        fullName: true,
+        firstName: true,
+        lastName: true,
         email: true,
         status: true,
         postCode: true,

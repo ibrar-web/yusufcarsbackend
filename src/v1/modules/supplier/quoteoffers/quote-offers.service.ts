@@ -134,8 +134,8 @@ export class SupplierQuoteOffersService {
           supplier: {
             id: notification.supplier.id,
             email: notification.supplier.email,
-            fullName:
-              notification.supplier.fullName ||
+            firstName:
+              notification.supplier.firstName ||
               notification.supplier.email ||
               'Supplier',
           },

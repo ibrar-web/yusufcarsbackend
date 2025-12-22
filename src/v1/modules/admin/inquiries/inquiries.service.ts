@@ -47,7 +47,7 @@ export class AdminEnquiriesService {
     if (params.search) {
       const term = `%${params.search.trim().toLowerCase()}%`;
       qb.andWhere(
-        `(LOWER(enquiry.fullName) LIKE :term OR LOWER(enquiry.email) LIKE :term OR LOWER(enquiry.subject) LIKE :term OR LOWER(enquiry.content) LIKE :term)`,
+        `(LOWER(enquiry.firstName) LIKE :term OR LOWER(enquiry.email) LIKE :term OR LOWER(enquiry.subject) LIKE :term OR LOWER(enquiry.content) LIKE :term)`,
         { term },
       );
     }

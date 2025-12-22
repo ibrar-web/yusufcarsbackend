@@ -4,7 +4,7 @@ import { User } from '../../entities/user.entity';
 
 type PublicProfile = {
   id: string;
-  fullName: string | null;
+  firstName: string | null;
   email: string | null;
   role: string;
 };
@@ -123,7 +123,7 @@ function sanitizeUser(user?: User | null): PublicProfile | null {
   if (!user) return null;
   return {
     id: user.id,
-    fullName: user.fullName ?? null,
+    firstName: user.firstName ?? null,
     email: user.email ?? null,
     role: user.role,
   };

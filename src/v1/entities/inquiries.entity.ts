@@ -23,7 +23,7 @@ export class Inquiries {
   id: string;
 
   @Column()
-  fullName: string;
+  firstName: string;
 
   @Column()
   email: string;

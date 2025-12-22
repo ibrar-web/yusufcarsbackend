@@ -12,7 +12,7 @@ export class UserRegisterDto {
   @IsEnum(['admin', 'user', 'supplier', 'garage'])
   role?: userEntity.AppRole;
   @IsString()
-  fullName: string;
+  firstName: string;
 
   @IsEmail()
   email: string;
@@ -35,7 +35,7 @@ export class AdminRegisterDto {
   @IsEnum(['admin', 'user', 'supplier', 'garage'])
   role?: userEntity.AppRole;
   @IsString()
-  fullName: string;
+  firstName: string;
 
   @IsEmail()
   email: string;

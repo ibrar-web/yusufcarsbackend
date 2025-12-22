@@ -15,7 +15,7 @@ export type QuoteOfferReceivedPayload = {
   supplier: {
     id: string;
     email: string | null;
-    fullName: string | null;
+    firstName: string | null;
   };
   userId: string;
 };

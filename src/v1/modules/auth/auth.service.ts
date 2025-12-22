@@ -47,15 +47,15 @@ export class AuthService {
     const postCode = this.resolvePostCode(dto);
     if (!postCode) throw new BadRequestException('Postcode is required');
     const coordinates = await this.lookupCoordinates(postCode);
-    const fullName =
-      dto.fullName ||
+    const firstName =
+      dto.firstName ||
       supplierDto.firstName ||
       supplierDto.businessName ||
       'Supplier User';
     const user = this.users.create({
       email: dto.email,
       password: dto.password,
-      fullName,
+      firstName,
       role: dto.role ?? 'user',
       postCode,
       latitude: coordinates?.latitude,
@@ -73,7 +73,7 @@ export class AuthService {
       const businessName =
         supplierDto.businessName ||
         supplierDto.tradingAs ||
-        supplierDto.fullName ||
+        supplierDto.firstName ||
         'Supplier';
       const supplier = this.suppliers.create({
         user,

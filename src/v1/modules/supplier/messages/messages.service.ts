@@ -23,7 +23,7 @@ type SupplierChatListOptions = PaginationOptions & {
 type PublicUserProfile = {
   id: string;
   email: string;
-  fullName: string;
+  firstName: string;
   role: AppRole;
   createdAt: Date;
   status: UserStatus;
@@ -88,7 +88,7 @@ export class SupplierMessagesService {
       ? {
           id: chat.user.id,
           email: chat.user.email,
-          fullName: chat.user.fullName,
+          firstName: chat.user.firstName,
           role: chat.user.role,
           status: chat.user.status,
           isActive: chat.user.status === UserStatus.ACTIVE,
@@ -133,7 +133,7 @@ export class SupplierMessagesService {
           sender: {
             id: message.sender.id,
             email: message.sender.email,
-            fullName: message.sender.fullName,
+            firstName: message.sender.firstName,
             role: message.sender.role,
             status: message.sender.status,
             isActive: message.sender.status === UserStatus.ACTIVE,
@@ -202,7 +202,7 @@ export class SupplierMessagesService {
             sender: {
               id: message.sender.id,
               email: message.sender.email,
-              fullName: message.sender.fullName,
+              firstName: message.sender.firstName,
               role: message.sender.role,
               status: message.sender.status,
               isActive: message.sender.status === UserStatus.ACTIVE,
@@ -221,7 +221,7 @@ export class SupplierMessagesService {
         ? {
             id: chat.user.id,
             email: chat.user.email,
-            fullName: chat.user.fullName,
+            firstName: chat.user.firstName,
             role: chat.user.role,
             status: chat.user.status,
             isActive: chat.user.status === UserStatus.ACTIVE,
@@ -282,7 +282,7 @@ export class SupplierMessagesService {
       ? {
           id: chat.user.id,
           email: chat.user.email,
-          fullName: chat.user.fullName,
+          firstName: chat.user.firstName,
           role: chat.user.role,
           status: chat.user.status,
           isActive: chat.user.status === UserStatus.ACTIVE,
@@ -308,7 +308,7 @@ export class SupplierMessagesService {
       sender: {
         id: message.sender.id,
         email: message.sender.email,
-        fullName: message.sender.fullName,
+        firstName: message.sender.firstName,
         role: 'supplier',
         status: supplierUser.status,
         isActive: supplierUser.status === UserStatus.ACTIVE,

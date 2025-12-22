@@ -40,7 +40,10 @@ export class User {
   password!: string;
 
   @Column()
-  fullName!: string;
+  firstName!: string;
+
+  @Column()
+  lastName!: string;
 
   @Index()
   @Column({
@@ -81,9 +84,9 @@ export class User {
   supplier?: Supplier;
 
   toPublic(): Omit<User, 'password'> {
-    const publicFields = { ...this } as User;
-    delete (publicFields as Partial<User>).password;
-    return publicFields as Omit<User, 'password'>;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password: _, ...rest } = this;
+    return { ...rest } as Omit<User, 'password'>;
   }
 
   @BeforeInsert()

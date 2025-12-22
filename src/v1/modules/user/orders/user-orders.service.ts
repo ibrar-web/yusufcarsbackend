@@ -45,7 +45,7 @@ export class UserOrdersService {
       qb.andWhere(
         `(
           request."registrationNumber" ILIKE :term
-          OR supplier."fullName" ILIKE :term
+          OR supplier."firstName" ILIKE :term
           OR accepted_quote."partName" ILIKE :term
           OR accepted_quote."brand" ILIKE :term
         )`,

@@ -23,6 +23,10 @@ export class SupplierRegisterDto {
   @IsString()
   firstName?: string;
 
+  @IsOptional()
+  @IsString()
+  lastName?: string;
+
   @IsString()
   @IsNotEmpty()
   tradingAs!: string;
@@ -86,10 +90,6 @@ export class SupplierRegisterDto {
   @IsArray()
   @IsString({ each: true })
   categories?: string[];
-
-  // USER DATA ALSO REQUIRED
-  @IsString()
-  fullName: string;
 
   @IsEmail()
   email: string;
