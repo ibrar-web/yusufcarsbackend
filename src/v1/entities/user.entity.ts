@@ -39,11 +39,11 @@ export class User {
   @Column()
   password!: string;
 
-  @Column({ default: null })
-  firstName!: string;
+  @Column({ type: 'varchar', nullable: true, default: '' })
+  firstName?: string;
 
-  @Column({ default: null })
-  lastName!: string;
+  @Column({ type: 'varchar', nullable: true, default: '' })
+  lastName?: string;
 
   @Index()
   @Column({
