@@ -7,6 +7,7 @@ import {
   UrgencyLevel,
 } from '../../../entities/inquiries.entity';
 import { UpdateEnquiryStatusDto } from './dto/update-enquiry-status.dto';
+import { S3Service } from '../../../common/aws/s3.service';
 
 type ListParams = {
   page?: number;
@@ -24,6 +25,7 @@ export class AdminEnquiriesService {
   constructor(
     @InjectRepository(Inquiries)
     private readonly enquiries: Repository<Inquiries>,
+    private readonly s3: S3Service,
   ) {}
 
   async list(params: ListParams) {
@@ -67,7 +69,21 @@ export class AdminEnquiriesService {
   async findOne(id: string) {
     const enquiry = await this.enquiries.findOne({ where: { id } });
     if (!enquiry) throw new NotFoundException('Enquiry not found');
-    return enquiry;
+
+    let fileSignedUrl: string | undefined;
+    if (enquiry.fileKey) {
+      fileSignedUrl = await this.s3.getSignedUrl(enquiry.fileKey);
+    }
+
+    if (enquiry.status === InquiryStatus.PENDING) {
+      enquiry.status = InquiryStatus.COMPLETED;
+      await this.enquiries.save(enquiry);
+    }
+
+    return {
+      ...enquiry,
+      fileSignedUrl,
+    };
   }
 
   async updateStatus(id: string, dto: UpdateEnquiryStatusDto) {

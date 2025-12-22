@@ -17,7 +17,7 @@ import {
   UrgencyLevel,
 } from '../../../entities/inquiries.entity';
 
-@Controller('admin/enquiries')
+@Controller(['admin/inquiries', 'admin/inquries'])
 @UseGuards(JwtCookieGuard, RolesGuard)
 @Roles('admin')
 export class AdminEnquiriesController {
