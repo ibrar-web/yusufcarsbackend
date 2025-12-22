@@ -71,11 +71,16 @@ export class SupplierRegisterDto {
   @IsBoolean()
   gdprConsent!: boolean;
 
-  @Transform(({ value }) => {
+  @Transform(({ value }): string[] | undefined => {
     if (value === undefined || value === null || value === '') {
       return undefined;
     }
-    return Array.isArray(value) ? value : [value];
+    const raw = Array.isArray(value) ? value : [value];
+    const normalized = raw
+      .map((entry) => (typeof entry === 'string' ? entry : String(entry)))
+      .map((entry) => entry.trim())
+      .filter((entry) => entry.length > 0);
+    return normalized.length ? normalized : undefined;
   })
   @IsOptional()
   @IsArray()

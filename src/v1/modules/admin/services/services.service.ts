@@ -202,7 +202,7 @@ export class AdminServicesService {
   async updateItem(id: string, dto: UpdateServiceItemDto) {
     const item = await this.items.findOne({ where: { id: id } });
     if (!item) {
-      throw new NotFoundException("Item not found");
+      throw new NotFoundException('Item not found');
     }
     if (dto.subcategoryId && dto.subcategoryId !== item.subcategory.id) {
       const subcategory = await this.subcategories.findOne({

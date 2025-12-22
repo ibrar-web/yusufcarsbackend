@@ -1,10 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import {
-  Order,
-  OrderStatus,
-} from '../../../entities/quotes/order.entity';
+import { Order, OrderStatus } from '../../../entities/quotes/order.entity';
 import { ReviewRating } from '../../../entities/reviews_rating.entity';
 
 @Injectable()

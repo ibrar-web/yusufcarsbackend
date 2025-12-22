@@ -10,6 +10,7 @@ import { UserModule } from './modules/user/user.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { SocketsModule } from './modules/sockets/sockets.module';
 import { HealthController } from './health/health.controller';
+import { PublicModule } from './modules/public/public.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { HealthController } from './health/health.controller';
     UserModule,
     AuthModule,
     SocketsModule,
+    PublicModule,
   ],
   controllers: [HealthController],
   providers: [S3Service, KycDocsService],
