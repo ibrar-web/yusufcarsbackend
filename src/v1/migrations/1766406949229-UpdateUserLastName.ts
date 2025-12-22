@@ -1,7 +1,7 @@
 import { MigrationInterface, QueryRunner } from "typeorm";
 
-export class UpdateUserLastName1766405717854 implements MigrationInterface {
-    name = 'UpdateUserLastName1766405717854'
+export class UpdateUserLastName1766406949229 implements MigrationInterface {
+    name = 'UpdateUserLastName1766406949229'
 
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`ALTER TABLE "quote_request_service_items" DROP CONSTRAINT "FK_58b282d496c97a5db8855d3a00d"`);
@@ -11,8 +11,8 @@ export class UpdateUserLastName1766405717854 implements MigrationInterface {
         await queryRunner.query(`DROP INDEX "public"."IDX_service_items_name"`);
         await queryRunner.query(`ALTER TABLE "inquiries" RENAME COLUMN "fullName" TO "firstName"`);
         await queryRunner.query(`ALTER TABLE "users" DROP COLUMN "fullName"`);
-        await queryRunner.query(`ALTER TABLE "users" ADD "firstName" character varying NOT NULL`);
-        await queryRunner.query(`ALTER TABLE "users" ADD "lastName" character varying NOT NULL`);
+        await queryRunner.query(`ALTER TABLE "users" ADD "firstName" character varying`);
+        await queryRunner.query(`ALTER TABLE "users" ADD "lastName" character varying`);
         await queryRunner.query(`ALTER TABLE "service_subcategories" DROP CONSTRAINT "FK_ba9a799fe8faca8d6710b3549d0"`);
         await queryRunner.query(`ALTER TABLE "service_subcategories" ALTER COLUMN "categoryId" DROP NOT NULL`);
         await queryRunner.query(`ALTER TABLE "service_items" DROP CONSTRAINT "FK_4ee0ae3d3f388d96e81d1974f39"`);
