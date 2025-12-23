@@ -3,7 +3,6 @@ import {
   IsString,
   IsEmail,
   IsBoolean,
-  IsArray,
   MinLength,
 } from 'class-validator';
 
@@ -53,11 +52,6 @@ export class UpdateSupplierFlatDto {
   @IsOptional()
   @IsString()
   phone?: string;
-
-  @IsOptional()
-  @IsArray()
-  @IsString({ each: true })
-  categories?: string[];
 
   @IsOptional()
   @IsBoolean()

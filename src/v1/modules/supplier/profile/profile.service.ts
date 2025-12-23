@@ -42,15 +42,11 @@ export class SupplierProfileService {
     }
 
     // 🔹 USER fields (MUST be keys of User)
-    const userFields: (keyof User)[] = [
-      'email',
-      'firstName',
-      'lastName',
-      'postCode',
-    ];
+    const userFields = ['email', 'firstName', 'lastName', 'postCode'] as const;
+    type UserField = (typeof userFields)[number];
 
     // 🔹 SUPPLIER fields (MUST be keys of Supplier)
-    const supplierFields: (keyof Supplier)[] = [
+    const supplierFields = [
       'businessName',
       'tradingAs',
       'description',
@@ -58,21 +54,22 @@ export class SupplierProfileService {
       'addressLine2',
       'city',
       'phone',
-    ];
+    ] as const;
+    type SupplierField = (typeof supplierFields)[number];
 
-    const userUpdate: Partial<User> = {};
-    const supplierUpdate: Partial<Supplier> = {};
+    const userUpdate: Partial<Pick<User, UserField>> = {};
+    const supplierUpdate: Partial<Pick<Supplier, SupplierField>> = {};
 
     for (const key of userFields) {
-      const value = dto[key as keyof UpdateSupplierFlatDto];
+      const value = dto[key];
       if (value !== undefined && value !== null) {
-        userUpdate[key] = value;
+        userUpdate[key] = value as User[typeof key];
       }
     }
 
     for (const key of supplierFields) {
-      const value = dto[key as keyof UpdateSupplierFlatDto];
-      if (value !== undefined) {
+      const value = dto[key];
+      if (value !== undefined && value !== null) {
         supplierUpdate[key] = value as Supplier[typeof key];
       }
     }
