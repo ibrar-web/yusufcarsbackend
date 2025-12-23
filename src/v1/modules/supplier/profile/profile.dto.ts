@@ -1,3 +1,4 @@
+import { Type } from 'class-transformer';
 import {
   IsArray,
   IsBoolean,
@@ -5,6 +6,7 @@ import {
   IsOptional,
   IsString,
   MinLength,
+  ValidateNested,
 } from 'class-validator';
 export class UpdateSupplierBusinesDto {
   @IsOptional()
@@ -63,6 +65,18 @@ export class UpdateSupplierDto {
   @IsOptional()
   @IsString()
   postCode?: string;
+}
+
+export class UpdateSupplierRequestDto {
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => UpdateSupplierBusinesDto)
+  business?: UpdateSupplierBusinesDto;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => UpdateSupplierDto)
+  profile?: UpdateSupplierDto;
 }
 
 export class UpdateSupplierPasswordDto {

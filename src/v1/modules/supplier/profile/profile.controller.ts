@@ -4,8 +4,8 @@ import { AuthGuard } from '../../../common/guards/auth.guard';
 import { RolesGuard } from '../../../common/guards/roles.guard';
 import { Roles } from '../../../common/decorators/roles.decorator';
 import {
-  UpdateSupplierBusinesDto,
   UpdateSupplierPasswordDto,
+  UpdateSupplierRequestDto,
 } from './profile.dto';
 import { CurrentUser } from '../../admin/decorators/current-user.decorator';
 import type { AuthenticatedUser } from '../../../common/types/authenticated-user';
@@ -24,7 +24,7 @@ export class SupplierProfileController {
   @Put()
   update(
     @CurrentUser() user: AuthenticatedUser,
-    @Body() dto: UpdateSupplierBusinesDto,
+    @Body() dto: UpdateSupplierRequestDto,
   ) {
     return this.profile.updateProfile(user.sub, dto);
   }

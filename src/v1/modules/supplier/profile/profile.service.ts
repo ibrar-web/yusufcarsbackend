@@ -9,7 +9,7 @@ import { Supplier } from '../../../entities/supplier.entity';
 import { User } from '../../../entities/user.entity';
 import {
   UpdateSupplierPasswordDto,
-  UpdateSupplierProfileDto,
+  UpdateSupplierRequestDto,
 } from './profile.dto';
 import * as bcrypt from 'bcrypt';
 
@@ -33,14 +33,27 @@ export class SupplierProfileService {
 
   async updateProfile(
     userId: string,
-    dto: UpdateSupplierProfileDto,
+    dto: UpdateSupplierRequestDto,
   ): Promise<Supplier> {
     const supplierUser = await this.getProfile(userId);
+
     if (!supplierUser.supplier) {
       throw new NotFoundException('Supplier profile not found');
     }
-    Object.assign(supplierUser.supplier, dto);
-    return this.suppliers.save(supplierUser.supplier);
+
+    // 1️⃣ Update Supplier (business)
+    if (dto.business) {
+      Object.assign(supplierUser.supplier, dto.business);
+      await this.suppliers.save(supplierUser.supplier);
+    }
+
+    // 2️⃣ Update User (profile)
+    if (dto.profile) {
+      Object.assign(supplierUser, dto.profile);
+      await this.users.save(supplierUser);
+    }
+
+    return supplierUser.supplier;
   }
 
   async updatePassword(
