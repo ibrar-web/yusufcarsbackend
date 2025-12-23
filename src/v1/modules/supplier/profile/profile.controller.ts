@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Put, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Put,
+  UploadedFiles,
+  UseGuards,
+  UseInterceptors,
+} from '@nestjs/common';
 import { SupplierProfileService } from './profile.service';
 import { AuthGuard } from '../../../common/guards/auth.guard';
 import { RolesGuard } from '../../../common/guards/roles.guard';
@@ -9,6 +17,8 @@ import {
 } from './profile.dto';
 import { CurrentUser } from '../../admin/decorators/current-user.decorator';
 import type { AuthenticatedUser } from '../../../common/types/authenticated-user';
+import { FileFieldsInterceptor } from '@nestjs/platform-express';
+import type { UploadedFile } from '../../../common/aws/s3.service';
 
 @Controller('supplier/profile')
 @UseGuards(AuthGuard, RolesGuard)
@@ -22,12 +32,31 @@ export class SupplierProfileController {
   }
 
   @Put()
+  @UseInterceptors(
+    FileFieldsInterceptor([
+      { name: 'companyRegDoc', maxCount: 1 },
+      { name: 'insuranceDoc', maxCount: 1 },
+    ]),
+  )
   update(
     @CurrentUser() user: AuthenticatedUser,
     @Body() dto: UpdateSupplierFlatDto,
+    @UploadedFiles()
+    files?: {
+      companyRegDoc?: UploadedFile[];
+      insuranceDoc?: UploadedFile[];
+    },
   ) {
-    console.log(dto);
-    return this.profile.updateProfile(user.sub, dto);
+    const docs: Record<string, UploadedFile | undefined> = {};
+    if (files?.companyRegDoc?.[0]) {
+      docs['company_registration'] = files.companyRegDoc[0];
+    }
+    if (files?.insuranceDoc?.[0]) {
+      docs['insurance_certificate'] = files.insuranceDoc[0];
+    }
+    const payload =
+      Object.keys(docs).length > 0 ? docs : undefined;
+    return this.profile.updateProfile(user.sub, dto, payload);
   }
 
   @Put('password')

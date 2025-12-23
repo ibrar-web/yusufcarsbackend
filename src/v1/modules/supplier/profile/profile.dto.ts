@@ -35,6 +35,10 @@ export class UpdateSupplierFlatDto {
 
   @IsOptional()
   @IsString()
+  businessType?: string;
+
+  @IsOptional()
+  @IsString()
   description?: string;
 
   @IsOptional()
