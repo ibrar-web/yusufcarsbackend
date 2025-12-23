@@ -20,6 +20,8 @@ import { SupplierDocumentType } from '../../../entities/supplier-document-type.e
 import { KycDocsService } from '../../../common/aws/kyc-docs.service';
 import type { UploadedFile } from '../../../common/aws/s3.service';
 import { S3Service } from '../../../common/aws/s3.service';
+import { GoogleGeocodingService } from '../../../common/geocoding/google-geocoding.service';
+import { Logger } from '@nestjs/common';
 
 type SupplierDocumentInfo = {
   id: string;
@@ -45,6 +47,8 @@ type SupplierProfileResponse = User & {
 
 @Injectable()
 export class SupplierProfileService {
+  private readonly logger = new Logger(SupplierProfileService.name);
+
   constructor(
     @InjectRepository(Supplier)
     private readonly suppliers: Repository<Supplier>,
@@ -56,6 +60,7 @@ export class SupplierProfileService {
     private readonly documentTypes: Repository<SupplierDocumentType>,
     private readonly kycDocs: KycDocsService,
     private readonly s3: S3Service,
+    private readonly geocoding: GoogleGeocodingService,
   ) {}
 
   async getProfile(userId: string): Promise<SupplierProfileResponse> {
@@ -138,8 +143,16 @@ export class SupplierProfileService {
       }
     }
 
+    const needsPostcodeUpdate = dto.postCode?.trim();
+
     if (Object.keys(userUpdate).length) {
       Object.assign(supplierUser, userUpdate);
+      if (needsPostcodeUpdate) {
+        await this.updateCoordinates(
+          supplierUser,
+          supplierUser.postCode?.trim() || '',
+        );
+      }
       await this.users.save(supplierUser);
     }
 
@@ -279,6 +292,24 @@ export class SupplierProfileService {
       profile.supplier.approvalStatus = SupplierApprovalStatus.PENDING;
       profile.supplier.rejectionReason = null;
       profile.supplier.approvedAt = null;
+    }
+  }
+
+  private async updateCoordinates(user: User, postCode: string) {
+    const normalized = postCode.trim();
+    if (!normalized) return;
+    try {
+      const coordinates = await this.geocoding.lookupPostcode(normalized);
+      if (coordinates) {
+        user.latitude = coordinates.latitude;
+        user.longitude = coordinates.longitude;
+        user.postCode = normalized;
+      }
+    } catch (error) {
+      this.logger.error(
+        `Failed to lookup coordinates for ${normalized}`,
+        error instanceof Error ? error.stack : undefined,
+      );
     }
   }
 
