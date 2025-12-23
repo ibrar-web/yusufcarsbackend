@@ -5,7 +5,6 @@ import {
   IsOptional,
   IsBoolean,
   IsEnum,
-  IsArray,
   IsNotEmpty,
 } from 'class-validator';
 import { Transform } from 'class-transformer';
@@ -19,13 +18,11 @@ export class SupplierRegisterDto {
   @IsNotEmpty()
   businessName!: string;
 
-  @IsOptional()
   @IsString()
-  firstName?: string;
+  firstName!: string;
 
-  @IsOptional()
   @IsString()
-  lastName?: string;
+  lastName!: string;
 
   @IsString()
   @IsNotEmpty()
@@ -82,11 +79,6 @@ export class SupplierRegisterDto {
       .filter((entry) => entry.length > 0);
     return normalized.length ? normalized : undefined;
   })
-  @IsOptional()
-  @IsArray()
-  @IsString({ each: true })
-  categories?: string[];
-
   @IsEmail()
   email: string;
 

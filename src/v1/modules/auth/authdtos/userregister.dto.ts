@@ -10,7 +10,8 @@ import * as userEntity from '../../../entities/user.entity';
 
 export class UserRegisterDto {
   @IsEnum(['admin', 'user', 'supplier', 'garage'])
-  role?: userEntity.AppRole;
+  role: userEntity.AppRole;
+
   @IsString()
   firstName: string;
 
@@ -34,9 +35,11 @@ export class UserRegisterDto {
   @IsBoolean()
   marketingOptIn?: boolean;
 }
+
 export class AdminRegisterDto {
-  @IsEnum(['admin', 'user', 'supplier', 'garage'])
-  role?: userEntity.AppRole;
+  @IsEnum(['admin'])
+  role: userEntity.AppRole = 'admin'; // default value
+
   @IsString()
   firstName: string;
 

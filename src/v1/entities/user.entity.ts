@@ -42,8 +42,8 @@ export class User {
   @Column({ type: 'varchar', length: 150 })
   firstName!: string;
 
-  @Column({ type: 'varchar', length: 150, nullable: true })
-  lastName?: string | null;
+  @Column({ type: 'varchar', length: 150 })
+  lastName!: string;
 
   @Index()
   @Column({

@@ -8,8 +8,8 @@ import { Repository } from 'typeorm';
 import { Supplier } from '../../../entities/supplier.entity';
 import { User } from '../../../entities/user.entity';
 import {
+  UpdateSupplierFlatDto,
   UpdateSupplierPasswordDto,
-  UpdateSupplierRequestDto,
 } from './profile.dto';
 import * as bcrypt from 'bcrypt';
 
@@ -33,7 +33,7 @@ export class SupplierProfileService {
 
   async updateProfile(
     userId: string,
-    dto: UpdateSupplierRequestDto,
+    dto: UpdateSupplierFlatDto,
   ): Promise<Supplier> {
     const supplierUser = await this.getProfile(userId);
 
@@ -41,16 +41,50 @@ export class SupplierProfileService {
       throw new NotFoundException('Supplier profile not found');
     }
 
-    // 1️⃣ Update Supplier (business)
-    if (dto.business) {
-      Object.assign(supplierUser.supplier, dto.business);
-      await this.suppliers.save(supplierUser.supplier);
+    // 🔹 USER fields (MUST be keys of User)
+    const userFields: (keyof User)[] = [
+      'email',
+      'firstName',
+      'lastName',
+      'postCode',
+    ];
+
+    // 🔹 SUPPLIER fields (MUST be keys of Supplier)
+    const supplierFields: (keyof Supplier)[] = [
+      'businessName',
+      'tradingAs',
+      'description',
+      'addressLine1',
+      'addressLine2',
+      'city',
+      'phone',
+    ];
+
+    const userUpdate: Partial<User> = {};
+    const supplierUpdate: Partial<Supplier> = {};
+
+    for (const key of userFields) {
+      const value = dto[key as keyof UpdateSupplierFlatDto];
+      if (value !== undefined && value !== null) {
+        userUpdate[key] = value;
+      }
     }
 
-    // 2️⃣ Update User (profile)
-    if (dto.profile) {
-      Object.assign(supplierUser, dto.profile);
+    for (const key of supplierFields) {
+      const value = dto[key as keyof UpdateSupplierFlatDto];
+      if (value !== undefined) {
+        supplierUpdate[key] = value as Supplier[typeof key];
+      }
+    }
+
+    if (Object.keys(userUpdate).length) {
+      Object.assign(supplierUser, userUpdate);
       await this.users.save(supplierUser);
+    }
+
+    if (Object.keys(supplierUpdate).length) {
+      Object.assign(supplierUser.supplier, supplierUpdate);
+      await this.suppliers.save(supplierUser.supplier);
     }
 
     return supplierUser.supplier;

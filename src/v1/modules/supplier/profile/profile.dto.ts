@@ -1,14 +1,31 @@
-import { Type } from 'class-transformer';
 import {
-  IsArray,
-  IsBoolean,
-  IsEmail,
   IsOptional,
   IsString,
+  IsEmail,
+  IsBoolean,
+  IsArray,
   MinLength,
-  ValidateNested,
 } from 'class-validator';
-export class UpdateSupplierBusinesDto {
+
+export class UpdateSupplierFlatDto {
+  // ===== USER (profile) =====
+  @IsOptional()
+  @IsEmail()
+  email?: string;
+
+  @IsOptional()
+  @IsString()
+  firstName?: string;
+
+  @IsOptional()
+  @IsString()
+  lastName?: string;
+
+  @IsOptional()
+  @IsString()
+  postCode?: string;
+
+  // ===== SUPPLIER (business) =====
   @IsOptional()
   @IsString()
   businessName?: string;
@@ -35,10 +52,6 @@ export class UpdateSupplierBusinesDto {
 
   @IsOptional()
   @IsString()
-  postCode?: string;
-
-  @IsOptional()
-  @IsString()
   phone?: string;
 
   @IsOptional()
@@ -49,34 +62,6 @@ export class UpdateSupplierBusinesDto {
   @IsOptional()
   @IsBoolean()
   marketingOptIn?: boolean;
-}
-export class UpdateSupplierDto {
-  @IsOptional()
-  @IsEmail()
-  email?: string;
-
-  @IsOptional()
-  @IsString()
-  firstName?: string;
-
-  @IsOptional()
-  @IsString()
-  lastName?: string | null;
-  @IsOptional()
-  @IsString()
-  postCode?: string;
-}
-
-export class UpdateSupplierRequestDto {
-  @IsOptional()
-  @ValidateNested()
-  @Type(() => UpdateSupplierBusinesDto)
-  business?: UpdateSupplierBusinesDto;
-
-  @IsOptional()
-  @ValidateNested()
-  @Type(() => UpdateSupplierDto)
-  profile?: UpdateSupplierDto;
 }
 
 export class UpdateSupplierPasswordDto {

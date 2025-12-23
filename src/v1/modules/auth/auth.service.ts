@@ -47,22 +47,12 @@ export class AuthService {
     const postCode = this.resolvePostCode(dto);
     if (!postCode) throw new BadRequestException('Postcode is required');
     const coordinates = await this.lookupCoordinates(postCode);
-    const firstNameFallback =
-      supplierDto.businessName ?? supplierDto.tradingAs ?? 'User';
-    const firstName = this.normalizeRequiredName(
-      (dto as { firstName?: string }).firstName ??
-        supplierDto.firstName ??
-        firstNameFallback,
-      firstNameFallback,
-    );
-    const lastName = this.normalizeOptionalName(
-      (dto as { lastName?: string }).lastName ?? supplierDto.lastName ?? '',
-    );
+
     const user = this.users.create({
       email: dto.email,
       password: dto.password,
-      firstName,
-      lastName,
+      firstName: dto.firstName,
+      lastName: dto.lastName,
       role: dto.role ?? 'user',
       postCode,
       latitude: coordinates?.latitude,
@@ -77,14 +67,10 @@ export class AuthService {
     if (user.role === 'supplier') {
       this.ensureSupplierDocuments(docs);
       const uploadedDocs = await this.kycDocs.uploadSupplierDocs(user.id, docs);
-      const businessName =
-        supplierDto.businessName ||
-        supplierDto.tradingAs ||
-        [firstName, lastName].filter(Boolean).join(' ') ||
-        'Supplier';
+
       const supplier = this.suppliers.create({
         user,
-        businessName,
+        businessName: supplierDto.businessName,
         tradingAs: supplierDto.tradingAs,
         businessType: supplierDto.businessType,
         vatNumber: supplierDto.vatNumber,
