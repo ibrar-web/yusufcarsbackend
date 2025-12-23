@@ -70,17 +70,10 @@ export class Supplier {
   phone!: string;
 
   @Column()
-  contactPostcode!: string;
-
-  @Column()
   termsAccepted!: boolean;
 
   @Column()
   gdprConsent!: boolean;
-
-  @Index()
-  @Column({ type: 'simple-array' })
-  categories!: string[];
 
   @Column({
     type: 'enum',
