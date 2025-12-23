@@ -63,10 +63,6 @@ export class SupplierRegisterDto {
   @IsNotEmpty()
   postCode!: string;
 
-  @IsString()
-  // @IsNotEmpty()
-  contactPostcode!: string;
-
   @Transform(({ value }) => value === 'true' || value === true)
   @IsBoolean()
   termsAccepted!: boolean;

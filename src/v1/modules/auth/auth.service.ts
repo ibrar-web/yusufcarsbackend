@@ -92,12 +92,10 @@ export class AuthService {
         addressLine1: supplierDto.addressLine1,
         addressLine2: supplierDto.addressLine2,
         city: supplierDto.city,
-        postCode: supplierDto.postCode || supplierDto.contactPostcode,
+        postCode: supplierDto.postCode,
         phone: supplierDto.phone,
-        contactPostcode: supplierDto.contactPostcode,
         termsAccepted: supplierDto.termsAccepted,
         gdprConsent: supplierDto.gdprConsent,
-        categories: supplierDto.categories ?? [],
         submittedAt: new Date(),
       });
       await this.suppliers.save(supplier);
@@ -108,12 +106,7 @@ export class AuthService {
 
   private resolvePostCode(dto: UserRegisterDto | SupplierRegisterDto) {
     const supplierDto = dto as SupplierRegisterDto;
-    return (
-      dto.postCode ||
-      supplierDto.postCode ||
-      supplierDto.contactPostcode ||
-      ''
-    ).trim();
+    return (dto.postCode || supplierDto.postCode || '').trim();
   }
 
   private async lookupCoordinates(postCode: string) {
