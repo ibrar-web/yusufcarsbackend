@@ -11,6 +11,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { SocketsModule } from './modules/sockets/sockets.module';
 import { HealthController } from './health/health.controller';
 import { PublicModule } from './modules/public/public.module';
+import { BlogModule } from './modules/blog/blog.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { PublicModule } from './modules/public/public.module';
     AuthModule,
     SocketsModule,
     PublicModule,
+    BlogModule,
   ],
   controllers: [HealthController],
   providers: [S3Service, KycDocsService],
