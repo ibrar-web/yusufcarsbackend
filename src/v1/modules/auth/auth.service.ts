@@ -212,6 +212,7 @@ export class AuthService {
     });
     const cookieName = process.env.COOKIE_NAME || 'access_token';
     const domain = process.env.COOKIE_DOMAIN || undefined;
+    console.log('domain', domain);
     const secure = process.env.NODE_ENV === 'production';
     const maxAge = (() => {
       const s = process.env.TOKEN_EXPIRES_IN || '1d';
