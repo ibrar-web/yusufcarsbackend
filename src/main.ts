@@ -33,4 +33,5 @@ async function bootstrap() {
   app.useGlobalFilters(new HttpExceptionFilter(httpAdapterHost.httpAdapter));
   await app.listen(process.env.PORT ?? 4000);
 }
+
 void bootstrap();
