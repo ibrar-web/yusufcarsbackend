@@ -1,17 +1,12 @@
 steps:
-  # Build image with Buildpacks
-  - name: 'us-docker.pkg.dev/buildpacks/pack/pack:latest'
-    entrypoint: 'pack'
+  # Build image with Buildpacks (WORKS)
+  - name: 'gcr.io/buildpacks/builder'
     args:
       - 'build'
       - 'us-docker.pkg.dev/$PROJECT_ID/app/backend:$SHORT_SHA'
-      - '--builder'
-      - 'us-docker.pkg.dev/buildpacks/builder:v1'
-      - '--path'
-      - '.'
       - '--publish'
 
-  # Deploy to Cloud Run (updates service)
+  # Deploy to Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: 'gcloud'
     args:
