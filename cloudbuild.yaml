@@ -1,0 +1,63 @@
+steps:
+  # Step 1: Install dependencies
+  - name: 'node:22'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        npm ci
+
+  # Step 2: Lint
+  - name: 'node:22'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        npm run lint --if-present
+
+  # Step 3: Test
+  - name: 'node:22'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        npm run test -- --runInBand
+
+  # Step 4: Build Docker image using Cloud Buildpacks
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/backend:$COMMIT_SHA'
+      - '.'
+
+  # Step 5: Push Docker image to Artifact Registry (or Container Registry)
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - 'gcr.io/$PROJECT_ID/backend:$COMMIT_SHA'
+
+  # Step 6: Deploy to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'gcloud'
+    args:
+      - 'run'
+      - 'deploy'
+      - 'backend-service'
+      - '--image'
+      - 'gcr.io/$PROJECT_ID/backend:$COMMIT_SHA'
+      - '--platform'
+      - 'managed'
+      - '--region'
+      - 'us-central1'
+      - '--allow-unauthenticated'
+      - '--set-env-vars'
+      - 'NODE_ENV=staging'
+
+images:
+  - 'gcr.io/$PROJECT_ID/backend:$COMMIT_SHA'
+
+options:
+  substitutionOption: 'ALLOW_LOOSE'
+substitutions:
+  _COMMIT_SHA: $COMMIT_SHA
