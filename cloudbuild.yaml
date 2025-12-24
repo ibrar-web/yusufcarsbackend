@@ -1,5 +1,5 @@
 steps:
-  # Build with Buildpacks
+  # Build image with Buildpacks
   - name: 'us-docker.pkg.dev/buildpacks/pack/pack:latest'
     entrypoint: 'pack'
     args:
@@ -9,8 +9,9 @@ steps:
       - 'us-docker.pkg.dev/buildpacks/builder:v1'
       - '--path'
       - '.'
+      - '--publish'
 
-  # Deploy to Cloud Run
+  # Deploy to Cloud Run (updates service)
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: 'gcloud'
     args:
