@@ -1,4 +1,4 @@
-import type { AuthenticatedUser } from '../v1/common/types/authenticated-user';
+import type { AuthenticatedUser } from '../common/types/authenticated-user';
 
 declare global {
   namespace Express {
