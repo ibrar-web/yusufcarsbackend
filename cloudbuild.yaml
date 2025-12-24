@@ -23,6 +23,5 @@ steps:
 images:
   - 'gcr.io/$PROJECT_ID/backend:$SHORT_SHA'
 
-# Fix for service account logging issue
 options:
   logging: CLOUD_LOGGING_ONLY
