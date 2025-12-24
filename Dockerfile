@@ -1,21 +1,16 @@
-# Use Node.js 22
-FROM node:22
-
-# Set working directory
+# Stage 1: Build
+FROM node:22 AS builder
 WORKDIR /app
-
-# Copy package files and install only production dependencies
 COPY package*.json ./
-RUN npm ci --omit=dev
-
-# Copy the source code
+RUN npm ci
 COPY . .
-
-# Build project (if using TypeScript)
 RUN npm run build
 
-# Expose Cloud Run default port
+# Stage 2: Production image
+FROM node:22
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --omit=dev
+COPY --from=builder /app/dist ./dist
 EXPOSE 8080
-
-# Start the application
 CMD ["node", "dist/src/main.js"]
