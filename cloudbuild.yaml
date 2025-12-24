@@ -1,12 +1,19 @@
 steps:
-  # Build image with Buildpacks (WORKS)
-  - name: 'gcr.io/buildpacks/builder'
+  # Step 1: Build Docker image
+  - name: 'gcr.io/cloud-builders/docker'
     args:
       - 'build'
+      - '-t'
       - 'us-docker.pkg.dev/$PROJECT_ID/app/backend:$SHORT_SHA'
-      - '--publish'
+      - '.'
 
-  # Deploy to Cloud Run
+  # Step 2: Push Docker image to Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - 'us-docker.pkg.dev/$PROJECT_ID/app/backend:$SHORT_SHA'
+
+  # Step 3: Deploy to Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: 'gcloud'
     args:
@@ -23,8 +30,10 @@ steps:
       - '--set-env-vars'
       - 'NODE_ENV=staging'
 
+# Images section allows Cloud Build to track the output image
 images:
   - 'us-docker.pkg.dev/$PROJECT_ID/app/backend:$SHORT_SHA'
 
+# Only log to Cloud Logging
 options:
   logging: CLOUD_LOGGING_ONLY
