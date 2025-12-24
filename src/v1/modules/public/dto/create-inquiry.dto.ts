@@ -18,10 +18,22 @@ const sanitizeText = (value: unknown): string => {
   return '';
 };
 
-const safeGet = (obj: unknown, key: string): unknown => {
+type CandidateKeys = 'message' | 'Message' | 'msg' | 'Msg' | 'body';
+
+const safeGet = (
+  obj: unknown,
+  key: CandidateKeys,
+): string | number | boolean | undefined => {
   if (!obj || typeof obj !== 'object') return undefined;
   const candidate = (obj as Record<string, unknown>)[key];
-  return candidate;
+  if (
+    typeof candidate === 'string' ||
+    typeof candidate === 'number' ||
+    typeof candidate === 'boolean'
+  ) {
+    return candidate;
+  }
+  return undefined;
 };
 
 const toBoolean = (value: unknown): boolean | undefined => {
@@ -62,18 +74,17 @@ export class CreateInquiryDto {
   @IsOptional()
   urgency?: UrgencyLevel;
 
-  @Transform(({ value, obj }) => {
-    const candidate =
+  @Transform(({ value, obj }) =>
+    sanitizeText(
       value ??
-      (typeof obj === 'object' && obj !== null
-        ? safeGet(obj, 'message') ??
-          safeGet(obj, 'Message') ??
-          safeGet(obj, 'msg') ??
-          safeGet(obj, 'Msg') ??
-          safeGet(obj, 'body')
-        : undefined);
-    return sanitizeText(candidate ?? '').trim();
-  })
+        safeGet(obj, 'message') ??
+        safeGet(obj, 'Message') ??
+        safeGet(obj, 'msg') ??
+        safeGet(obj, 'Msg') ??
+        safeGet(obj, 'body') ??
+        '',
+    ).trim(),
+  )
   @IsString()
   @IsNotEmpty()
   content!: string;
