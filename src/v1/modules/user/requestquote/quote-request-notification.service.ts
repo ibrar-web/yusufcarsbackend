@@ -127,7 +127,7 @@ export class QuoteRequestNotificationService {
     return {
       requestId: request.id,
       userId: request.user.id,
-      postCode: request.postcode,
+      postcode: request.postcode,
       serviceCategories:
         request.services || serviceItems.map((item) => item.id),
       serviceItems: serviceItems.map((item) => ({
@@ -136,6 +136,7 @@ export class QuoteRequestNotificationService {
         slug: item.slug,
       })),
       createdAt: request.createdAt,
+      expiresAt: request.expiresAt ?? "",
     };
   }
 }
