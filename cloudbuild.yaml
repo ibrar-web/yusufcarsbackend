@@ -1,9 +1,16 @@
 steps:
-  - name: 'gcr.io/buildpacks/builder'
+  # Build container image using Buildpacks
+  - name: 'gcr.io/buildpacks/pack'
+    entrypoint: 'pack'
     args:
       - 'build'
       - 'gcr.io/$PROJECT_ID/backend:$SHORT_SHA'
+      - '--builder'
+      - 'gcr.io/buildpacks/builder'
+      - '--path'
+      - '.'
 
+  # Deploy to Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: 'gcloud'
     args:
