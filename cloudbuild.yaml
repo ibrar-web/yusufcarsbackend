@@ -1,16 +1,16 @@
 steps:
-  # 1️⃣ Build image using buildpacks
-  - name: 'gcr.io/buildpacks/pack'
+  # Build with Buildpacks
+  - name: 'us-docker.pkg.dev/buildpacks/pack/pack:latest'
     entrypoint: 'pack'
     args:
       - 'build'
-      - 'gcr.io/$PROJECT_ID/backend:$SHORT_SHA'
+      - 'us-docker.pkg.dev/$PROJECT_ID/app/backend:$SHORT_SHA'
       - '--builder'
-      - 'gcr.io/buildpacks/builder'
+      - 'us-docker.pkg.dev/buildpacks/builder:v1'
       - '--path'
       - '.'
 
-  # 2️⃣ Deploy to Cloud Run
+  # Deploy to Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: 'gcloud'
     args:
@@ -18,17 +18,17 @@ steps:
       - 'deploy'
       - 'backend-service'
       - '--image'
-      - 'gcr.io/$PROJECT_ID/backend:$SHORT_SHA'
-      - '--platform'
-      - 'managed'
+      - 'us-docker.pkg.dev/$PROJECT_ID/app/backend:$SHORT_SHA'
       - '--region'
       - 'us-central1'
+      - '--platform'
+      - 'managed'
       - '--allow-unauthenticated'
       - '--set-env-vars'
       - 'NODE_ENV=staging'
 
 images:
-  - 'gcr.io/$PROJECT_ID/backend:$SHORT_SHA'
+  - 'us-docker.pkg.dev/$PROJECT_ID/app/backend:$SHORT_SHA'
 
 options:
   logging: CLOUD_LOGGING_ONLY
