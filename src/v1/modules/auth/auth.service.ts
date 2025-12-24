@@ -222,7 +222,6 @@ export class AuthService {
         m[2] === 's' ? 1 : m[2] === 'm' ? 60 : m[2] === 'h' ? 3600 : 86400;
       return n * mult * 1000;
     })();
-
     res.cookie(cookieName, token, {
       httpOnly: true,
       sameSite: 'lax',
