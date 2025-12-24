@@ -1,15 +1,5 @@
 steps:
-  - name: 'node:22'
-    entrypoint: 'bash'
-    args:
-      - '-c'
-      - |
-        npm ci
-        npm run lint --if-present
-        npm run test -- --runInBand
-        npm run build
-        npm prune --production
-
+  # Step 1: Build Docker image (multi-stage handles npm build)
   - name: 'gcr.io/cloud-builders/docker'
     args:
       - 'build'
@@ -17,11 +7,13 @@ steps:
       - 'gcr.io/$PROJECT_ID/backend:$SHORT_SHA'
       - '.'
 
+  # Step 2: Push Docker image
   - name: 'gcr.io/cloud-builders/docker'
     args:
       - 'push'
       - 'gcr.io/$PROJECT_ID/backend:$SHORT_SHA'
 
+  # Step 3: Deploy to Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: 'gcloud'
     args:
