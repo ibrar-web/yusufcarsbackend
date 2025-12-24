@@ -1,12 +1,9 @@
-  # cloudbuild.yaml
 steps:
-  # Step 1: Build image with Buildpacks
   - name: 'gcr.io/buildpacks/builder'
     args:
       - 'build'
       - 'gcr.io/$PROJECT_ID/backend:$SHORT_SHA'
 
-  # Step 2: Deploy to Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: 'gcloud'
     args:
@@ -26,9 +23,6 @@ steps:
 images:
   - 'gcr.io/$PROJECT_ID/backend:$SHORT_SHA'
 
-# Optional: If using a custom service account
-# serviceAccount: your-service-account@your-project.iam.gserviceaccount.com
-
+# Fix for service account logging issue
 options:
-  # Ensure logging works with custom service account
   logging: CLOUD_LOGGING_ONLY
