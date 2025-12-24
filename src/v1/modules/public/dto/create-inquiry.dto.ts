@@ -18,6 +18,12 @@ const sanitizeText = (value: unknown): string => {
   return '';
 };
 
+const safeGet = (obj: unknown, key: string): unknown => {
+  if (!obj || typeof obj !== 'object') return undefined;
+  const candidate = (obj as Record<string, unknown>)[key];
+  return candidate;
+};
+
 const toBoolean = (value: unknown): boolean | undefined => {
   if (typeof value === 'boolean') return value;
   if (typeof value === 'number') return value === 1;
@@ -57,15 +63,16 @@ export class CreateInquiryDto {
   urgency?: UrgencyLevel;
 
   @Transform(({ value, obj }) => {
-    const source =
+    const candidate =
       value ??
-      obj?.message ??
-      obj?.Message ??
-      obj?.msg ??
-      obj?.Msg ??
-      obj?.body ??
-      '';
-    return sanitizeText(source).trim();
+      (typeof obj === 'object' && obj !== null
+        ? safeGet(obj, 'message') ??
+          safeGet(obj, 'Message') ??
+          safeGet(obj, 'msg') ??
+          safeGet(obj, 'Msg') ??
+          safeGet(obj, 'body')
+        : undefined);
+    return sanitizeText(candidate ?? '').trim();
   })
   @IsString()
   @IsNotEmpty()
