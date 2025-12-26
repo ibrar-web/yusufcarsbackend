@@ -4,7 +4,7 @@ steps:
     args:
       - 'build'
       - '-t'
-      - 'europe-west1-docker.pkg.dev/car-quote-482213/cloud-run-source-deploy:$SHORT_SHA'
+      - 'europe-west1-docker.pkg.dev/car-quote-482213/cloud-run-source-deploy/$_IMAGE_NAME:$SHORT_SHA'
       - '-f'
       - 'Dockerfile'
       - '.'
@@ -13,7 +13,7 @@ steps:
   - name: 'gcr.io/cloud-builders/docker'
     args:
       - 'push'
-      - 'europe-west1-docker.pkg.dev/car-quote-482213/cloud-run-source-deploy:$SHORT_SHA'
+      - 'europe-west1-docker.pkg.dev/car-quote-482213/cloud-run-source-deploy/$_IMAGE_NAME:$SHORT_SHA'
 
   # Step 3: Deploy to Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
@@ -21,9 +21,9 @@ steps:
     args:
       - 'run'
       - 'deploy'
-      - 'yusufcarsbackend'
+      - '$_SERVICE_NAME'
       - '--image'
-      - 'europe-west1-docker.pkg.dev/car-quote-482213/cloud-run-source-deploy:$SHORT_SHA'
+      - 'europe-west1-docker.pkg.dev/car-quote-482213/cloud-run-source-deploy/$_IMAGE_NAME:$SHORT_SHA'
       - '--region'
       - 'europe-west1'
       - '--platform'
@@ -33,7 +33,11 @@ steps:
       - 'NODE_ENV=staging'
 
 images:
-  - 'europe-west1-docker.pkg.dev/car-quote-482213/cloud-run-source-deploy:$SHORT_SHA'
+  - 'europe-west1-docker.pkg.dev/car-quote-482213/cloud-run-source-deploy/$_IMAGE_NAME:$SHORT_SHA'
+
+substitutions:
+  _SERVICE_NAME: 'yusufcarsbackend'
+  _IMAGE_NAME: 'yusufcarsbackend'
 
 options:
   logging: CLOUD_LOGGING_ONLY
