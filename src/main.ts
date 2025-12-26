@@ -22,6 +22,7 @@ async function bootstrap() {
     origin: corsOrigins.length ? corsOrigins : ['http://localhost:3000'],
     credentials: true,
   });
+  console.log('testing');
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
   app.useGlobalInterceptors(
     new ResponseInterceptor(),
