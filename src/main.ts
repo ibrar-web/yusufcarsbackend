@@ -18,7 +18,6 @@ async function bootstrap() {
     'http://localhost:4000',
     process.env.CORS_ORIGIN,
   ].filter((value): value is string => Boolean(value));
-
   app.enableCors({
     origin: corsOrigins.length ? corsOrigins : ['http://localhost:3000'],
     credentials: true,
