@@ -1,0 +1,27 @@
++# Files and directories excluded from Cloud Build contexts.
++# This overrides the default behavior of reusing .gitignore so that
++# environment files such as .env.staging are still uploaded.
++
++# VCS metadata
++.git
++.gitignore
++
++# Dependency and build caches
++node_modules/
++dist/
++build/
++.cache/
++coverage/
++
++# Logs and temp files
++npm-debug.log*
++yarn-debug.log*
++yarn-error.log*
++pnpm-debug.log*
++pnpm-lock.yaml
++.DS_Store
++
++# Editor folders
++.idea/
++.vscode/
++
