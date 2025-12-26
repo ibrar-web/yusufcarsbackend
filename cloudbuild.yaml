@@ -1,12 +1,11 @@
 steps:
-  # Step 1: Build and push image using Buildpacks
-  - name: 'gcr.io/buildpacks/builder:v1'
-    entrypoint: 'bash'
+  # Step 1: Build image using official Cloud Buildpacks builder
+  - name: 'gcr.io/cloud-builders/buildpacks'
     args:
-      - '-c'
-      - |
-        echo "Building image using Buildpacks..."
-        pack build $_AR_HOSTNAME/$_AR_PROJECT_ID/$_AR_REPOSITORY:$SHORT_SHA --path . --builder gcr.io/buildpacks/builder:v1
+      - 'build'
+      - '-t'
+      - '$_AR_HOSTNAME/$_AR_PROJECT_ID/$_AR_REPOSITORY:$SHORT_SHA'
+      - '.'
 
   # Step 2: Deploy to Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
