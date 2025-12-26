@@ -1,45 +1,38 @@
-# cloudbuild.yaml for GitHub → Cloud Build → Cloud Run
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-t'
+      - '$_AR_HOSTNAME/$_AR_PROJECT_ID/$_AR_REPOSITORY:$SHORT_SHA'
+      - '.'
 
-# Step 1: Build Docker image
-- name: 'gcr.io/cloud-builders/docker'
-  args:
-    - 'build'
-    - '-t'
-    - '$_AR_HOSTNAME/$_AR_PROJECT_ID/$_AR_REPOSITORY:$SHORT_SHA'
-    - '.'
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - '$_AR_HOSTNAME/$_AR_PROJECT_ID/$_AR_REPOSITORY:$SHORT_SHA'
 
-# Step 2: Push Docker image to Artifact Registry
-- name: 'gcr.io/cloud-builders/docker'
-  args:
-    - 'push'
-    - '$_AR_HOSTNAME/$_AR_PROJECT_ID/$_AR_REPOSITORY:$SHORT_SHA'
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'gcloud'
+    args:
+      - 'run'
+      - 'deploy'
+      - '$_SERVICE_NAME'
+      - '--image'
+      - '$_AR_HOSTNAME/$_AR_PROJECT_ID/$_AR_REPOSITORY:$SHORT_SHA'
+      - '--region'
+      - '$_DEPLOY_REGION'
+      - '--platform'
+      - '$_PLATFORM'
+      - '--allow-unauthenticated'
+      - '--set-env-vars'
+      - 'NODE_ENV=staging'
 
-# Step 3: Deploy to Cloud Run
-- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-  entrypoint: 'gcloud'
-  args:
-    - 'run'
-    - 'deploy'
-    - '$_SERVICE_NAME'
-    - '--image'
-    - '$_AR_HOSTNAME/$_AR_PROJECT_ID/$_AR_REPOSITORY:$SHORT_SHA'
-    - '--region'
-    - '$_DEPLOY_REGION'
-    - '--platform'
-    - '$_PLATFORM'
-    - '--allow-unauthenticated'
-    - '--set-env-vars'
-    - 'NODE_ENV=staging'
-
-# Track output image
 images:
   - '$_AR_HOSTNAME/$_AR_PROJECT_ID/$_AR_REPOSITORY:$SHORT_SHA'
 
-# Logging option
 options:
   logging: CLOUD_LOGGING_ONLY
 
-# Substitutions (these can be overridden in the Cloud Build trigger)
 substitutions:
   _AR_HOSTNAME: europe-west1-docker.pkg.dev
   _AR_PROJECT_ID: car-quote-482213
