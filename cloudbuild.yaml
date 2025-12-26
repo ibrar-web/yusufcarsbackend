@@ -1,13 +1,21 @@
 steps:
-  # Step 1: Build image using official Cloud Buildpacks builder
-  - name: 'gcr.io/cloud-builders/buildpacks'
+  # Step 1: Build Docker image with the provided Dockerfile
+  - name: 'gcr.io/cloud-builders/docker'
     args:
       - 'build'
       - '-t'
       - '$_AR_HOSTNAME/$_AR_PROJECT_ID/$_AR_REPOSITORY:$SHORT_SHA'
+      - '-f'
+      - 'Dockerfile'
       - '.'
 
-  # Step 2: Deploy to Cloud Run
+  # Step 2: Push image to Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - '$_AR_HOSTNAME/$_AR_PROJECT_ID/$_AR_REPOSITORY:$SHORT_SHA'
+
+  # Step 3: Deploy to Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: 'gcloud'
     args:
