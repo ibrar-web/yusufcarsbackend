@@ -1,3 +1,5 @@
+# cloudbuild.yaml for GitHub → Cloud Build → Cloud Run
+
 # Step 1: Build Docker image
 - name: 'gcr.io/cloud-builders/docker'
   args:
@@ -28,3 +30,20 @@
     - '--allow-unauthenticated'
     - '--set-env-vars'
     - 'NODE_ENV=staging'
+
+# Track output image
+images:
+  - '$_AR_HOSTNAME/$_AR_PROJECT_ID/$_AR_REPOSITORY:$SHORT_SHA'
+
+# Logging option
+options:
+  logging: CLOUD_LOGGING_ONLY
+
+# Substitutions (these can be overridden in the Cloud Build trigger)
+substitutions:
+  _AR_HOSTNAME: europe-west1-docker.pkg.dev
+  _AR_PROJECT_ID: car-quote-482213
+  _AR_REPOSITORY: cloud-run-source-deploy
+  _DEPLOY_REGION: europe-west1
+  _PLATFORM: managed
+  _SERVICE_NAME: yusufcarsbackend
