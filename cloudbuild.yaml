@@ -29,8 +29,8 @@ steps:
       - '--platform'
       - 'managed'
       - '--allow-unauthenticated'
-      - '--set-env-vars'
-      - 'NODE_ENV=staging'
+      - '--env-vars-file'
+      - '.env.staging'
 
 images:
   - 'europe-west1-docker.pkg.dev/car-quote-482213/cloud-run-source-deploy/$_IMAGE_NAME:$SHORT_SHA'
