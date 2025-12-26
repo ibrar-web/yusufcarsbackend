@@ -213,7 +213,11 @@ export class AuthService {
     const cookieName = process.env.COOKIE_NAME || 'access_token';
     const domain = process.env.COOKIE_DOMAIN || undefined;
     console.log('domain', domain);
-    const secure = process.env.NODE_ENV === 'production';
+    const secure =
+      process.env.NODE_ENV === 'production' ||
+      process.env.NODE_ENV === 'staging';
+    const sameSite: boolean | 'lax' | 'strict' | 'none' =
+      secure ? 'none' : 'lax';
     const maxAge = (() => {
       const s = process.env.TOKEN_EXPIRES_IN || '1d';
       const m = /^([0-9]+)([smhd])$/.exec(s) || [];
@@ -224,7 +228,7 @@ export class AuthService {
     })();
     res.cookie(cookieName, token, {
       httpOnly: true,
-      sameSite: 'lax',
+      sameSite,
       secure,
       domain,
       maxAge,
@@ -236,11 +240,15 @@ export class AuthService {
   logout(res: Response) {
     const cookieName = process.env.COOKIE_NAME || 'access_token';
     const domain = process.env.COOKIE_DOMAIN || undefined;
-    const secure = process.env.NODE_ENV === 'production';
+    const secure =
+      process.env.NODE_ENV === 'production' ||
+      process.env.NODE_ENV === 'staging';
+    const sameSite: boolean | 'lax' | 'strict' | 'none' =
+      secure ? 'none' : 'lax';
 
     res.cookie(cookieName, '', {
       httpOnly: true,
-      sameSite: 'lax',
+      sameSite,
       secure,
       domain,
       maxAge: 0,
