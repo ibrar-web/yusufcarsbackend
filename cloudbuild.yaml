@@ -1,14 +1,10 @@
 steps:
-  # Step 1: Build image using Buildpacks (no Dockerfile needed)
+  # Step 1: Build the image using Google Cloud Buildpacks
   - name: 'gcr.io/buildpacks/builder:v1'
-    entrypoint: 'pack'
     args:
-      - 'build'
+      - '-t'
       - '$_AR_HOSTNAME/$_AR_PROJECT_ID/$_AR_REPOSITORY:$SHORT_SHA'
-      - '--path'
       - '.'
-      - '--builder'
-      - 'gcr.io/buildpacks/builder:v1'
 
   # Step 2: Deploy to Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
@@ -29,9 +25,6 @@ steps:
 
 images:
   - '$_AR_HOSTNAME/$_AR_PROJECT_ID/$_AR_REPOSITORY:$SHORT_SHA'
-
-options:
-  logging: CLOUD_LOGGING_ONLY
 
 substitutions:
   _AR_HOSTNAME: europe-west1-docker.pkg.dev
