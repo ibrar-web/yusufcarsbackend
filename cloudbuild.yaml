@@ -1,39 +1,30 @@
-steps:
-  # Step 1: Build Docker image
-  - name: 'gcr.io/cloud-builders/docker'
-    args:
-      - 'build'
-      - '-t'
-      - 'us-docker.pkg.dev/$PROJECT_ID/app/backend:$SHORT_SHA'
-      - '.'
+# Step 1: Build Docker image
+- name: 'gcr.io/cloud-builders/docker'
+  args:
+    - 'build'
+    - '-t'
+    - '$_AR_HOSTNAME/$_AR_PROJECT_ID/$_AR_REPOSITORY:$SHORT_SHA'
+    - '.'
 
-  # Step 2: Push Docker image to Artifact Registry
-  - name: 'gcr.io/cloud-builders/docker'
-    args:
-      - 'push'
-      - 'us-docker.pkg.dev/$PROJECT_ID/app/backend:$SHORT_SHA'
+# Step 2: Push Docker image to Artifact Registry
+- name: 'gcr.io/cloud-builders/docker'
+  args:
+    - 'push'
+    - '$_AR_HOSTNAME/$_AR_PROJECT_ID/$_AR_REPOSITORY:$SHORT_SHA'
 
-  # Step 3: Deploy to Cloud Run
-  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-    entrypoint: 'gcloud'
-    args:
-      - 'run'
-      - 'deploy'
-      - 'backend-service'
-      - '--image'
-      - 'us-docker.pkg.dev/$PROJECT_ID/app/backend:$SHORT_SHA'
-      - '--region'
-      - 'us-central1'
-      - '--platform'
-      - 'managed'
-      - '--allow-unauthenticated'
-      - '--set-env-vars'
-      - 'NODE_ENV=staging'
-
-# Images section allows Cloud Build to track the output image
-images:
-  - 'us-docker.pkg.dev/$PROJECT_ID/app/backend:$SHORT_SHA'
-
-# Only log to Cloud Logging
-options:
-  logging: CLOUD_LOGGING_ONLY
+# Step 3: Deploy to Cloud Run
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  entrypoint: 'gcloud'
+  args:
+    - 'run'
+    - 'deploy'
+    - '$_SERVICE_NAME'
+    - '--image'
+    - '$_AR_HOSTNAME/$_AR_PROJECT_ID/$_AR_REPOSITORY:$SHORT_SHA'
+    - '--region'
+    - '$_DEPLOY_REGION'
+    - '--platform'
+    - '$_PLATFORM'
+    - '--allow-unauthenticated'
+    - '--set-env-vars'
+    - 'NODE_ENV=staging'
