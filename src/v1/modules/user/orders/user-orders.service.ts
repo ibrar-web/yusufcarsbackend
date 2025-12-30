@@ -7,9 +7,11 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 import { Order, OrderStatus } from '../../../entities/quotes/order.entity';
 import { ReviewRating } from '../../../entities/reviews_rating.entity';
+import { Report } from '../../../entities/reports.entity';
 import { buildOrderResponse } from '../../../common/utils/order-response.util';
 import { CompleteOrderDto } from './dto/complete-order.dto';
 import { CancelOrderDto } from './dto/cancel-order.dto';
+import { ReportOrderDto } from './dto/report-order.dto';
 
 type ListOrdersParams = {
   page?: number;
@@ -25,6 +27,8 @@ export class UserOrdersService {
     private readonly orders: Repository<Order>,
     @InjectRepository(ReviewRating)
     private readonly reviews: Repository<ReviewRating>,
+    @InjectRepository(Report)
+    private readonly reports: Repository<Report>,
   ) {}
 
   async list(userId: string, params: ListOrdersParams) {
@@ -163,6 +167,36 @@ export class UserOrdersService {
       includeSupplier: true,
       includeQuote: true,
     });
+  }
+
+  async report(userId: string, orderId: string, dto: ReportOrderDto) {
+    const order = await this.orders.findOne({
+      where: { id: orderId },
+      relations: ['buyer'],
+    });
+    if (!order || order.buyer.id !== userId) {
+      throw new NotFoundException('Order not found');
+    }
+
+    const sections = [
+      `Reason: ${dto.reason.trim()}`,
+      `Details: ${dto.details.trim()}`,
+    ];
+    if (dto.cancelOrder) {
+      sections.push(
+        `Cancellation requested: ${dto.cancellationReason?.trim() || 'Yes'}`,
+      );
+    }
+
+    const report = this.reports.create({
+      reporter: order.buyer,
+      subject: 'order',
+      subjectId: order.id,
+      description: sections.join('\n\n'),
+    });
+
+    const saved = await this.reports.save(report);
+    return { message: 'Report submitted', report: saved };
   }
 
   private async loadReviews(orders: Order[]) {

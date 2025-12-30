@@ -14,6 +14,7 @@ import { Roles } from '../../../common/decorators/roles.decorator';
 import { CurrentUser } from '../../admin/decorators/current-user.decorator';
 import { CompleteOrderDto } from './dto/complete-order.dto';
 import { CancelOrderDto } from './dto/cancel-order.dto';
+import { ReportOrderDto } from './dto/report-order.dto';
 import type { AuthenticatedUser } from '../../../common/types/authenticated-user';
 
 @Controller('user/orders')
@@ -58,5 +59,14 @@ export class UserOrdersController {
     @Body() dto: CancelOrderDto,
   ) {
     return this.orders.cancel(user.sub, id, dto);
+  }
+
+  @Post(':id/report')
+  report(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('id') id: string,
+    @Body() dto: ReportOrderDto,
+  ) {
+    return this.orders.report(user.sub, id, dto);
   }
 }
