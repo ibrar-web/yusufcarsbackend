@@ -9,4 +9,6 @@ export type QuoteRequestCreatedPayload = {
     slug: string;
   }>;
   createdAt: Date | string;
+  expiresAt: Date | string;
+  postcode: string;
 };

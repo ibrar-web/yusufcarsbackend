@@ -2,7 +2,6 @@ import { Injectable, BadRequestException, Logger } from '@nestjs/common';
 import { In, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
-import { Response } from 'express';
 import { User, UserStatus } from '../../entities/user.entity';
 import { Supplier } from '../../entities/supplier.entity';
 import { SupplierDocument } from '../../entities/supplier-document.entity';
@@ -18,6 +17,11 @@ import {
 import { GoogleGeocodingService } from '../../common/geocoding/google-geocoding.service';
 
 type PublicUser = Omit<User, 'password'>;
+
+type LoginResult = {
+  token: string;
+  user: PublicUser;
+};
 
 @Injectable()
 export class AuthService {
@@ -204,57 +208,16 @@ export class AuthService {
     return user.toPublic();
   }
 
-  async login(res: Response, userPublic: PublicUser): Promise<PublicUser> {
+  async login(userPublic: PublicUser): Promise<LoginResult> {
     const token = await this.jose.sign({
       sub: userPublic.id,
       email: userPublic.email,
       role: userPublic.role,
     });
-    const cookieName = process.env.COOKIE_NAME || 'access_token';
-    const domain = process.env.COOKIE_DOMAIN || undefined;
-    console.log('domain', domain);
-    const secure =
-      process.env.NODE_ENV === 'production' ||
-      process.env.NODE_ENV === 'staging';
-    const sameSite: boolean | 'lax' | 'strict' | 'none' =
-      secure ? 'none' : 'lax';
-    const maxAge = (() => {
-      const s = process.env.TOKEN_EXPIRES_IN || '1d';
-      const m = /^([0-9]+)([smhd])$/.exec(s) || [];
-      const n = parseInt(m[1] || '1', 10);
-      const mult =
-        m[2] === 's' ? 1 : m[2] === 'm' ? 60 : m[2] === 'h' ? 3600 : 86400;
-      return n * mult * 1000;
-    })();
-    res.cookie(cookieName, token, {
-      httpOnly: true,
-      sameSite,
-      secure,
-      domain,
-      maxAge,
-      path: '/',
-    });
-    return userPublic;
+    return { token, user: userPublic };
   }
 
-  logout(res: Response) {
-    const cookieName = process.env.COOKIE_NAME || 'access_token';
-    const domain = process.env.COOKIE_DOMAIN || undefined;
-    const secure =
-      process.env.NODE_ENV === 'production' ||
-      process.env.NODE_ENV === 'staging';
-    const sameSite: boolean | 'lax' | 'strict' | 'none' =
-      secure ? 'none' : 'lax';
-
-    res.cookie(cookieName, '', {
-      httpOnly: true,
-      sameSite,
-      secure,
-      domain,
-      maxAge: 0,
-      expires: new Date(0),
-      path: '/',
-    });
+  logout() {
     return { ok: true };
   }
 }

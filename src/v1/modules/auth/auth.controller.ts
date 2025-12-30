@@ -3,7 +3,6 @@ import {
   Controller,
   Get,
   Post,
-  Res,
   Req,
   UploadedFiles,
   UseInterceptors,
@@ -11,7 +10,6 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
-import type { Response } from 'express';
 import { plainToInstance } from 'class-transformer';
 import { validateOrReject } from 'class-validator';
 import { AuthService } from './auth.service';
@@ -73,29 +71,33 @@ export class AuthController {
   }
 
   @Post('login')
-  async login(
-    @Body() body: { email: string; password: string },
-    @Res({ passthrough: true }) res: Response,
-  ) {
+  async login(@Body() body: { email: string; password: string }) {
     const pub = await this.auth.validateUser(body.email, body.password);
     if (!pub) {
       // Standardized error for invalid credentials
       throw new UnauthorizedException('Invalid email or password');
     }
-    return await this.auth.login(res, pub);
+    return await this.auth.login(pub);
   }
 
   @Post('logout')
   @Get('logout')
-  logout(@Res({ passthrough: true }) res: Response) {
-    return this.auth.logout(res);
+  logout() {
+    return this.auth.logout();
   }
 
   @Get('session')
   async session(@Req() req: RequestWithAuth) {
-    const cookieName = process.env.COOKIE_NAME || 'access_token';
-    const token = req.cookies?.[cookieName];
+    const authHeaderValue =
+      typeof req.headers.authorization === 'string'
+        ? req.headers.authorization
+        : '';
+    const token = authHeaderValue.startsWith('Bearer ')
+      ? authHeaderValue.slice('Bearer '.length)
+      : undefined;
+
     if (!token) return { authenticated: false };
+
     try {
       const payload = await this.jose.verify<AuthenticatedUser>(token);
       return { authenticated: true, user: payload };
@@ -103,6 +105,7 @@ export class AuthController {
       return { authenticated: false };
     }
   }
+
   @Post('register/admin')
   @UseInterceptors(
     FileFieldsInterceptor([
