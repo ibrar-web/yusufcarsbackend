@@ -68,16 +68,18 @@ export class SupplierRegisterDto {
   @IsBoolean()
   gdprConsent!: boolean;
 
-  @Transform(({ value }): string[] | undefined => {
-    if (value === undefined || value === null || value === '') {
+  @Transform(({ value }): string | undefined => {
+    if (value === undefined || value === null) {
       return undefined;
     }
     const raw = Array.isArray(value) ? value : [value];
-    const normalized = raw
-      .map((entry) => (typeof entry === 'string' ? entry : String(entry)))
-      .map((entry) => entry.trim())
-      .filter((entry) => entry.length > 0);
-    return normalized.length ? normalized : undefined;
+    for (const entry of raw) {
+      const normalized = (typeof entry === 'string' ? entry : String(entry)).trim();
+      if (normalized.length > 0) {
+        return normalized;
+      }
+    }
+    return undefined;
   })
   @IsEmail()
   email: string;
