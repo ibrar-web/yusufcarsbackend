@@ -216,7 +216,6 @@ export class AuthService {
     });
     return { token, user: userPublic };
   }
-
   logout() {
     return { ok: true };
   }
