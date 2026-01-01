@@ -50,8 +50,8 @@ export class BlogController {
   @UseGuards(AuthGuard, RolesGuard)
   @Roles('admin', 'supplier')
   async myBlogs(@CurrentUser() user: AuthenticatedUser) {
-    const author = await this.resolveAuthor(user);
-    return this.blogs.listBlogsByAuthor(author);
+    const publisher = await this.resolvePublisher(user);
+    return this.blogs.listBlogsByAuthor(publisher);
   }
 
   @Get(':id')
@@ -68,8 +68,8 @@ export class BlogController {
     @CurrentUser() user: AuthenticatedUser,
     @Body() dto: CreateBlogDto,
   ) {
-    const author = await this.resolveAuthor(user);
-    return this.blogs.createBlog(dto, author);
+    const publisher = await this.resolvePublisher(user);
+    return this.blogs.createBlog(dto, publisher);
   }
 
   @Patch(':id')
@@ -80,8 +80,8 @@ export class BlogController {
     @Body() dto: UpdateBlogDto,
     @CurrentUser() user: AuthenticatedUser,
   ) {
-    const author = await this.resolveAuthor(user);
-    return this.blogs.updateBlog(id, dto, author);
+    const publisher = await this.resolvePublisher(user);
+    return this.blogs.updateBlog(id, dto, publisher);
   }
 
   @Delete(':id')
@@ -99,9 +99,7 @@ export class BlogController {
     return { deleted: true };
   }
 
-  private async resolveAuthor(
-    user: AuthenticatedUser,
-  ): Promise<User | Supplier> {
+  private async resolvePublisher(user: AuthenticatedUser): Promise<User> {
     if (user.role === 'supplier') {
       const supplier = await this.suppliers.findOne({
         where: { user: { id: user.sub } },
@@ -110,7 +108,10 @@ export class BlogController {
       if (!supplier) {
         throw new NotFoundException('Supplier profile not found');
       }
-      return supplier;
+      if (!supplier.user) {
+        throw new NotFoundException('Supplier user not found');
+      }
+      return supplier.user;
     }
     const admin = await this.users.findOne({ where: { id: user.sub } });
     if (!admin) {

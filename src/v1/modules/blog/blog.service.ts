@@ -7,7 +7,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 import { Blog } from '../../entities/blog.entity';
 import { Tag } from '../../entities/tag.entity';
-import { Supplier } from '../../entities/supplier.entity';
 import { User } from '../../entities/user.entity';
 import { CreateBlogDto } from './dto/create-blog.dto';
 import { UpdateBlogDto } from './dto/update-blog.dto';
@@ -19,7 +18,7 @@ export class BlogService {
     @InjectRepository(Tag) private readonly tags: Repository<Tag>,
   ) {}
 
-  async createBlog(dto: CreateBlogDto, author: User | Supplier): Promise<Blog> {
+  async createBlog(dto: CreateBlogDto, publisher: User): Promise<Blog> {
     const blog = this.blogs.create({
       title: dto.title,
       content: dto.content,
@@ -27,7 +26,7 @@ export class BlogService {
       images: dto.images ?? null,
       videoUrl: dto.videoUrl,
       references: dto.references ?? null,
-      comments: dto.comments ?? null,
+      comments: (dto.comments as string[] | undefined) ?? null,
       seoTitle: dto.seoTitle,
       seoDescription: dto.seoDescription,
       seoImageUrl: dto.seoImageUrl,
@@ -36,11 +35,7 @@ export class BlogService {
       isPublished: dto.isPublished ?? true,
     });
 
-    const supplierAuthor = this.asSupplier(author);
-    const publisherUser = supplierAuthor
-      ? supplierAuthor.user ?? ({ id: supplierAuthor.userId } as User)
-      : (author as User);
-    blog.publisher = publisherUser;
+    blog.publisher = publisher;
 
     if (dto.tags?.length) {
       blog.tags = await this.resolveTags(dto.tags);
@@ -52,7 +47,7 @@ export class BlogService {
   async updateBlog(
     id: string,
     dto: UpdateBlogDto,
-    author: User | Supplier,
+    publisher: User,
   ): Promise<Blog> {
     const blog = await this.blogs.findOne({
       where: { id },
@@ -60,19 +55,9 @@ export class BlogService {
     });
     if (!blog) throw new NotFoundException('Blog not found');
 
-    const supplierAuthor = this.asSupplier(author);
-    if (supplierAuthor) {
-      const supplierPublisherId =
-        supplierAuthor.user?.id ?? supplierAuthor.userId;
-      if (!blog.publisher || blog.publisher.id !== supplierPublisherId) {
-        throw new ForbiddenException('You can only update your own blogs');
-      }
-    } else {
-      const adminAuthor = author as User;
-      if (
-        adminAuthor.role !== 'admin' &&
-        (!blog.publisher || blog.publisher.id !== adminAuthor.id)
-      ) {
+    const isAdmin = publisher.role === 'admin';
+    if (!isAdmin) {
+      if (!blog.publisher || blog.publisher.id !== publisher.id) {
         throw new ForbiddenException('You can only update your own blogs');
       }
     }
@@ -83,7 +68,9 @@ export class BlogService {
     if (dto.images !== undefined) blog.images = dto.images ?? null;
     if (dto.videoUrl !== undefined) blog.videoUrl = dto.videoUrl;
     if (dto.references !== undefined) blog.references = dto.references ?? null;
-    if (dto.comments !== undefined) blog.comments = dto.comments ?? null;
+    if (dto.comments !== undefined) {
+      blog.comments = (dto.comments as string[] | undefined) ?? null;
+    }
     if (dto.seoTitle !== undefined) blog.seoTitle = dto.seoTitle;
     if (dto.seoDescription !== undefined)
       blog.seoDescription = dto.seoDescription;
@@ -127,20 +114,13 @@ export class BlogService {
     });
   }
 
-  listBlogsByAuthor(author: User | Supplier): Promise<Blog[]> {
-    const supplierAuthor = this.asSupplier(author);
-    const where = supplierAuthor
-      ? { publisher: { id: supplierAuthor.user?.id ?? supplierAuthor.userId } }
-      : { publisher: { id: (author as User).id } };
+  listBlogsByAuthor(publisher: User): Promise<Blog[]> {
+    const where = { publisher: { id: publisher.id } };
     return this.blogs.find({
       where,
       relations: ['publisher', 'tags'],
       order: { publishAt: 'DESC', createdAt: 'DESC' },
     });
-  }
-
-  private isSupplier(author: User | Supplier): author is Supplier {
-    return author instanceof Supplier;
   }
 
   async incrementViews(id: string): Promise<void> {
@@ -186,17 +166,5 @@ export class BlogService {
     }
 
     return [...existing, ...newTags];
-  }
-
-  private asSupplier(author: User | Supplier): Supplier | undefined {
-    if (
-      author &&
-      typeof author === 'object' &&
-      'businessName' in author &&
-      'user' in author
-    ) {
-      return author as Supplier;
-    }
-    return undefined;
   }
 }
