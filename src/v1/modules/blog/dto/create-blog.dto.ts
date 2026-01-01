@@ -35,6 +35,11 @@ export class CreateBlogDto {
   references?: string[];
 
   @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  comments?: string[];
+
+  @IsOptional()
   @IsString()
   seoTitle?: string;
 

@@ -37,6 +37,11 @@ export class UpdateBlogDto {
   references?: string[];
 
   @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  comments?: string[];
+
+  @IsOptional()
   @IsString()
   seoTitle?: string;
 

@@ -12,7 +12,6 @@ import {
 } from 'typeorm';
 import { User } from './user.entity';
 import { Tag } from './tag.entity';
-import { Supplier } from './supplier.entity';
 
 @Entity('blogs')
 export class Blog {
@@ -37,6 +36,9 @@ export class Blog {
   @Column({ type: 'text', array: true, nullable: true })
   references?: string[] | null;
 
+  @Column({ type: 'text', array: true, nullable: true })
+  comments?: string[] | null;
+
   @Column({ type: 'varchar', length: 200, nullable: true })
   seoTitle?: string | null;
 
@@ -47,16 +49,10 @@ export class Blog {
   seoImageUrl?: string | null;
 
   @ManyToOne(() => User, { nullable: true, onDelete: 'SET NULL' })
-  @JoinColumn({ name: 'author_admin_id' })
-  authorAdmin?: User | null;
-  @RelationId((blog: Blog) => blog.authorAdmin)
-  authorAdminId?: string | null;
-
-  @ManyToOne(() => Supplier, { nullable: true, onDelete: 'SET NULL' })
-  @JoinColumn({ name: 'author_supplier_id' })
-  authorSupplier?: Supplier | null;
-  @RelationId((blog: Blog) => blog.authorSupplier)
-  authorSupplierId?: string | null;
+  @JoinColumn({ name: 'publisher_id' })
+  publisher?: User | null;
+  @RelationId((blog: Blog) => blog.publisher)
+  publisherId?: string | null;
 
   @ManyToMany(() => Tag, { eager: true, cascade: false })
   @JoinTable({

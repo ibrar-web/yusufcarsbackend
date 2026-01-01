@@ -27,6 +27,7 @@ export class BlogService {
       images: dto.images ?? null,
       videoUrl: dto.videoUrl,
       references: dto.references ?? null,
+      comments: dto.comments ?? null,
       seoTitle: dto.seoTitle,
       seoDescription: dto.seoDescription,
       seoImageUrl: dto.seoImageUrl,
@@ -36,12 +37,10 @@ export class BlogService {
     });
 
     const supplierAuthor = this.asSupplier(author);
-    if (supplierAuthor) {
-      blog.authorSupplier = supplierAuthor;
-    } else {
-      const adminAuthor = author as User;
-      blog.authorAdmin = adminAuthor;
-    }
+    const publisherUser = supplierAuthor
+      ? supplierAuthor.user ?? ({ id: supplierAuthor.userId } as User)
+      : (author as User);
+    blog.publisher = publisherUser;
 
     if (dto.tags?.length) {
       blog.tags = await this.resolveTags(dto.tags);
@@ -57,23 +56,22 @@ export class BlogService {
   ): Promise<Blog> {
     const blog = await this.blogs.findOne({
       where: { id },
-      relations: ['authorAdmin', 'authorSupplier', 'tags'],
+      relations: ['publisher', 'tags'],
     });
     if (!blog) throw new NotFoundException('Blog not found');
 
     const supplierAuthor = this.asSupplier(author);
     if (supplierAuthor) {
-      if (
-        !blog.authorSupplier ||
-        blog.authorSupplier.id !== supplierAuthor.id
-      ) {
+      const supplierPublisherId =
+        supplierAuthor.user?.id ?? supplierAuthor.userId;
+      if (!blog.publisher || blog.publisher.id !== supplierPublisherId) {
         throw new ForbiddenException('You can only update your own blogs');
       }
     } else {
       const adminAuthor = author as User;
       if (
         adminAuthor.role !== 'admin' &&
-        (!blog.authorAdmin || blog.authorAdmin.id !== adminAuthor.id)
+        (!blog.publisher || blog.publisher.id !== adminAuthor.id)
       ) {
         throw new ForbiddenException('You can only update your own blogs');
       }
@@ -85,6 +83,7 @@ export class BlogService {
     if (dto.images !== undefined) blog.images = dto.images ?? null;
     if (dto.videoUrl !== undefined) blog.videoUrl = dto.videoUrl;
     if (dto.references !== undefined) blog.references = dto.references ?? null;
+    if (dto.comments !== undefined) blog.comments = dto.comments ?? null;
     if (dto.seoTitle !== undefined) blog.seoTitle = dto.seoTitle;
     if (dto.seoDescription !== undefined)
       blog.seoDescription = dto.seoDescription;
@@ -114,7 +113,7 @@ export class BlogService {
   async getBlog(id: string): Promise<Blog> {
     const blog = await this.blogs.findOne({
       where: { id },
-      relations: ['authorAdmin', 'authorSupplier', 'tags'],
+      relations: ['publisher', 'tags'],
     });
     if (!blog) throw new NotFoundException('Blog not found');
     return blog;
@@ -123,7 +122,7 @@ export class BlogService {
   listBlogs(): Promise<Blog[]> {
     return this.blogs.find({
       where: { isPublished: true },
-      relations: ['authorAdmin', 'authorSupplier', 'tags'],
+      relations: ['publisher', 'tags'],
       order: { publishAt: 'DESC', createdAt: 'DESC' },
     });
   }
@@ -131,11 +130,11 @@ export class BlogService {
   listBlogsByAuthor(author: User | Supplier): Promise<Blog[]> {
     const supplierAuthor = this.asSupplier(author);
     const where = supplierAuthor
-      ? { authorSupplier: { id: supplierAuthor.id } }
-      : { authorAdmin: { id: (author as User).id } };
+      ? { publisher: { id: supplierAuthor.user?.id ?? supplierAuthor.userId } }
+      : { publisher: { id: (author as User).id } };
     return this.blogs.find({
       where,
-      relations: ['authorAdmin', 'authorSupplier', 'tags'],
+      relations: ['publisher', 'tags'],
       order: { publishAt: 'DESC', createdAt: 'DESC' },
     });
   }
@@ -151,7 +150,7 @@ export class BlogService {
   getFeaturedBlogs(): Promise<Blog[]> {
     return this.blogs.find({
       where: { isPublished: true, isFeatured: true },
-      relations: ['authorAdmin', 'authorSupplier', 'tags'],
+      relations: ['publisher', 'tags'],
       order: { publishAt: 'DESC', createdAt: 'DESC' },
       take: 10,
     });
@@ -160,7 +159,7 @@ export class BlogService {
   getTrendingBlogs(): Promise<Blog[]> {
     return this.blogs.find({
       where: { isPublished: true },
-      relations: ['authorAdmin', 'authorSupplier', 'tags'],
+      relations: ['publisher', 'tags'],
       order: { views: 'DESC', likes: 'DESC' },
       take: 10,
     });
