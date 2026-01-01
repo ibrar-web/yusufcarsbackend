@@ -124,17 +124,24 @@ export class QuoteRequestNotificationService {
   ): QuoteRequestCreatedPayload | null {
     if (!request.user) return null;
     const serviceItems = request.serviceItems || [];
+    const user = request.user;
     return {
       requestId: request.id,
       userId: request.user.id,
-      postcode: request.postcode,
-      serviceCategories:
-        request.services || serviceItems.map((item) => item.id),
-      serviceItems: serviceItems.map((item) => ({
-        id: item.id,
-        name: item.name,
-        slug: item.slug,
-      })),
+      request: {
+        postcode: request.postcode,
+        serviceCategories:
+          request.services || serviceItems.map((item) => item.id),
+        serviceItems: serviceItems.map((item) => ({
+          id: item.id,
+          name: item.name,
+          slug: item.slug,
+        })),
+        user: {
+          id: user?.id ?? null,
+          firstName: user?.firstName ?? null,
+        },
+      },
       createdAt: request.createdAt,
       expiresAt: request.expiresAt ?? "",
     };
