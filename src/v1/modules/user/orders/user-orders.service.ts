@@ -178,21 +178,11 @@ export class UserOrdersService {
       throw new NotFoundException('Order not found');
     }
 
-    const sections = [
-      `Reason: ${dto.reason.trim()}`,
-      `Details: ${dto.details.trim()}`,
-    ];
-    if (dto.cancelOrder) {
-      sections.push(
-        `Cancellation requested: ${dto.cancellationReason?.trim() || 'Yes'}`,
-      );
-    }
-
     const report = this.reports.create({
       reporter: order.buyer,
       subject: 'order',
       subjectId: order.id,
-      description: sections.join('\n\n'),
+      description: `Cancellation reason: ${dto.cancellationReason.trim()}`,
     });
 
     const saved = await this.reports.save(report);
