@@ -185,6 +185,9 @@ export class UserOrdersService {
       description: `Cancellation reason: ${dto.cancellationReason.trim()}`,
     });
 
+    order.status = OrderStatus.REPORTED;
+    await this.orders.save(order);
+
     const saved = await this.reports.save(report);
     return { message: 'Report submitted', report: saved };
   }

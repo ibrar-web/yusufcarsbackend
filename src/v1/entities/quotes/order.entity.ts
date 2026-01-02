@@ -16,6 +16,8 @@ import { User } from '../user.entity';
 
 export enum OrderStatus {
   IN_TRANSIT = 'in_transit',
+  REPORTED = 'reported',
+  REVIEWED = 'reviewed',
   COMPLETED = 'completed',
   CANCELLED = 'cancelled',
 }
