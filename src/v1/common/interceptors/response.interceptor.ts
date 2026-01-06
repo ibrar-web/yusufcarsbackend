@@ -18,6 +18,10 @@ export class ResponseInterceptor implements NestInterceptor {
         // Preserve explicit status codes set in controllers (e.g. @HttpCode).
         response.status(statusCode);
 
+        if (this.isBypassResponse(response)) {
+          return data;
+        }
+
         return {
           statusCode,
           message: this.resolveMessage(data, statusCode),
@@ -34,6 +38,16 @@ export class ResponseInterceptor implements NestInterceptor {
 
   private getStatusCode(response: Response): number {
     return response.statusCode ?? 200;
+  }
+
+  private isBypassResponse(response: Response): boolean {
+    const contentType = response.getHeader('Content-Type');
+    if (!contentType) return false;
+    const value =
+      Array.isArray(contentType) && contentType.length
+        ? contentType[0]
+        : contentType.toString();
+    return value.includes('text/html');
   }
 
   private resolveMessage(data: unknown, statusCode: number): string {
