@@ -41,15 +41,24 @@ export async function sendEmail({
     ],
   };
 
-  const response = await fetch(SENDGRID_ENDPOINT, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${SENDGRID_API_KEY}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(body),
-  });
-
+  let response: Response;
+  try {
+    response = await fetch(SENDGRID_ENDPOINT, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${SENDGRID_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    });
+  } catch (error) {
+    console.error(
+      '[emails] Failed to reach SendGrid:',
+      error instanceof Error ? error.message : error,
+    );
+    throw error;
+  }
+  console.log('response', response);
   if (!response.ok) {
     const detail = await safeReadBody(response);
     throw new Error(

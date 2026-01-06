@@ -301,7 +301,9 @@ export class AuthService {
     if (!user) {
       const postCode = (dto.postCode ?? '').trim();
       if (!postCode) {
-        throw new BadRequestException('Postcode is required to complete signup');
+        throw new BadRequestException(
+          'Postcode is required to complete signup',
+        );
       }
       const coordinates = await this.lookupCoordinates(postCode);
       user = this.users.create({
@@ -325,7 +327,10 @@ export class AuthService {
       await this.users.save(user);
     }
 
-    if (user.status === UserStatus.SUSPENDED || user.status === UserStatus.DELETED) {
+    if (
+      user.status === UserStatus.SUSPENDED ||
+      user.status === UserStatus.DELETED
+    ) {
       throw new BadRequestException('Account is not active');
     }
 
@@ -347,6 +352,7 @@ export class AuthService {
     await this.emailVerifications.save(verification);
 
     const verificationUrl = this.buildVerificationUrl(user.email, code);
+    console.log('verificationUrl');
     await sendEmailVerificationEmail({
       to: user.email,
       name: this.normalizeRequiredName(user.firstName),
