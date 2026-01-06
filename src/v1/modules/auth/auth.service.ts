@@ -25,6 +25,7 @@ import { EmailVerification } from '../../entities/email-verification.entity';
 import { sendEmailVerificationEmail } from '../../common/emails/templates';
 import { GoogleLoginDto } from './authdtos/google-login.dto';
 import { JWTPayload, createRemoteJWKSet, jwtVerify } from 'jose';
+import { applyProfileCompletion } from '../../common/utils/profile-completion.util';
 
 const GOOGLE_JWKS = createRemoteJWKSet(
   new URL('https://www.googleapis.com/oauth2/v3/certs'),
@@ -97,11 +98,12 @@ export class AuthService {
     await this.users.save(user);
     await this.issueEmailVerification(user);
 
+    let supplier: Supplier | undefined;
     if (user.role === 'supplier') {
       this.ensureSupplierDocuments(docs);
       const uploadedDocs = await this.kycDocs.uploadSupplierDocs(user.id, docs);
 
-      const supplier = this.suppliers.create({
+      supplier = this.suppliers.create({
         user,
         businessName: supplierDto.businessName,
         tradingAs: supplierDto.tradingAs,
@@ -117,9 +119,11 @@ export class AuthService {
         gdprConsent: supplierDto.gdprConsent,
         submittedAt: new Date(),
       });
-      await this.suppliers.save(supplier);
+      supplier = await this.suppliers.save(supplier);
       await this.saveUploadedDocuments(supplier, uploadedDocs);
     }
+    applyProfileCompletion(user, supplier ?? null);
+    await this.users.save(user);
     return user.toPublic();
   }
 
@@ -297,7 +301,11 @@ export class AuthService {
       );
     }
 
-    let user = await this.users.findOne({ where: { email } });
+    let user = await this.users.findOne({
+      where: { email },
+      relations: { supplier: true },
+    });
+    let supplier: Supplier | null = user?.supplier ?? null;
     if (!user) {
       const postCode = (dto.postCode ?? '').trim();
       if (!postCode) {
@@ -334,6 +342,14 @@ export class AuthService {
       throw new BadRequestException('Account is not active');
     }
 
+    if (!supplier && user.role === 'supplier') {
+      supplier = await this.suppliers.findOne({
+        where: { user: { id: user.id } },
+      });
+    }
+    applyProfileCompletion(user, supplier ?? null);
+    await this.users.save(user);
+
     return this.login(user.toPublic());
   }
 
@@ -352,7 +368,6 @@ export class AuthService {
     await this.emailVerifications.save(verification);
 
     const verificationUrl = this.buildVerificationUrl(user.email, code);
-    console.log('verificationUrl');
     await sendEmailVerificationEmail({
       to: user.email,
       name: this.normalizeRequiredName(user.firstName),

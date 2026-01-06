@@ -63,6 +63,21 @@ export class User {
   @Column({ type: 'text', nullable: true })
   suspensionReason?: string | null;
 
+  @Column({ type: 'varchar', length: 50, nullable: true })
+  phone?: string | null;
+
+  @Column({ type: 'text', nullable: true })
+  profileImageKey?: string | null;
+
+  @Column({ type: 'text', nullable: true })
+  profileImageUrl?: string | null;
+
+  @Column({ type: 'int', default: 0 })
+  profileCompletion!: number;
+
+  @Column({ type: 'boolean', default: false })
+  profileCompleted!: boolean;
+
   @Column({ type: 'timestamptz', nullable: true })
   emailVerifiedAt?: Date | null;
 

@@ -23,6 +23,12 @@ export class ServiceCategory {
   @Column({ type: 'text', nullable: true })
   description?: string;
 
+  @Column({ type: 'text', nullable: true })
+  imageKey?: string | null;
+
+  @Column({ type: 'text', nullable: true })
+  imageUrl?: string | null;
+
   @Column({ type: 'int', default: 0 })
   sortOrder!: number;
 

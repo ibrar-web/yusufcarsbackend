@@ -22,6 +22,8 @@ import type { UploadedFile } from '../../../common/aws/s3.service';
 import { S3Service } from '../../../common/aws/s3.service';
 import { GoogleGeocodingService } from '../../../common/geocoding/google-geocoding.service';
 import { Logger } from '@nestjs/common';
+import { applyProfileCompletion } from '../../../common/utils/profile-completion.util';
+import type { Express } from 'express';
 
 type SupplierDocumentInfo = {
   id: string;
@@ -169,6 +171,9 @@ export class SupplierProfileService {
       await this.suppliers.save(supplierUser.supplier);
     }
 
+    applyProfileCompletion(supplierUser, supplierUser.supplier);
+    await this.users.save(supplierUser);
+
     const documentFiles = await this.buildDocumentResponse(
       supplierUser.supplier.id,
     );
@@ -196,6 +201,56 @@ export class SupplierProfileService {
     user.password = dto.newPassword;
     const saved = await this.users.save(user);
     return saved.toPublic();
+  }
+
+  async updateProfileImage(userId: string, file?: Express.Multer.File) {
+    if (!file) {
+      throw new BadRequestException('Image file is required');
+    }
+    const user = await this.users.findOne({
+      where: { id: userId },
+      relations: { supplier: true },
+    });
+    if (!user) throw new NotFoundException('User not found');
+    const key = `profiles/${user.id}/avatar-${Date.now()}`;
+    const url = await this.s3.upload(key, {
+      buffer: file.buffer,
+      originalname: file.originalname,
+      mimetype: file.mimetype,
+      size: file.size,
+    });
+    user.profileImageKey = key;
+    user.profileImageUrl = url;
+    applyProfileCompletion(user, user.supplier);
+    await this.users.save(user);
+    return this.getProfile(userId);
+  }
+
+  async updateMainCategoryImage(userId: string, file?: Express.Multer.File) {
+    if (!file) {
+      throw new BadRequestException('Image file is required');
+    }
+    const supplierUser = await this.users.findOne({
+      where: { id: userId },
+      relations: { supplier: true },
+    });
+    if (!supplierUser?.supplier) {
+      throw new NotFoundException('Supplier profile not found');
+    }
+    const supplier = supplierUser.supplier;
+    const key = `suppliers/${supplier.id}/main-category-${Date.now()}`;
+    const url = await this.s3.upload(key, {
+      buffer: file.buffer,
+      originalname: file.originalname,
+      mimetype: file.mimetype,
+      size: file.size,
+    });
+    supplier.mainCategoryImageKey = key;
+    supplier.mainCategoryImageUrl = url;
+    await this.suppliers.save(supplier);
+    applyProfileCompletion(supplierUser, supplier);
+    await this.users.save(supplierUser);
+    return this.getProfile(userId);
   }
 
   private async buildDocumentResponse(

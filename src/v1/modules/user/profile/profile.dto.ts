@@ -26,6 +26,10 @@ export class UpdateUserProfileDto {
   @IsOptional()
   @IsString()
   postCode?: string;
+
+  @IsOptional()
+  @IsString()
+  phone?: string;
 }
 
 export class UpdateUserPasswordDto {

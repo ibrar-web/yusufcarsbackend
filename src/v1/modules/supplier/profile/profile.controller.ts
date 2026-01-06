@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   Put,
+  UploadedFile,
   UploadedFiles,
   UseGuards,
   UseInterceptors,
@@ -17,8 +18,12 @@ import {
 } from './profile.dto';
 import { CurrentUser } from '../../admin/decorators/current-user.decorator';
 import type { AuthenticatedUser } from '../../../common/types/authenticated-user';
-import { FileFieldsInterceptor } from '@nestjs/platform-express';
-import type { UploadedFile } from '../../../common/aws/s3.service';
+import {
+  FileFieldsInterceptor,
+  FileInterceptor,
+} from '@nestjs/platform-express';
+import type { UploadedFile as AwsUploadedFile } from '../../../common/aws/s3.service';
+import type { Express } from 'express';
 
 @Controller('supplier/profile')
 @UseGuards(AuthGuard, RolesGuard)
@@ -43,11 +48,11 @@ export class SupplierProfileController {
     @Body() dto: UpdateSupplierFlatDto,
     @UploadedFiles()
     files?: {
-      companyRegDoc?: UploadedFile[];
-      insuranceDoc?: UploadedFile[];
+      companyRegDoc?: AwsUploadedFile[];
+      insuranceDoc?: AwsUploadedFile[];
     },
   ) {
-    const docs: Record<string, UploadedFile | undefined> = {};
+    const docs: Record<string, AwsUploadedFile | undefined> = {};
     if (files?.companyRegDoc?.[0]) {
       docs['company_registration'] = files.companyRegDoc[0];
     }
@@ -65,5 +70,23 @@ export class SupplierProfileController {
     @Body() dto: UpdateSupplierPasswordDto,
   ) {
     return this.profile.updatePassword(user.sub, dto);
+  }
+
+  @Put('avatar')
+  @UseInterceptors(FileInterceptor('image'))
+  updateAvatar(
+    @CurrentUser() user: AuthenticatedUser,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    return this.profile.updateProfileImage(user.sub, file);
+  }
+
+  @Put('main-category-image')
+  @UseInterceptors(FileInterceptor('image'))
+  updateMainCategoryImage(
+    @CurrentUser() user: AuthenticatedUser,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    return this.profile.updateMainCategoryImage(user.sub, file);
   }
 }

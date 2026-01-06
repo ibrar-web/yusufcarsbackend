@@ -69,6 +69,12 @@ export class Supplier {
   @Column()
   phone!: string;
 
+  @Column({ type: 'text', nullable: true })
+  mainCategoryImageKey?: string | null;
+
+  @Column({ type: 'text', nullable: true })
+  mainCategoryImageUrl?: string | null;
+
   @Column()
   termsAccepted!: boolean;
 

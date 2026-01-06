@@ -10,6 +10,9 @@ import { User } from '../../../entities/user.entity';
 import { UpdateUserPasswordDto, UpdateUserProfileDto } from './profile.dto';
 import { GoogleGeocodingService } from '../../../common/geocoding/google-geocoding.service';
 import * as bcrypt from 'bcrypt';
+import { S3Service } from '../../../common/aws/s3.service';
+import { applyProfileCompletion } from '../../../common/utils/profile-completion.util';
+import type { Express } from 'express';
 
 @Injectable()
 export class UserProfileService {
@@ -18,17 +21,33 @@ export class UserProfileService {
   constructor(
     @InjectRepository(User) private readonly users: Repository<User>,
     private readonly geocoding: GoogleGeocodingService,
+    private readonly s3: S3Service,
   ) {}
 
   async getProfile(userId: string) {
-    const user = await this.users.findOne({ where: { id: userId } });
+    const user = await this.users.findOne({
+      where: { id: userId },
+      relations: { supplier: true },
+    });
     if (!user) throw new NotFoundException('User not found');
-    return user;
+    return user.toPublic();
   }
 
   async updateProfile(userId: string, dto: UpdateUserProfileDto) {
-    const user = await this.getProfile(userId);
-    Object.assign(user, dto);
+    const user = await this.users.findOne({
+      where: { id: userId },
+      relations: { supplier: true },
+    });
+    if (!user) throw new NotFoundException('User not found');
+
+    if (dto.firstName !== undefined) user.firstName = dto.firstName;
+    if (dto.lastName !== undefined) user.lastName = dto.lastName;
+    if (dto.email !== undefined) user.email = dto.email;
+    if (dto.marketingOptIn !== undefined)
+      (user as User & { marketingOptIn?: boolean }).marketingOptIn =
+        dto.marketingOptIn;
+    if (dto.phone !== undefined) user.phone = dto.phone;
+
     if (dto.postCode?.trim()) {
       const normalized = dto.postCode.trim();
       user.postCode = normalized;
@@ -38,6 +57,7 @@ export class UserProfileService {
         user.longitude = coordinates.longitude;
       }
     }
+    applyProfileCompletion(user, user.supplier);
     const saved = await this.users.save(user);
     return saved.toPublic();
   }
@@ -50,6 +70,30 @@ export class UserProfileService {
       throw new BadRequestException('Current password is incorrect');
     }
     user.password = dto.newPassword;
+    const saved = await this.users.save(user);
+    return saved.toPublic();
+  }
+
+  async updateProfileImage(userId: string, file?: Express.Multer.File) {
+    if (!file) {
+      throw new BadRequestException('Image file is required');
+    }
+    const user = await this.users.findOne({
+      where: { id: userId },
+      relations: { supplier: true },
+    });
+    if (!user) throw new NotFoundException('User not found');
+
+    const key = `profiles/${user.id}/avatar-${Date.now()}`;
+    const url = await this.s3.upload(key, {
+      buffer: file.buffer,
+      originalname: file.originalname,
+      mimetype: file.mimetype,
+      size: file.size,
+    });
+    user.profileImageKey = key;
+    user.profileImageUrl = url;
+    applyProfileCompletion(user, user.supplier);
     const saved = await this.users.save(user);
     return saved.toPublic();
   }
