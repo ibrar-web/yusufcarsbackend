@@ -85,7 +85,7 @@ export class UserProfileService {
     if (!user) throw new NotFoundException('User not found');
 
     const key = `profiles/${user.id}/avatar-${Date.now()}`;
-    const url = await this.s3.upload(key, {
+    const url = await this.s3.uploadPublic(key, {
       buffer: file.buffer,
       originalname: file.originalname,
       mimetype: file.mimetype,

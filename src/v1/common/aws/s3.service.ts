@@ -22,17 +22,38 @@ export class S3Service {
   private readonly client: S3Client;
   private readonly region: string;
   private readonly bucket: string | undefined;
+  private readonly publicBucket?: string;
+  private readonly publicRegion: string;
+  private readonly publicClient?: S3Client;
 
   constructor() {
     this.region = process.env.AWS_REGION || 'eu-north-1';
     this.bucket = process.env.AWS_KYC_S3_BUCKET || process.env.AWS_S3_BUCKET;
+    const accessKeyId = process.env.AWS_ACCESS_KEY_ID || '';
+    const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY || '';
     this.client = new S3Client({
       region: this.region,
       credentials: {
-        accessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
-        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
+        accessKeyId,
+        secretAccessKey,
       },
     });
+
+    this.publicBucket = process.env.AWS_S3_BUCKET;
+    this.publicRegion = process.env.AWS_PUBLIC_REGION || this.region;
+    if (this.publicBucket) {
+      const publicAccessKeyId =
+        process.env.AWS_PUBLIC_ACCESS_KEY_ID || accessKeyId;
+      const publicSecretAccessKey =
+        process.env.AWS_PUBLIC_SECRET_ACCESS_KEY || secretAccessKey;
+      this.publicClient = new S3Client({
+        region: this.publicRegion,
+        credentials: {
+          accessKeyId: publicAccessKeyId,
+          secretAccessKey: publicSecretAccessKey,
+        },
+      });
+    }
   }
 
   async uploadKycDocument(
@@ -56,7 +77,22 @@ export class S3Service {
       ContentType: file.mimetype,
     });
     await this.client.send(command);
-    return this.buildPublicUrl(key);
+    return this.buildUrl(this.bucket, this.region, key);
+  }
+
+  async uploadPublic(key: string, file: UploadedFile): Promise<string> {
+    if (!this.publicBucket || !this.publicClient) {
+      throw new Error('AWS_S3_BUCKET (public) is not configured');
+    }
+    const command = new PutObjectCommand({
+      Bucket: this.publicBucket,
+      Key: key,
+      Body: file.buffer,
+      ContentType: file.mimetype,
+      ACL: 'public-read',
+    });
+    await this.publicClient.send(command);
+    return this.buildUrl(this.publicBucket, this.publicRegion, key);
   }
 
   async read(key: string) {
@@ -92,14 +128,11 @@ export class S3Service {
     return presign(this.client, command, { expiresIn });
   }
 
-  private buildPublicUrl(key: string) {
-    if (!this.bucket) {
-      throw new Error('AWS_KYC_S3_BUCKET (or AWS_S3_BUCKET) is not configured');
-    }
+  private buildUrl(bucket: string, region: string, key: string) {
     const baseDomain =
-      this.region === 'us-east-1'
-        ? `https://${this.bucket}.s3.amazonaws.com`
-        : `https://${this.bucket}.s3.${this.region}.amazonaws.com`;
+      region === 'us-east-1'
+        ? `https://${bucket}.s3.amazonaws.com`
+        : `https://${bucket}.s3.${region}.amazonaws.com`;
     return `${baseDomain}/${key}`;
   }
 

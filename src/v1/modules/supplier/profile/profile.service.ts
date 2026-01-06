@@ -213,7 +213,7 @@ export class SupplierProfileService {
     });
     if (!user) throw new NotFoundException('User not found');
     const key = `profiles/${user.id}/avatar-${Date.now()}`;
-    const url = await this.s3.upload(key, {
+    const url = await this.s3.uploadPublic(key, {
       buffer: file.buffer,
       originalname: file.originalname,
       mimetype: file.mimetype,
@@ -239,7 +239,7 @@ export class SupplierProfileService {
     }
     const supplier = supplierUser.supplier;
     const key = `suppliers/${supplier.id}/main-category-${Date.now()}`;
-    const url = await this.s3.upload(key, {
+    const url = await this.s3.uploadPublic(key, {
       buffer: file.buffer,
       originalname: file.originalname,
       mimetype: file.mimetype,
