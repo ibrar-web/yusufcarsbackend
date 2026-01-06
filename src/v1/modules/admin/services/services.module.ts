@@ -9,6 +9,7 @@ import { JwtCookieGuard } from '../guards/jwt-cookie.guard';
 import { RolesGuard } from '../guards/roles.guard';
 import { JwtCookieStrategy } from '../strategies/jwt-cookie.strategy';
 import { JoseService } from '../../auth/jose.service';
+import { S3Service } from '../../../common/aws/s3.service';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { JoseService } from '../../auth/jose.service';
     RolesGuard,
     JwtCookieStrategy,
     JoseService,
+    S3Service,
   ],
 })
 export class AdminServicesModule {}

@@ -14,6 +14,8 @@ import { CreateServiceItemDto } from './dto/create-service-item.dto';
 import { UpdateServiceItemDto } from './dto/update-service-item.dto';
 import { CreateServiceCategoryDto } from './dto/create-service-category.dto';
 import { UpdateServiceCategoryDto } from './dto/update-service-category.dto';
+import { S3Service } from '../../../common/aws/s3.service';
+import type { Express } from 'express';
 
 @Injectable()
 export class AdminServicesService {
@@ -24,6 +26,7 @@ export class AdminServicesService {
     private readonly subcategories: Repository<ServiceSubcategory>,
     @InjectRepository(ServiceItem)
     private readonly items: Repository<ServiceItem>,
+    private readonly s3: S3Service,
   ) {}
 
   async listCategories() {
@@ -41,7 +44,10 @@ export class AdminServicesService {
     return category;
   }
 
-  async createCategory(dto: CreateServiceCategoryDto) {
+  async createCategory(
+    dto: CreateServiceCategoryDto,
+    file?: Express.Multer.File,
+  ) {
     const existing = await this.categories.findOne({
       where: { slug: dto.slug },
     });
@@ -49,10 +55,19 @@ export class AdminServicesService {
       throw new BadRequestException('Slug already in use');
     }
     const category = this.categories.create(dto);
+    if (file) {
+      const { key, url } = await this.uploadCategoryImage(dto.slug, file);
+      category.imageKey = key;
+      category.imageUrl = url;
+    }
     return this.categories.save(category);
   }
 
-  async updateCategory(id: string, dto: UpdateServiceCategoryDto) {
+  async updateCategory(
+    id: string,
+    dto: UpdateServiceCategoryDto,
+    file?: Express.Multer.File,
+  ) {
     const category = await this.getCategory(id);
     if (dto.slug && dto.slug !== category.slug) {
       const existing = await this.categories.findOne({
@@ -66,6 +81,12 @@ export class AdminServicesService {
     if (dto.slug !== undefined) category.slug = dto.slug;
     if (dto.description !== undefined) category.description = dto.description;
     if (dto.sortOrder !== undefined) category.sortOrder = dto.sortOrder;
+    if (file) {
+      const slug = dto.slug ?? category.slug;
+      const { key, url } = await this.uploadCategoryImage(slug, file);
+      category.imageKey = key;
+      category.imageUrl = url;
+    }
     return this.categories.save(category);
   }
 
@@ -197,6 +218,21 @@ export class AdminServicesService {
     if (existing) throw new BadRequestException('Slug already in use');
     const item = this.items.create({ ...dto, subcategory });
     return this.items.save(item);
+  }
+
+  private async uploadCategoryImage(
+    slug: string,
+    file: Express.Multer.File,
+  ): Promise<{ key: string; url: string }> {
+    const normalizedSlug = slug || 'category';
+    const key = `categories/${normalizedSlug}-${Date.now()}`;
+    const url = await this.s3.uploadPublic(key, {
+      buffer: file.buffer,
+      originalname: file.originalname,
+      mimetype: file.mimetype,
+      size: file.size,
+    });
+    return { key, url };
   }
 
   async updateItem(id: string, dto: UpdateServiceItemDto) {

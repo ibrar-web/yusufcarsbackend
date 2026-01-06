@@ -7,7 +7,9 @@ import {
   Patch,
   Post,
   Query,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { AdminServicesService } from './services.service';
 import { JwtCookieGuard } from '../guards/jwt-cookie.guard';
@@ -19,6 +21,8 @@ import { CreateServiceItemDto } from './dto/create-service-item.dto';
 import { UpdateServiceItemDto } from './dto/update-service-item.dto';
 import { CreateServiceCategoryDto } from './dto/create-service-category.dto';
 import { UpdateServiceCategoryDto } from './dto/update-service-category.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
+import type { Express } from 'express';
 
 @Controller('admin/service')
 @UseGuards(JwtCookieGuard, RolesGuard)
@@ -37,16 +41,22 @@ export class AdminServicesController {
   }
 
   @Post('categories')
-  createCategory(@Body() dto: CreateServiceCategoryDto) {
-    return this.servicesService.createCategory(dto);
+  @UseInterceptors(FileInterceptor('image'))
+  createCategory(
+    @Body() dto: CreateServiceCategoryDto,
+    @UploadedFile() file?: Express.Multer.File,
+  ) {
+    return this.servicesService.createCategory(dto, file);
   }
 
   @Patch('categories/:id')
+  @UseInterceptors(FileInterceptor('image'))
   updateCategory(
     @Param('id') id: string,
     @Body() dto: UpdateServiceCategoryDto,
+    @UploadedFile() file?: Express.Multer.File,
   ) {
-    return this.servicesService.updateCategory(id, dto);
+    return this.servicesService.updateCategory(id, dto, file);
   }
 
   @Delete('categories/:id')
