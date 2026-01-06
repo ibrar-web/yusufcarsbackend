@@ -8,6 +8,8 @@ import {
   UseInterceptors,
   UnauthorizedException,
   BadRequestException,
+  Query,
+  Header,
 } from '@nestjs/common';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { plainToInstance } from 'class-transformer';
@@ -22,7 +24,6 @@ import type {
   RequestWithAuth,
 } from '../../common/types/authenticated-user';
 import type { ValidationError } from 'class-validator';
-import { VerifyEmailDto } from './authdtos/verify-email.dto';
 import { GoogleLoginDto } from './authdtos/google-login.dto';
 
 @Controller('/auth')
@@ -119,9 +120,36 @@ export class AuthController {
     return await this.auth.register(body, undefined);
   }
 
-  @Post('verify-email')
-  async verifyEmail(@Body() dto: VerifyEmailDto) {
-    return this.auth.verifyEmail(dto.email, dto.code);
+  @Get('verify-email-link')
+  @Header('Content-Type', 'text/html')
+  async verifyEmailLink(@Query('token') token?: string): Promise<string> {
+    if (!token) {
+      return this.renderVerificationResult({
+        title: 'Verification link invalid',
+        message:
+          'The verification link is missing some information. Please request a new email.',
+        success: false,
+      });
+    }
+    try {
+      await this.auth.verifyEmailWithToken(token);
+      return this.renderVerificationResult({
+        title: 'Profile verified',
+        message:
+          'Thanks for confirming your email. You can continue to PartsQuote.',
+        success: true,
+      });
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : 'Unable to verify your email right now.';
+      return this.renderVerificationResult({
+        title: 'Verification failed',
+        message,
+        success: false,
+      });
+    }
   }
 
   @Post('google')
@@ -147,5 +175,65 @@ export class AuthController {
       value !== null &&
       Array.isArray((value as ValidationError).children)
     );
+  }
+
+  private renderVerificationResult(options: {
+    title: string;
+    message: string;
+    success: boolean;
+  }): string {
+    const continueUrl = process.env.CORS_ORIGIN || 'https://partsquote.co.uk';
+    const accent = options.success ? '#16a34a' : '#dc2626';
+    return `<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>${options.title}</title>
+    <style>
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        background: #f5f5f4;
+        margin: 0;
+        padding: 24px;
+        color: #1f2937;
+      }
+      .card {
+        max-width: 480px;
+        margin: 48px auto;
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+        padding: 32px;
+        text-align: center;
+      }
+      .card h1 {
+        margin-top: 0;
+        color: ${accent};
+        font-size: 28px;
+      }
+      .card p {
+        font-size: 16px;
+        margin-bottom: 32px;
+      }
+      .card a {
+        display: inline-block;
+        padding: 12px 28px;
+        background: #2563eb;
+        color: #fff;
+        border-radius: 999px;
+        text-decoration: none;
+        font-weight: 600;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h1>${options.title}</h1>
+      <p>${options.message}</p>
+      <a href="${continueUrl}" target="_self" rel="noopener">Continue</a>
+    </div>
+  </body>
+</html>`;
   }
 }

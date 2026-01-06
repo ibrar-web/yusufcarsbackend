@@ -99,10 +99,11 @@ export class AuthService {
     const verificationExpiresAt = new Date(
       Date.now() + this.verificationTtlMinutes * 60_000,
     );
-    const verificationUrl = this.buildVerificationUrl(
-      dto.email,
-      verificationCode,
+    const verificationToken = await this.jose.sign(
+      { email: dto.email, code: verificationCode },
+      { expiresIn: `${this.verificationTtlMinutes}m` },
     );
+    const verificationUrl = this.buildVerificationUrl(verificationToken);
     try {
       await sendEmailVerificationEmail({
         to: dto.email,
@@ -316,6 +317,28 @@ export class AuthService {
     return { verified: true };
   }
 
+  async verifyEmailWithToken(token: string): Promise<{ verified: true }> {
+    let payload: { email?: string; code?: string };
+    try {
+      payload = await this.jose.verify<{ email?: string; code?: string }>(token);
+    } catch (error) {
+      this.logger.warn(
+        `Invalid verification token: ${
+          error instanceof Error ? error.message : error
+        }`,
+      );
+      throw new BadRequestException(
+        'Verification link is invalid or has expired.',
+      );
+    }
+    if (!payload.email || !payload.code) {
+      throw new BadRequestException(
+        'Verification link is invalid or has expired.',
+      );
+    }
+    return this.verifyEmail(payload.email, payload.code);
+  }
+
   async loginWithGoogle(dto: GoogleLoginDto): Promise<LoginResult> {
     const payload = await this.verifyGoogleIdToken(dto.idToken);
     const email = (payload.email || '').toLowerCase();
@@ -399,7 +422,7 @@ export class AuthService {
     return Math.floor(100000 + Math.random() * 900000).toString();
   }
 
-  private buildVerificationUrl(email: string, code: string) {
+  private buildVerificationUrl(token: string) {
     const base =
       process.env.EMAIL_VERIFICATION_URL ??
       process.env.FRONTEND_URL ??
@@ -408,8 +431,7 @@ export class AuthService {
     if (!base) return '#';
     try {
       const url = new URL(base);
-      url.searchParams.set('email', email);
-      url.searchParams.set('code', code);
+      url.searchParams.set('token', token);
       return url.toString();
     } catch {
       return '#';
