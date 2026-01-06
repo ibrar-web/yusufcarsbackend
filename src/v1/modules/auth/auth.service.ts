@@ -74,7 +74,7 @@ export class AuthService {
   async register(
     dto: UserRegisterDto | SupplierRegisterDto,
     docs?: Record<string, UploadedFile | undefined>,
-  ): Promise<PublicUser> {
+  ): Promise<{ user: PublicUser; message: string }> {
     const existing = await this.users.findOne({ where: { email: dto.email } });
     if (existing) throw new BadRequestException('Email already in use');
 
@@ -95,8 +95,33 @@ export class AuthService {
       status: UserStatus.INACTIVE,
       emailVerifiedAt: null,
     });
+    const verificationCode = this.generateCode();
+    const verificationExpiresAt = new Date(
+      Date.now() + this.verificationTtlMinutes * 60_000,
+    );
+    const verificationUrl = this.buildVerificationUrl(
+      dto.email,
+      verificationCode,
+    );
+    try {
+      await sendEmailVerificationEmail({
+        to: dto.email,
+        name: this.normalizeRequiredName(dto.firstName),
+        verificationUrl,
+        expiresInMinutes: this.verificationTtlMinutes,
+      });
+    } catch (error) {
+      this.logger.warn(
+        `Verification email failed for ${dto.email}: ${
+          error instanceof Error ? error.message : error
+        }`,
+      );
+      throw new BadRequestException(
+        'Unable to send verification email. Please check the email address and try again.',
+      );
+    }
+
     await this.users.save(user);
-    await this.issueEmailVerification(user);
 
     let supplier: Supplier | undefined;
     if (user.role === 'supplier') {
@@ -123,8 +148,15 @@ export class AuthService {
       await this.saveUploadedDocuments(supplier, uploadedDocs);
     }
     applyProfileCompletion(user, supplier ?? null);
+    await this.createVerificationRecord(
+      user,
+      verificationCode,
+      verificationExpiresAt,
+    );
     await this.users.save(user);
-    return user.toPublic();
+    const message =
+      'Verification email sent. Please check your inbox to verify your account.';
+    return { user: user.toPublic(), message };
   }
 
   private resolvePostCode(dto: UserRegisterDto | SupplierRegisterDto) {
@@ -153,11 +185,6 @@ export class AuthService {
   private normalizeRequiredName(value?: string | null, fallback = 'User') {
     const normalized = (value ?? '').trim();
     return normalized.length ? normalized : fallback;
-  }
-
-  private normalizeOptionalName(value?: string | null) {
-    const normalized = (value ?? '').trim();
-    return normalized.length ? normalized : null;
   }
 
   private ensureSupplierDocuments(
@@ -353,11 +380,11 @@ export class AuthService {
     return this.login(user.toPublic());
   }
 
-  private async issueEmailVerification(user: User) {
-    const code = this.generateCode();
-    const expiresAt = new Date(
-      Date.now() + this.verificationTtlMinutes * 60_000,
-    );
+  private async createVerificationRecord(
+    user: User,
+    code: string,
+    expiresAt: Date,
+  ) {
     const verification = this.emailVerifications.create({
       user,
       code,
@@ -366,15 +393,6 @@ export class AuthService {
       attempts: 0,
     });
     await this.emailVerifications.save(verification);
-
-    const verificationUrl = this.buildVerificationUrl(user.email, code);
-    await sendEmailVerificationEmail({
-      to: user.email,
-      name: this.normalizeRequiredName(user.firstName),
-      verificationUrl,
-      code,
-      expiresInMinutes: this.verificationTtlMinutes,
-    });
   }
 
   private generateCode() {

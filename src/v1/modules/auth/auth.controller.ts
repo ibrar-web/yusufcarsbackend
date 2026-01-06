@@ -116,7 +116,7 @@ export class AuthController {
     ]),
   )
   async registerAdmin(@Body() body: AdminRegisterDto) {
-    return await this.auth.register(body);
+    return await this.auth.register(body, undefined);
   }
 
   @Post('verify-email')
