@@ -1,7 +1,13 @@
-import { Injectable, BadRequestException, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { In, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
+import { randomUUID } from 'crypto';
 import { User, UserStatus } from '../../entities/user.entity';
 import { Supplier } from '../../entities/supplier.entity';
 import { SupplierDocument } from '../../entities/supplier-document.entity';
@@ -15,6 +21,27 @@ import {
   type UploadedDocMeta,
 } from '../../common/aws/kyc-docs.service';
 import { GoogleGeocodingService } from '../../common/geocoding/google-geocoding.service';
+import { EmailVerification } from '../../entities/email-verification.entity';
+import { sendEmailVerificationEmail } from '../../common/emails/templates';
+import { GoogleLoginDto } from './authdtos/google-login.dto';
+import { JWTPayload, createRemoteJWKSet, jwtVerify } from 'jose';
+
+const GOOGLE_JWKS = createRemoteJWKSet(
+  new URL('https://www.googleapis.com/oauth2/v3/certs'),
+);
+const GOOGLE_ISSUERS: string[] = [
+  'https://accounts.google.com',
+  'accounts.google.com',
+];
+
+type GoogleIdPayload = JWTPayload & {
+  email?: string;
+  email_verified?: boolean;
+  given_name?: string;
+  family_name?: string;
+  name?: string;
+  picture?: string;
+};
 
 type PublicUser = Omit<User, 'password'>;
 
@@ -26,6 +53,7 @@ type LoginResult = {
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
+  private readonly verificationTtlMinutes = 30;
 
   constructor(
     @InjectRepository(User) private readonly users: Repository<User>,
@@ -35,6 +63,8 @@ export class AuthService {
     private readonly supplierDocs: Repository<SupplierDocument>,
     @InjectRepository(SupplierDocumentType)
     private readonly documentTypes: Repository<SupplierDocumentType>,
+    @InjectRepository(EmailVerification)
+    private readonly emailVerifications: Repository<EmailVerification>,
     private readonly jose: JoseService,
     private readonly kycDocs: KycDocsService,
     private readonly geocoding: GoogleGeocodingService,
@@ -61,12 +91,11 @@ export class AuthService {
       postCode,
       latitude: coordinates?.latitude,
       longitude: coordinates?.longitude,
-      status:
-        (dto.role ?? 'user') === 'supplier'
-          ? UserStatus.INACTIVE
-          : UserStatus.ACTIVE,
+      status: UserStatus.INACTIVE,
+      emailVerifiedAt: null,
     });
     await this.users.save(user);
+    await this.issueEmailVerification(user);
 
     if (user.role === 'supplier') {
       this.ensureSupplierDocuments(docs);
@@ -202,6 +231,7 @@ export class AuthService {
   ): Promise<PublicUser | null> {
     const user = await this.users.findOne({ where: { email } });
     if (!user) return null;
+    if (!user.emailVerifiedAt) return null;
     const ok = await bcrypt.compare(password, user.password);
     if (!ok) return null;
     if (user.status !== UserStatus.ACTIVE) return null;
@@ -218,5 +248,157 @@ export class AuthService {
   }
   logout() {
     return { ok: true };
+  }
+
+  async verifyEmail(email: string, code: string): Promise<{ verified: true }> {
+    const user = await this.users.findOne({ where: { email } });
+    if (!user) {
+      throw new NotFoundException('Account not found');
+    }
+    if (user.emailVerifiedAt) {
+      return { verified: true };
+    }
+    const verification = await this.emailVerifications.findOne({
+      where: { user: { id: user.id }, consumed: false },
+      order: { createdAt: 'DESC' },
+    });
+    if (!verification) {
+      throw new BadRequestException('Verification code not found');
+    }
+    if (verification.expiresAt < new Date()) {
+      throw new BadRequestException('Verification code expired');
+    }
+    if (verification.code !== code) {
+      verification.attempts += 1;
+      await this.emailVerifications.save(verification);
+      throw new BadRequestException('Invalid verification code');
+    }
+    verification.consumed = true;
+    verification.verifiedAt = new Date();
+    await this.emailVerifications.save(verification);
+
+    user.emailVerifiedAt = new Date();
+    if (user.role !== 'supplier') {
+      user.status = UserStatus.ACTIVE;
+    }
+    await this.users.save(user);
+    return { verified: true };
+  }
+
+  async loginWithGoogle(dto: GoogleLoginDto): Promise<LoginResult> {
+    const payload = await this.verifyGoogleIdToken(dto.idToken);
+    const email = (payload.email || '').toLowerCase();
+    if (!email) {
+      throw new BadRequestException('Google account missing email');
+    }
+    if (!payload.email_verified) {
+      throw new BadRequestException(
+        'Google account email is not verified. Please verify with Google first.',
+      );
+    }
+
+    let user = await this.users.findOne({ where: { email } });
+    if (!user) {
+      const postCode = (dto.postCode ?? '').trim();
+      if (!postCode) {
+        throw new BadRequestException('Postcode is required to complete signup');
+      }
+      const coordinates = await this.lookupCoordinates(postCode);
+      user = this.users.create({
+        email,
+        password: this.generateRandomPassword(),
+        firstName: this.normalizeRequiredName(payload.given_name),
+        lastName: this.normalizeRequiredName(payload.family_name, 'User'),
+        role: 'user',
+        postCode,
+        latitude: coordinates?.latitude,
+        longitude: coordinates?.longitude,
+        status: UserStatus.ACTIVE,
+        emailVerifiedAt: new Date(),
+      });
+      await this.users.save(user);
+    } else if (!user.emailVerifiedAt) {
+      user.emailVerifiedAt = new Date();
+      if (user.role !== 'supplier') {
+        user.status = UserStatus.ACTIVE;
+      }
+      await this.users.save(user);
+    }
+
+    if (user.status === UserStatus.SUSPENDED || user.status === UserStatus.DELETED) {
+      throw new BadRequestException('Account is not active');
+    }
+
+    return this.login(user.toPublic());
+  }
+
+  private async issueEmailVerification(user: User) {
+    const code = this.generateCode();
+    const expiresAt = new Date(
+      Date.now() + this.verificationTtlMinutes * 60_000,
+    );
+    const verification = this.emailVerifications.create({
+      user,
+      code,
+      expiresAt,
+      consumed: false,
+      attempts: 0,
+    });
+    await this.emailVerifications.save(verification);
+
+    const verificationUrl = this.buildVerificationUrl(user.email, code);
+    await sendEmailVerificationEmail({
+      to: user.email,
+      name: this.normalizeRequiredName(user.firstName),
+      verificationUrl,
+      code,
+      expiresInMinutes: this.verificationTtlMinutes,
+    });
+  }
+
+  private generateCode() {
+    return Math.floor(100000 + Math.random() * 900000).toString();
+  }
+
+  private buildVerificationUrl(email: string, code: string) {
+    const base =
+      process.env.EMAIL_VERIFICATION_URL ??
+      process.env.FRONTEND_URL ??
+      process.env.CORS_ORIGIN ??
+      '';
+    if (!base) return '#';
+    try {
+      const url = new URL(base);
+      url.searchParams.set('email', email);
+      url.searchParams.set('code', code);
+      return url.toString();
+    } catch {
+      return '#';
+    }
+  }
+
+  private async verifyGoogleIdToken(idToken: string): Promise<GoogleIdPayload> {
+    const clientId = process.env.GOOGLE_CLIENT_ID;
+    if (!clientId) {
+      throw new BadRequestException('Google authentication is not configured.');
+    }
+    try {
+      const { payload } = await jwtVerify(idToken, GOOGLE_JWKS, {
+        audience: clientId,
+        issuer: GOOGLE_ISSUERS,
+      });
+      return payload as GoogleIdPayload;
+    } catch (error) {
+      this.logger.warn(
+        `Google token verification failed: ${
+          error instanceof Error ? error.message : 'Unknown error'
+        }`,
+      );
+      throw new BadRequestException('Invalid Google ID token');
+    }
+  }
+
+  private generateRandomPassword() {
+    return randomUUID().replace(/-/g, '');
   }
 }

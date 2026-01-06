@@ -10,6 +10,7 @@ import { SupplierDocumentType } from '../../entities/supplier-document-type.enti
 import { KycDocsService } from '../../common/aws/kyc-docs.service';
 import { S3Service } from '../../common/aws/s3.service';
 import { GoogleGeocodingService } from '../../common/geocoding/google-geocoding.service';
+import { EmailVerification } from '../../entities/email-verification.entity';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { GoogleGeocodingService } from '../../common/geocoding/google-geocoding.
       Supplier,
       SupplierDocument,
       SupplierDocumentType,
+      EmailVerification,
     ]),
   ],
   controllers: [AuthController],

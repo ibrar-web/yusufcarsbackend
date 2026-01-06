@@ -63,6 +63,9 @@ export class User {
   @Column({ type: 'text', nullable: true })
   suspensionReason?: string | null;
 
+  @Column({ type: 'timestamptz', nullable: true })
+  emailVerifiedAt?: Date | null;
+
   @CreateDateColumn()
   createdAt!: Date;
 

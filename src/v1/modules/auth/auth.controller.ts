@@ -22,6 +22,8 @@ import type {
   RequestWithAuth,
 } from '../../common/types/authenticated-user';
 import type { ValidationError } from 'class-validator';
+import { VerifyEmailDto } from './authdtos/verify-email.dto';
+import { GoogleLoginDto } from './authdtos/google-login.dto';
 
 @Controller('/auth')
 export class AuthController {
@@ -115,6 +117,16 @@ export class AuthController {
   )
   async registerAdmin(@Body() body: AdminRegisterDto) {
     return await this.auth.register(body);
+  }
+
+  @Post('verify-email')
+  async verifyEmail(@Body() dto: VerifyEmailDto) {
+    return this.auth.verifyEmail(dto.email, dto.code);
+  }
+
+  @Post('google')
+  async googleAuth(@Body() dto: GoogleLoginDto) {
+    return this.auth.loginWithGoogle(dto);
   }
 
   private formatValidationErrors(error: unknown): string {
