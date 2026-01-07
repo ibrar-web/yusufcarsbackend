@@ -29,20 +29,13 @@ export class UserProfileController {
   }
 
   @Put()
+  @UseInterceptors(FileInterceptor('image'))
   update(
     @CurrentUser() user: AuthenticatedUser,
     @Body() dto: UpdateUserProfileDto,
+    @UploadedFile() file?: Express.Multer.File,
   ) {
-    return this.profile.updateProfile(user.sub, dto);
-  }
-
-  @Put('avatar')
-  @UseInterceptors(FileInterceptor('image'))
-  updateAvatar(
-    @CurrentUser() user: AuthenticatedUser,
-    @UploadedFile() file: Express.Multer.File,
-  ) {
-    return this.profile.updateProfileImage(user.sub, file);
+    return this.profile.updateProfile(user.sub, dto, file);
   }
 
   @Put('password')

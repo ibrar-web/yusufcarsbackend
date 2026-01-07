@@ -91,7 +91,21 @@ export class S3Service {
       ContentType: file.mimetype,
       ACL: 'public-read',
     });
-    await this.publicClient.send(command);
+    try {
+      await this.publicClient.send(command);
+    } catch (error) {
+      if (this.isAclNotSupported(error)) {
+        const fallback = new PutObjectCommand({
+          Bucket: this.publicBucket,
+          Key: key,
+          Body: file.buffer,
+          ContentType: file.mimetype,
+        });
+        await this.publicClient.send(fallback);
+      } else {
+        throw error;
+      }
+    }
     return this.buildUrl(this.publicBucket, this.publicRegion, key);
   }
 
@@ -134,6 +148,14 @@ export class S3Service {
         ? `https://${bucket}.s3.amazonaws.com`
         : `https://${bucket}.s3.${region}.amazonaws.com`;
     return `${baseDomain}/${key}`;
+  }
+
+  private isAclNotSupported(error: unknown): boolean {
+    if (!(error instanceof Error)) return false;
+    return (
+      error.name === 'AccessControlListNotSupported' ||
+      error.message.includes('AccessControlListNotSupported')
+    );
   }
 
   private generateKey(prefix: string, docType: KycDocumentType) {

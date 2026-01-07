@@ -53,7 +53,11 @@ export class UserProfileService {
     };
   }
 
-  async updateProfile(userId: string, dto: UpdateUserProfileDto) {
+  async updateProfile(
+    userId: string,
+    dto: UpdateUserProfileDto,
+    file?: Express.Multer.File,
+  ) {
     const user = await this.users.findOne({
       where: { id: userId },
       relations: { supplier: true },
@@ -77,6 +81,17 @@ export class UserProfileService {
         user.longitude = coordinates.longitude;
       }
     }
+    if (file) {
+      const key = `profiles/${user.id}/avatar-${Date.now()}`;
+      const url = await this.s3.uploadPublic(key, {
+        buffer: file.buffer,
+        originalname: file.originalname,
+        mimetype: file.mimetype,
+        size: file.size,
+      });
+      user.profileImageKey = key;
+      user.profileImageUrl = url;
+    }
     applyProfileCompletion(user, user.supplier);
     const saved = await this.users.save(user);
     return saved.toPublic();
@@ -94,29 +109,29 @@ export class UserProfileService {
     return saved.toPublic();
   }
 
-  async updateProfileImage(userId: string, file?: Express.Multer.File) {
-    if (!file) {
-      throw new BadRequestException('Image file is required');
-    }
-    const user = await this.users.findOne({
-      where: { id: userId },
-      relations: { supplier: true },
-    });
-    if (!user) throw new NotFoundException('User not found');
+  // async updateProfileImage(userId: string, file?: Express.Multer.File) {
+  //   if (!file) {
+  //     throw new BadRequestException('Image file is required');
+  //   }
+  //   const user = await this.users.findOne({
+  //     where: { id: userId },
+  //     relations: { supplier: true },
+  //   });
+  //   if (!user) throw new NotFoundException('User not found');
 
-    const key = `profiles/${user.id}/avatar-${Date.now()}`;
-    const url = await this.s3.uploadPublic(key, {
-      buffer: file.buffer,
-      originalname: file.originalname,
-      mimetype: file.mimetype,
-      size: file.size,
-    });
-    user.profileImageKey = key;
-    user.profileImageUrl = url;
-    applyProfileCompletion(user, user.supplier);
-    const saved = await this.users.save(user);
-    return saved.toPublic();
-  }
+  //   const key = `profiles/${user.id}/avatar-${Date.now()}`;
+  //   const url = await this.s3.uploadPublic(key, {
+  //     buffer: file.buffer,
+  //     originalname: file.originalname,
+  //     mimetype: file.mimetype,
+  //     size: file.size,
+  //   });
+  //   user.profileImageKey = key;
+  //   user.profileImageUrl = url;
+  //   applyProfileCompletion(user, user.supplier);
+  //   const saved = await this.users.save(user);
+  //   return saved.toPublic();
+  // }
 
   private async lookupCoordinates(postCode: string) {
     try {
