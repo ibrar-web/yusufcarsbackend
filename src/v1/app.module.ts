@@ -12,6 +12,7 @@ import { SocketsModule } from './modules/sockets/sockets.module';
 import { HealthController } from './health/health.controller';
 import { PublicModule } from './modules/public/public.module';
 import { BlogModule } from './modules/blog/blog.module';
+import { BadgesModule } from './modules/badges/badges.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { BlogModule } from './modules/blog/blog.module';
     SocketsModule,
     PublicModule,
     BlogModule,
+    BadgesModule,
   ],
   controllers: [HealthController],
   providers: [S3Service, KycDocsService],

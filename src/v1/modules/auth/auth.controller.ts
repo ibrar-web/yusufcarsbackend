@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return */
 import {
   Body,
   Controller,
@@ -127,7 +126,6 @@ export class AuthController {
   async verifyEmailLink(@Query('token') token?: string): Promise<string> {
     const continueUrl = process.env.CORS_ORIGIN || 'https://partsquote.co.uk';
     if (!token) {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
       return renderVerificationResultPage({
         title: 'Verification link invalid',
         message:
@@ -138,7 +136,7 @@ export class AuthController {
     }
     try {
       await this.auth.verifyEmailWithToken(token);
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+
       return renderVerificationResultPage({
         title: 'Profile verified',
         message:
@@ -151,7 +149,7 @@ export class AuthController {
         error instanceof Error
           ? error.message
           : 'Unable to verify your email right now.';
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+
       return renderVerificationResultPage({
         title: 'Verification failed',
         message,

@@ -15,16 +15,8 @@ export type PromotionEmailParams = {
 export async function sendPromotionEmail(
   params: PromotionEmailParams,
 ): Promise<void> {
-  const {
-    to,
-    name,
-    subject,
-    title,
-    description,
-    highlights,
-    cta,
-    footerNote,
-  } = params;
+  const { to, name, subject, title, description, highlights, cta, footerNote } =
+    params;
 
   const html = renderTemplate({
     previewText: subject,

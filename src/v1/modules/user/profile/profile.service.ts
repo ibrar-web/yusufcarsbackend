@@ -13,6 +13,15 @@ import * as bcrypt from 'bcrypt';
 import { S3Service } from '../../../common/aws/s3.service';
 import { applyProfileCompletion } from '../../../common/utils/profile-completion.util';
 import type { Express } from 'express';
+import { UserBadgeType } from '../../../entities/user-badge.entity';
+
+type UserBadgeSummary = {
+  id: string;
+  badge: UserBadgeType;
+  metadata: Record<string, unknown> | null;
+  createdAt: Date;
+  updatedAt: Date;
+};
 
 @Injectable()
 export class UserProfileService {
@@ -27,10 +36,21 @@ export class UserProfileService {
   async getProfile(userId: string) {
     const user = await this.users.findOne({
       where: { id: userId },
-      relations: { supplier: true },
+      relations: { supplier: true, badges: true },
     });
     if (!user) throw new NotFoundException('User not found');
-    return user.toPublic();
+    const profile = user.toPublic();
+    const badgeSummaries: UserBadgeSummary[] = (user.badges ?? []).map((badge) => ({
+      id: badge.id,
+      badge: badge.badge,
+      metadata: badge.metadata ?? null,
+      createdAt: badge.createdAt,
+      updatedAt: badge.updatedAt,
+    }));
+    return {
+      ...profile,
+      badgeSummaries,
+    };
   }
 
   async updateProfile(userId: string, dto: UpdateUserProfileDto) {

@@ -9,11 +9,11 @@ export type QuoteRequestCreatedPayload = {
       name: string;
       slug: string;
     }>;
-    user:{
+    user: {
       id?: string | null;
       firstName?: string | null;
-    }
-  }
+    };
+  };
   createdAt: Date | string;
   expiresAt: Date | string;
   // postcode: string;

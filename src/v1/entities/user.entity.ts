@@ -6,11 +6,13 @@ import {
   BeforeInsert,
   BeforeUpdate,
   OneToOne,
+  OneToMany,
   Index,
 } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { Supplier } from './supplier.entity';
 import { Exclude } from 'class-transformer';
+import { UserBadge } from './user-badge.entity';
 
 export type AppRole =
   | 'admin'
@@ -100,6 +102,9 @@ export class User {
     onDelete: 'SET NULL',
   })
   supplier?: Supplier;
+
+  @OneToMany(() => UserBadge, (badge) => badge.user)
+  badges?: UserBadge[];
 
   toPublic(): Omit<User, 'password'> {
     const publicFields = { ...this } as User;

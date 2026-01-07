@@ -320,7 +320,9 @@ export class AuthService {
   async verifyEmailWithToken(token: string): Promise<{ verified: true }> {
     let payload: { email?: string; code?: string };
     try {
-      payload = await this.jose.verify<{ email?: string; code?: string }>(token);
+      payload = await this.jose.verify<{ email?: string; code?: string }>(
+        token,
+      );
     } catch (error) {
       this.logger.warn(
         `Invalid verification token: ${

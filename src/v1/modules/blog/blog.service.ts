@@ -26,7 +26,7 @@ export class BlogService {
       images: dto.images ?? null,
       videoUrl: dto.videoUrl,
       references: dto.references ?? null,
-      comments: (dto.comments as string[] | undefined) ?? null,
+      comments: dto.comments ?? null,
       seoTitle: dto.seoTitle,
       seoDescription: dto.seoDescription,
       seoImageUrl: dto.seoImageUrl,

@@ -143,7 +143,7 @@ export class QuoteRequestNotificationService {
         },
       },
       createdAt: request.createdAt,
-      expiresAt: request.expiresAt ?? "",
+      expiresAt: request.expiresAt ?? '',
     };
   }
 }

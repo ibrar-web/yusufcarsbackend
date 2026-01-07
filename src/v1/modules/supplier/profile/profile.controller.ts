@@ -59,8 +59,7 @@ export class SupplierProfileController {
     if (files?.insuranceDoc?.[0]) {
       docs['insurance_certificate'] = files.insuranceDoc[0];
     }
-    const payload =
-      Object.keys(docs).length > 0 ? docs : undefined;
+    const payload = Object.keys(docs).length > 0 ? docs : undefined;
     return this.profile.updateProfile(user.sub, dto, payload);
   }
 

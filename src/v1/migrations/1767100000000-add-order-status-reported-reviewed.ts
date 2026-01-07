@@ -33,8 +33,6 @@ export class AddOrderStatusReportedReviewed1767100000000
     await queryRunner.query(
       `ALTER TABLE "orders" ALTER COLUMN "status" SET DEFAULT 'in_transit'`,
     );
-    await queryRunner.query(
-      `DROP TYPE "public"."orders_status_enum_old"`,
-    );
+    await queryRunner.query(`DROP TYPE "public"."orders_status_enum_old"`);
   }
 }

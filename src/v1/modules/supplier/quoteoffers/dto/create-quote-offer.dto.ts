@@ -41,4 +41,8 @@ export class CreateQuoteOfferDto {
   @IsOptional()
   @IsDateString()
   expiresAt?: string;
+
+  @IsOptional()
+  @IsUUID()
+  promotionId?: string;
 }

@@ -5,7 +5,9 @@ import {
   Param,
   Post,
   Query,
+  UploadedFiles,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { AuthGuard } from '../../../common/guards/auth.guard';
 import { RolesGuard } from '../../../common/guards/roles.guard';
@@ -15,6 +17,8 @@ import { UserRequestQuoteService } from './request-quote.service';
 import { CreateRequestQuoteDto } from './dto/create-request-quote.dto';
 import { QuoteRequest } from '../../../entities/quotes/quote-request.entity';
 import type { AuthenticatedUser } from '../../../common/types/authenticated-user';
+import { FileFieldsInterceptor } from '@nestjs/platform-express';
+import type { Express } from 'express';
 
 type QuoteRequestStatus = QuoteRequest['status'];
 
@@ -38,10 +42,21 @@ export class UserRequestQuoteController {
   }
 
   @Post()
+  @UseInterceptors(
+    FileFieldsInterceptor([{ name: 'images', maxCount: 6 }], {
+      limits: {
+        fileSize: 5 * 1024 * 1024,
+      },
+    }),
+  )
   create(
     @CurrentUser() user: AuthenticatedUser,
     @Body() dto: CreateRequestQuoteDto,
+    @UploadedFiles()
+    files?: {
+      images?: Express.Multer.File[];
+    },
   ) {
-    return this.requestQuotes.create(user.sub, dto);
+    return this.requestQuotes.create(user.sub, dto, files?.images);
   }
 }

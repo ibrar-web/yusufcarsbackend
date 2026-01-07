@@ -44,7 +44,8 @@ export async function sendOfferNotificationEmail(
       label: 'Review offer',
       url: viewUrl,
     },
-    footerNote: 'Need help comparing offers? Reply to this email and we can help.',
+    footerNote:
+      'Need help comparing offers? Reply to this email and we can help.',
   });
 
   await sendEmail({

@@ -14,6 +14,15 @@ import { User } from '../user.entity';
 import { QuoteOffer } from './quote-offers.entity';
 import { ServiceItem } from '../services/service-item.entity';
 
+export type QuoteRequestAttachment = {
+  key: string;
+  url: string;
+  mimeType: string;
+  originalName: string;
+  size?: number;
+  uploadedAt: string;
+};
+
 export enum QuoteRequestStatus {
   PENDING = 'pending',
   EXPIRED = 'expired',
@@ -130,6 +139,9 @@ export class QuoteRequest {
 
   @OneToMany(() => QuoteOffer, (q) => q.quoteRequest, { cascade: true })
   quotes!: QuoteOffer[];
+
+  @Column({ type: 'json', nullable: true })
+  attachments?: QuoteRequestAttachment[] | null;
 
   @CreateDateColumn()
   createdAt!: Date;

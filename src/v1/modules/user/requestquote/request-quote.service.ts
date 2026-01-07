@@ -6,13 +6,18 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsWhere, In, Repository } from 'typeorm';
-import { QuoteRequest } from '../../../entities/quotes/quote-request.entity';
+import {
+  QuoteRequest,
+  QuoteRequestAttachment,
+} from '../../../entities/quotes/quote-request.entity';
 import { User } from '../../../entities/user.entity';
 import { CreateRequestQuoteDto } from './dto/create-request-quote.dto';
 import { QUOTE_REQUEST_LIFETIME_MS } from './request-quote.constants';
 import { QuoteRequestNotificationService } from './quote-request-notification.service';
 import { GoogleGeocodingService } from '../../../common/geocoding/google-geocoding.service';
 import { ServiceItem } from '../../../entities/services/service-item.entity';
+import type { Express } from 'express';
+import { S3Service } from '../../../common/aws/s3.service';
 
 type QuoteRequestStatus = QuoteRequest['status'];
 
@@ -29,6 +34,7 @@ export class UserRequestQuoteService {
     private readonly serviceItems: Repository<ServiceItem>,
     private readonly notifications: QuoteRequestNotificationService,
     private readonly geocoding: GoogleGeocodingService,
+    private readonly s3: S3Service,
   ) {}
 
   async list(userId: string, status?: QuoteRequestStatus) {
@@ -52,7 +58,11 @@ export class UserRequestQuoteService {
     return request;
   }
 
-  async create(userId: string, dto: CreateRequestQuoteDto) {
+  async create(
+    userId: string,
+    dto: CreateRequestQuoteDto,
+    images?: Express.Multer.File[],
+  ) {
     const user = await this.users.findOne({ where: { id: userId } });
     if (!user) throw new NotFoundException('User not found');
 
@@ -86,6 +96,8 @@ export class UserRequestQuoteService {
       }
     }
 
+    const attachments = await this.uploadAttachments(userId, images);
+
     const request = this.quoteRequests.create({
       user,
       model: dto.model,
@@ -114,6 +126,7 @@ export class UserRequestQuoteService {
       expiresAt,
       latitude: coordinates?.latitude,
       longitude: coordinates?.longitude,
+      attachments,
     });
     const saved = await this.quoteRequests.save(request);
     saved.serviceItems = serviceItemEntities;
@@ -142,5 +155,36 @@ export class UserRequestQuoteService {
       );
       return null;
     }
+  }
+
+  private async uploadAttachments(
+    userId: string,
+    files?: Express.Multer.File[],
+  ): Promise<QuoteRequestAttachment[] | null> {
+    if (!files?.length) {
+      return null;
+    }
+    const uploads = await Promise.all(
+      files.slice(0, 6).map(async (file) => {
+        const key = `quote-requests/${userId}/${Date.now()}-${
+          file.originalname ?? 'attachment'
+        }`;
+        const url = await this.s3.uploadPublic(key, {
+          buffer: file.buffer,
+          originalname: file.originalname,
+          mimetype: file.mimetype,
+          size: file.size,
+        });
+        return {
+          key,
+          url,
+          mimeType: file.mimetype,
+          originalName: file.originalname,
+          size: file.size,
+          uploadedAt: new Date().toISOString(),
+        };
+      }),
+    );
+    return uploads;
   }
 }

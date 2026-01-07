@@ -13,6 +13,7 @@ import { JoseService } from '../../auth/jose.service';
 import { QuoteRequestExpiryService } from './quote-request-expiry.service';
 import { QuoteRequestNotificationService } from './quote-request-notification.service';
 import { GoogleGeocodingService } from '../../../common/geocoding/google-geocoding.service';
+import { S3Service } from '../../../common/aws/s3.service';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { GoogleGeocodingService } from '../../../common/geocoding/google-geocodi
     RolesGuard,
     JoseService,
     GoogleGeocodingService,
+    S3Service,
   ],
 })
 export class UserRequestQuoteModule {}

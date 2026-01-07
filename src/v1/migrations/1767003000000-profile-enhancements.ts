@@ -7,12 +7,8 @@ export class ProfileEnhancements1767003000000 implements MigrationInterface {
     await queryRunner.query(
       `ALTER TABLE "users" ADD "phone" character varying(50)`,
     );
-    await queryRunner.query(
-      `ALTER TABLE "users" ADD "profileImageKey" text`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "users" ADD "profileImageUrl" text`,
-    );
+    await queryRunner.query(`ALTER TABLE "users" ADD "profileImageKey" text`);
+    await queryRunner.query(`ALTER TABLE "users" ADD "profileImageUrl" text`);
     await queryRunner.query(
       `ALTER TABLE "users" ADD "profileCompletion" integer NOT NULL DEFAULT 0`,
     );

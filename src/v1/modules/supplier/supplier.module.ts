@@ -6,6 +6,7 @@ import { SupplierQuotesModule } from './quotesrequest/quotesrequest.module';
 import { SupplierQuoteOffersModule } from './quoteoffers/quote-offers.module';
 import { SupplierOrdersModule } from './orders/orders.module';
 import { SupplierStatsModule } from './stats/stats.module';
+import { SupplierPromotionsModule } from './promotions/promotions.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { SupplierStatsModule } from './stats/stats.module';
     SupplierQuoteOffersModule,
     SupplierOrdersModule,
     SupplierStatsModule,
+    SupplierPromotionsModule,
   ],
   controllers: [],
 })

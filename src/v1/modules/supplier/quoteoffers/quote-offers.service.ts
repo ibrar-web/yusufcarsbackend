@@ -5,7 +5,10 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { QuoteOffer } from '../../../entities/quote-offers.entity';
+import {
+  PromotionSnapshot,
+  QuoteOffer,
+} from '../../../entities/quote-offers.entity';
 import {
   QuoteRequest,
   QuoteRequestStatus,
@@ -16,6 +19,10 @@ import {
   SupplierQuoteNotification,
 } from '../../../entities/quotes/supplier-quote-notification.entity';
 import { QuoteOfferSocketService } from '../../sockets/quote-offers/quote-offer-socket.service';
+import {
+  PromotionStatus,
+  SupplierPromotion,
+} from '../../../entities/supplier-promotion.entity';
 
 @Injectable()
 export class SupplierQuoteOffersService {
@@ -26,6 +33,8 @@ export class SupplierQuoteOffersService {
     private readonly quoteRequests: Repository<QuoteRequest>,
     @InjectRepository(SupplierQuoteNotification)
     private readonly supplierNotifications: Repository<SupplierQuoteNotification>,
+    @InjectRepository(SupplierPromotion)
+    private readonly promotions: Repository<SupplierPromotion>,
     private readonly quoteSockets: QuoteOfferSocketService,
   ) {}
 
@@ -66,7 +75,18 @@ export class SupplierQuoteOffersService {
           'This quote request notification has expired',
         );
       }
-      const quoteRequest = notification.request;
+      const quoteRequest = await this.quoteRequests.findOne({
+        where: { id: notification.request.id },
+        relations: [
+          'user',
+          'serviceItems',
+          'serviceItems.subcategory',
+          'serviceItems.subcategory.category',
+        ],
+      });
+      if (!quoteRequest) {
+        throw new NotFoundException('Quote request not found');
+      }
 
       const requestCreatedAt = this.ensureDate(
         quoteRequest.createdAt,
@@ -87,7 +107,7 @@ export class SupplierQuoteOffersService {
       const existing = await this.quotesOffer.findOne({
         where: {
           supplier: { id: userId },
-          quoteRequest: { id: dto.quoteRequestId },
+          quoteRequest: { id: quoteRequest.id },
         },
       });
       if (existing) {
@@ -100,6 +120,14 @@ export class SupplierQuoteOffersService {
         ? this.parseDate(dto.expiresAt)
         : this.defaultExpiry();
 
+      const promotion = dto.promotionId
+        ? await this.validatePromotion(dto.promotionId, userId, quoteRequest)
+        : null;
+
+      const promotionSnapshot = promotion
+        ? this.buildPromotionSnapshot(promotion)
+        : undefined;
+
       const quote = this.quotesOffer.create({
         quoteRequest,
         supplier: notification.supplier,
@@ -110,6 +138,13 @@ export class SupplierQuoteOffersService {
         partCondition: dto.partCondition,
         notes: dto.notes,
         expiresAt,
+        promotion: promotion ?? undefined,
+        promotionSnapshot: promotionSnapshot ?? null,
+        offers: promotionSnapshot
+          ? {
+              promotion: promotionSnapshot,
+            }
+          : undefined,
       });
       const saved = await this.quotesOffer.save(quote);
       notification.status = SupplierNotificationStatus.QUOTED;
@@ -122,6 +157,7 @@ export class SupplierQuoteOffersService {
           partName: saved.partName,
           brand: saved.brand,
           offers: saved.offers ?? null,
+          promotion: saved.promotionSnapshot ?? null,
           price: saved.price,
           estimatedTime: saved.estimatedTime,
           partCondition: saved.partCondition ?? '',
@@ -173,5 +209,85 @@ export class SupplierQuoteOffersService {
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 7);
     return expiresAt;
+  }
+
+  private async validatePromotion(
+    promotionId: string,
+    supplierId: string,
+    quoteRequest: QuoteRequest,
+  ) {
+    const promotion = await this.promotions.findOne({
+      where: { id: promotionId, supplier: { id: supplierId } },
+      relations: [
+        'targetCategory',
+        'targetItem',
+        'targetItem.subcategory',
+        'targetItem.subcategory.category',
+      ],
+    });
+    if (!promotion) {
+      throw new NotFoundException('Promotion not found');
+    }
+    const now = new Date();
+    if (
+      promotion.status !== PromotionStatus.ACTIVE ||
+      promotion.endsAt <= now ||
+      promotion.startsAt > now
+    ) {
+      throw new BadRequestException('Promotion is not active');
+    }
+    if (!this.promotionMatchesRequest(promotion, quoteRequest)) {
+      throw new BadRequestException(
+        'Promotion is not applicable to this quote request',
+      );
+    }
+    return promotion;
+  }
+
+  private promotionMatchesRequest(
+    promotion: SupplierPromotion,
+    quoteRequest: QuoteRequest,
+  ) {
+    const items = quoteRequest.serviceItems ?? [];
+    if (!promotion.targetItem && !promotion.targetCategory) {
+      return true;
+    }
+    if (promotion.targetItem) {
+      if (items.length) {
+        return items.some((item) => item.id === promotion.targetItem?.id);
+      }
+      const services = quoteRequest.services ?? [];
+      return services.some((service) => service === promotion.targetItem?.id);
+    }
+    if (promotion.targetCategory) {
+      const itemMatch = items.some((item) => {
+        const categoryId = item.subcategory?.category?.id;
+        return categoryId && categoryId === promotion.targetCategory?.id;
+      });
+      if (itemMatch) return true;
+      const services = quoteRequest.services ?? [];
+      return services.some((service) => {
+        return (
+          service === promotion.targetCategory?.id ||
+          service === promotion.targetCategory?.slug
+        );
+      });
+    }
+    return false;
+  }
+
+  private buildPromotionSnapshot(
+    promotion: SupplierPromotion,
+  ): PromotionSnapshot {
+    return {
+      id: promotion.id,
+      title: promotion.title,
+      discountType: promotion.discountType,
+      discountValue: promotion.discountValue,
+      startsAt: promotion.startsAt.toISOString(),
+      endsAt: promotion.endsAt.toISOString(),
+      targetCategoryId: promotion.targetCategory?.id ?? null,
+      targetItemId: promotion.targetItem?.id ?? null,
+    };
   }
 }

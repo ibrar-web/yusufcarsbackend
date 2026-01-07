@@ -74,7 +74,9 @@ export class SupplierRegisterDto {
     }
     const raw = Array.isArray(value) ? value : [value];
     for (const entry of raw) {
-      const normalized = (typeof entry === 'string' ? entry : String(entry)).trim();
+      const normalized = (
+        typeof entry === 'string' ? entry : String(entry)
+      ).trim();
       if (normalized.length > 0) {
         return normalized;
       }

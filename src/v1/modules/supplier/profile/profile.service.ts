@@ -24,6 +24,7 @@ import { GoogleGeocodingService } from '../../../common/geocoding/google-geocodi
 import { Logger } from '@nestjs/common';
 import { applyProfileCompletion } from '../../../common/utils/profile-completion.util';
 import type { Express } from 'express';
+import { UserBadgeType } from '../../../entities/user-badge.entity';
 
 type SupplierDocumentInfo = {
   id: string;
@@ -43,8 +44,18 @@ type SupplierDocumentsResponse = {
   latestDocuments: SupplierDocumentInfo[];
 };
 
-type SupplierProfileResponse = User & {
+type SupplierBadgeSummary = {
+  id: string;
+  badge: UserBadgeType;
+  metadata: Record<string, unknown> | null;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+type SupplierProfileResponse = (User & {
   supplier?: (Supplier & { documentFiles?: SupplierDocumentsResponse }) | null;
+}) & {
+  badgeSummaries?: SupplierBadgeSummary[];
 };
 
 @Injectable()
@@ -68,7 +79,7 @@ export class SupplierProfileService {
   async getProfile(userId: string): Promise<SupplierProfileResponse> {
     const supplierUser = await this.users.findOne({
       where: { id: userId },
-      relations: ['supplier'],
+      relations: ['supplier', 'badges'],
     });
     if (!supplierUser) throw new NotFoundException('Supplier not found');
     if (supplierUser.supplier) {
@@ -81,7 +92,18 @@ export class SupplierProfileService {
         }
       ).documentFiles = documentFiles;
     }
-    return supplierUser;
+    const badgeSummaries: SupplierBadgeSummary[] = (
+      supplierUser.badges ?? []
+    ).map((badge) => ({
+      id: badge.id,
+      badge: badge.badge,
+      metadata: badge.metadata ?? null,
+      createdAt: badge.createdAt,
+      updatedAt: badge.updatedAt,
+    }));
+    return Object.assign({}, supplierUser, {
+      badgeSummaries,
+    });
   }
 
   async updateProfile(

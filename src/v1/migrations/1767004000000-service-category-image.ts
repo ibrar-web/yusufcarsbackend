@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class ServiceCategoryImage1767004000000
-  implements MigrationInterface
-{
+export class ServiceCategoryImage1767004000000 implements MigrationInterface {
   name = 'ServiceCategoryImage1767004000000';
 
   public async up(queryRunner: QueryRunner): Promise<void> {

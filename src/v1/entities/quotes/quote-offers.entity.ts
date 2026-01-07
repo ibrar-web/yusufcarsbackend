@@ -9,6 +9,18 @@ import {
 } from 'typeorm';
 import { QuoteRequest } from './quote-request.entity';
 import { User } from '../user.entity';
+import { DiscountType, SupplierPromotion } from '../supplier-promotion.entity';
+
+export type PromotionSnapshot = {
+  id: string;
+  title: string;
+  discountType: DiscountType;
+  discountValue: number;
+  startsAt: string;
+  endsAt: string;
+  targetCategoryId?: string | null;
+  targetItemId?: string | null;
+};
 
 export enum QuoteStatus {
   PENDING = 'pending',
@@ -40,6 +52,12 @@ export class QuoteOffer {
 
   @Column({ type: 'json', nullable: true })
   offers?: Record<string, unknown>; // special offers/promotions
+
+  @ManyToOne(() => SupplierPromotion, { nullable: true })
+  promotion?: SupplierPromotion | null;
+
+  @Column({ type: 'json', nullable: true })
+  promotionSnapshot?: PromotionSnapshot | null;
 
   @Column('numeric')
   price!: number;

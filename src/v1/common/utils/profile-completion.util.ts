@@ -35,7 +35,9 @@ export function applyProfileCompletion(
         ]
       : [];
 
-  const fields = supplierFields.length ? [...baseFields, ...supplierFields] : baseFields;
+  const fields = supplierFields.length
+    ? [...baseFields, ...supplierFields]
+    : baseFields;
   const completion = calculateCompletion(fields);
   user.profileCompletion = completion;
   user.profileCompleted = completion === 100;

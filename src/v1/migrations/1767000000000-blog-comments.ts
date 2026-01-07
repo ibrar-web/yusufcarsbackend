@@ -24,9 +24,7 @@ export class BlogComments1767000000000 implements MigrationInterface {
     await queryRunner.query(
       `ALTER TABLE "blogs" DROP COLUMN "author_supplier_id"`,
     );
-    await queryRunner.query(
-      `ALTER TABLE "blogs" ADD "comments" text array`,
-    );
+    await queryRunner.query(`ALTER TABLE "blogs" ADD "comments" text array`);
     await queryRunner.query(
       `ALTER TABLE "blogs" ADD CONSTRAINT "FK_a5c560d8e880fc7c83e4f75a022" FOREIGN KEY ("publisher_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE NO ACTION`,
     );
@@ -40,9 +38,7 @@ export class BlogComments1767000000000 implements MigrationInterface {
     await queryRunner.query(
       `ALTER TABLE "blogs" ADD "author_supplier_id" uuid`,
     );
-    await queryRunner.query(
-      `ALTER TABLE "blogs" ADD "author_admin_id" uuid`,
-    );
+    await queryRunner.query(`ALTER TABLE "blogs" ADD "author_admin_id" uuid`);
     await queryRunner.query(
       `UPDATE "blogs" SET "author_admin_id" = "publisher_id"`,
     );
@@ -52,9 +48,7 @@ export class BlogComments1767000000000 implements MigrationInterface {
        FROM suppliers
        WHERE "blogs"."publisher_id" = suppliers.user_id`,
     );
-    await queryRunner.query(
-      `ALTER TABLE "blogs" DROP COLUMN "publisher_id"`,
-    );
+    await queryRunner.query(`ALTER TABLE "blogs" DROP COLUMN "publisher_id"`);
     await queryRunner.query(
       `ALTER TABLE "blogs" ADD CONSTRAINT "FK_df0ace761552cf45be9a3724dc4" FOREIGN KEY ("author_admin_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE NO ACTION`,
     );
