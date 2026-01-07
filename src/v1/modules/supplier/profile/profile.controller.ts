@@ -41,6 +41,8 @@ export class SupplierProfileController {
     FileFieldsInterceptor([
       { name: 'companyRegDoc', maxCount: 1 },
       { name: 'insuranceDoc', maxCount: 1 },
+      { name: 'image', maxCount: 1 },
+      // { name: 'mainCategoryImage', maxCount: 1 },
     ]),
   )
   update(
@@ -50,6 +52,8 @@ export class SupplierProfileController {
     files?: {
       companyRegDoc?: AwsUploadedFile[];
       insuranceDoc?: AwsUploadedFile[];
+      image?: Express.Multer.File[];
+      // mainCategoryImage?: Express.Multer.File[];
     },
   ) {
     const docs: Record<string, AwsUploadedFile | undefined> = {};
@@ -60,7 +64,14 @@ export class SupplierProfileController {
       docs['insurance_certificate'] = files.insuranceDoc[0];
     }
     const payload = Object.keys(docs).length > 0 ? docs : undefined;
-    return this.profile.updateProfile(user.sub, dto, payload);
+    
+    return this.profile.updateProfile(
+      user.sub,
+      dto,
+      payload,
+      files?.image?.[0],
+      // files?.mainCategoryImage?.[0],
+    );
   }
 
   @Put('password')
@@ -71,14 +82,14 @@ export class SupplierProfileController {
     return this.profile.updatePassword(user.sub, dto);
   }
 
-  @Put('avatar')
-  @UseInterceptors(FileInterceptor('image'))
-  updateAvatar(
-    @CurrentUser() user: AuthenticatedUser,
-    @UploadedFile() file: Express.Multer.File,
-  ) {
-    return this.profile.updateProfileImage(user.sub, file);
-  }
+  // @Put('avatar')
+  // @UseInterceptors(FileInterceptor('image'))
+  // updateAvatar(
+  //   @CurrentUser() user: AuthenticatedUser,
+  //   @UploadedFile() file: Express.Multer.File,
+  // ) {
+  //   return this.profile.updateProfileImage(user.sub, file);
+  // }
 
   @Put('main-category-image')
   @UseInterceptors(FileInterceptor('image'))

@@ -110,6 +110,8 @@ export class SupplierProfileService {
     userId: string,
     dto: UpdateSupplierFlatDto,
     docs?: Record<string, UploadedFile | undefined>,
+    image?: Express.Multer.File,
+    // mainCategoryImage?: Express.Multer.File,
   ): Promise<Supplier & { documentFiles: SupplierDocumentsResponse }> {
     const supplierUser = await this.getProfile(userId);
 
@@ -193,6 +195,20 @@ export class SupplierProfileService {
       await this.suppliers.save(supplierUser.supplier);
     }
 
+    if (image) {
+      const key = `profiles/${supplierUser.id}/avatar-${Date.now()}`;
+      const url = await this.uploadPublicImageOrThrow(key, image);
+      supplierUser.profileImageKey = key;
+      supplierUser.profileImageUrl = url;
+    }
+
+    // if (mainCategoryImage) {
+    //   const key = `suppliers/${supplierUser.supplier.id}/main-category-${Date.now()}`;
+    //   const url = await this.uploadPublicImageOrThrow(key, mainCategoryImage);
+    //   supplierUser.supplier.mainCategoryImageKey = key;
+    //   supplierUser.supplier.mainCategoryImageUrl = url;
+    // }
+
     applyProfileCompletion(supplierUser, supplierUser.supplier);
     await this.users.save(supplierUser);
 
@@ -225,28 +241,28 @@ export class SupplierProfileService {
     return saved.toPublic();
   }
 
-  async updateProfileImage(userId: string, file?: Express.Multer.File) {
-    if (!file) {
-      throw new BadRequestException('Image file is required');
-    }
-    const user = await this.users.findOne({
-      where: { id: userId },
-      relations: { supplier: true },
-    });
-    if (!user) throw new NotFoundException('User not found');
-    const key = `profiles/${user.id}/avatar-${Date.now()}`;
-    const url = await this.s3.uploadPublic(key, {
-      buffer: file.buffer,
-      originalname: file.originalname,
-      mimetype: file.mimetype,
-      size: file.size,
-    });
-    user.profileImageKey = key;
-    user.profileImageUrl = url;
-    applyProfileCompletion(user, user.supplier);
-    await this.users.save(user);
-    return this.getProfile(userId);
-  }
+  // async updateProfileImage(userId: string, file?: Express.Multer.File) {
+  //   if (!file) {
+  //     throw new BadRequestException('Image file is required');
+  //   }
+  //   const user = await this.users.findOne({
+  //     where: { id: userId },
+  //     relations: { supplier: true },
+  //   });
+  //   if (!user) throw new NotFoundException('User not found');
+  //   const key = `profiles/${user.id}/avatar-${Date.now()}`;
+  //   const url = await this.s3.uploadPublic(key, {
+  //     buffer: file.buffer,
+  //     originalname: file.originalname,
+  //     mimetype: file.mimetype,
+  //     size: file.size,
+  //   });
+  //   user.profileImageKey = key;
+  //   user.profileImageUrl = url;
+  //   applyProfileCompletion(user, user.supplier);
+  //   await this.users.save(user);
+  //   return this.getProfile(userId);
+  // }
 
   async updateMainCategoryImage(userId: string, file?: Express.Multer.File) {
     if (!file) {
@@ -273,6 +289,30 @@ export class SupplierProfileService {
     applyProfileCompletion(supplierUser, supplier);
     await this.users.save(supplierUser);
     return this.getProfile(userId);
+  }
+
+  private async uploadPublicImageOrThrow(
+    key: string,
+    file: Express.Multer.File,
+  ): Promise<string> {
+    try {
+      return await this.s3.uploadPublic(key, {
+        buffer: file.buffer,
+        originalname: file.originalname,
+        mimetype: file.mimetype,
+        size: file.size,
+      });
+    } catch (error) {
+      if (
+        error instanceof Error &&
+        error.message.includes('AWS_S3_BUCKET (public) is not configured')
+      ) {
+        throw new BadRequestException(
+          'Image uploads are not available in this environment',
+        );
+      }
+      throw error;
+    }
   }
 
   private async buildDocumentResponse(
