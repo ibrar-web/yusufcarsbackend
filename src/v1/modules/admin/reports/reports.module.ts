@@ -4,6 +4,7 @@ import { User } from '../../../entities/user.entity';
 import { Supplier } from '../../../entities/supplier.entity';
 import { QuoteRequest } from '../../../entities/quotes/quote-request.entity';
 import { QuoteOffer } from '../../../entities/quote-offers.entity';
+import { Report } from '../../../entities/reports.entity';
 import { AdminReportsController } from './reports.controller';
 import { AdminReportsService } from './reports.service';
 import { JwtCookieGuard } from '../guards/jwt-cookie.guard';
@@ -13,7 +14,13 @@ import { JoseService } from '../../auth/jose.service';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User, Supplier, QuoteRequest, QuoteOffer]),
+    TypeOrmModule.forFeature([
+      User,
+      Supplier,
+      QuoteRequest,
+      QuoteOffer,
+      Report,
+    ]),
   ],
   controllers: [AdminReportsController],
   providers: [

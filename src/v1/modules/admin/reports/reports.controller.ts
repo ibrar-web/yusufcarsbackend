@@ -10,6 +10,11 @@ import { Roles } from '../decorators/roles.decorator';
 export class AdminReportsController {
   constructor(private readonly reports: AdminReportsService) {}
 
+  @Get()
+  GetAllReports () {
+    return this.reports.getAllReports();
+  }
+
   @Get('summary')
   summary(@Query('from') from?: string, @Query('to') to?: string) {
     return this.reports.summary({ from, to });
