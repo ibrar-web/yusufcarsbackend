@@ -7,6 +7,7 @@ import { SupplierQuoteOffersModule } from './quoteoffers/quote-offers.module';
 import { SupplierOrdersModule } from './orders/orders.module';
 import { SupplierStatsModule } from './stats/stats.module';
 import { SupplierPromotionsModule } from './promotions/promotions.module';
+import { SupplierReportsModule } from './reports/reports.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { SupplierPromotionsModule } from './promotions/promotions.module';
     SupplierOrdersModule,
     SupplierStatsModule,
     SupplierPromotionsModule,
+    SupplierReportsModule,
   ],
   controllers: [],
 })
