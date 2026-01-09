@@ -186,6 +186,7 @@ export class UserOrdersService {
     });
 
     order.status = OrderStatus.REPORTED;
+    order.cancellationReason = dto.cancellationReason.trim();
     await this.orders.save(order);
 
     const saved = await this.reports.save(report);
