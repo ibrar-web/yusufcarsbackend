@@ -45,15 +45,15 @@ export class QuoteRequestNotificationService {
       }),
     );
     const saved = await this.notifications.save(notificationEntities);
-    const supplierIds = saved.map((notification) => notification.supplierId);
-    const payload = this.buildSocketPayload(request);
-    if (payload && supplierIds.length) {
+    for (const notification of saved) {
+      const payload = this.buildSocketPayload(request, notification.id);
+      if (!payload) continue;
       this.sockets.emit(
         {
           type: 'created',
           ...payload,
         },
-        supplierIds,
+        [notification.supplierId],
       );
     }
   }
@@ -121,11 +121,13 @@ export class QuoteRequestNotificationService {
 
   private buildSocketPayload(
     request: QuoteRequest,
+    notificationId: string,
   ): QuoteRequestCreatedPayload | null {
     if (!request.user) return null;
     const serviceItems = request.serviceItems || [];
     const user = request.user;
     return {
+      notificationId,
       requestId: request.id,
       userId: request.user.id,
       request: {

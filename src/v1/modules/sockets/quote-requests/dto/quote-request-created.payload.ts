@@ -1,4 +1,5 @@
 export type QuoteRequestCreatedPayload = {
+  notificationId: string;
   requestId: string;
   userId: string;
   request: {
