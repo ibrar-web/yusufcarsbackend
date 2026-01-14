@@ -65,6 +65,11 @@ export class UserRequestQuoteService {
   ) {
     const user = await this.users.findOne({ where: { id: userId } });
     if (!user) throw new NotFoundException('User not found');
+    if (!user.profileCompleted) {
+      throw new BadRequestException(
+        'Please complete your profile before creating a quote request.',
+      );
+    }
 
     const resolvedPostcode = dto.postcode ?? user.postCode ?? '';
     const targetPostcode = resolvedPostcode.trim();

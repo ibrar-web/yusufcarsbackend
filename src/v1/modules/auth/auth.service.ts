@@ -263,7 +263,12 @@ export class AuthService {
   ): Promise<PublicUser | null> {
     const user = await this.users.findOne({ where: { email } });
     if (!user) return null;
-    if (!user.emailVerifiedAt) return null;
+    if (!user.emailVerifiedAt) {
+      await this.sendVerificationEmail(user);
+      throw new BadRequestException(
+        'Email not verified. A new verification email has been sent. Please verify and try again.',
+      );
+    }
     const ok = await bcrypt.compare(password, user.password);
     if (!ok) return null;
     if (user.status !== UserStatus.ACTIVE) return null;
@@ -422,6 +427,40 @@ export class AuthService {
 
   private generateCode() {
     return Math.floor(100000 + Math.random() * 900000).toString();
+  }
+
+  private async sendVerificationEmail(user: User) {
+    const verificationCode = this.generateCode();
+    const verificationExpiresAt = new Date(
+      Date.now() + this.verificationTtlMinutes * 60_000,
+    );
+    const verificationToken = await this.jose.sign(
+      { email: user.email, code: verificationCode },
+      { expiresIn: `${this.verificationTtlMinutes}m` },
+    );
+    const verificationUrl = this.buildVerificationUrl(verificationToken);
+    try {
+      await sendEmailVerificationEmail({
+        to: user.email,
+        name: this.normalizeRequiredName(user.firstName),
+        verificationUrl,
+        expiresInMinutes: this.verificationTtlMinutes,
+      });
+    } catch (error) {
+      this.logger.warn(
+        `Verification email failed for ${user.email}: ${
+          error instanceof Error ? error.message : error
+        }`,
+      );
+      throw new BadRequestException(
+        'Unable to send verification email. Please check the email address and try again.',
+      );
+    }
+    await this.createVerificationRecord(
+      user,
+      verificationCode,
+      verificationExpiresAt,
+    );
   }
 
   private buildVerificationUrl(token: string) {

@@ -61,6 +61,11 @@ export class SupplierQuoteOffersService {
           'You are not authorized to quote on this request',
         );
       }
+      if (!notification.supplier.profileCompleted) {
+        throw new BadRequestException(
+          'Please complete your profile before sending a quote offer.',
+        );
+      }
       if (notification.status !== SupplierNotificationStatus.PENDING) {
         throw new BadRequestException(
           'This quote request notification is no longer active',
