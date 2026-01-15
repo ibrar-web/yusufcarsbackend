@@ -315,9 +315,7 @@ export class AuthService {
     await this.emailVerifications.save(verification);
 
     user.emailVerifiedAt = new Date();
-    if (user.role !== 'supplier') {
-      user.status = UserStatus.ACTIVE;
-    }
+    user.status = UserStatus.ACTIVE;
     await this.users.save(user);
     return { verified: true };
   }
